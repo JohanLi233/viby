@@ -1,0 +1,21 @@
+[project]
+name = "viby"
+version = "0.0.0"
+description = "Viby Agent"
+authors = [
+    { name = "JohanLi233", email = "li_zhonghan@qq.com" }
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pocketflow>=0.0.2",
+    "prompt-toolkit>=3.0.51",
+    "pyperclip>=1.9.0",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.3",
+    "ruff>=0.11.7",
+]
+
+[project.scripts]
+yb = "viby.cli:main"
+
