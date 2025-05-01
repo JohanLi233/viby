@@ -6,23 +6,26 @@ import argparse
 import sys
 from typing import Tuple
 
+from viby.locale import get_text
+
 
 def get_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="yb - 一个与大模型交互的多功能命令行工具",
-        epilog="示例:\n"
-               "  yb \"什么是斐波那契数列?\"\n"
-               "  git diff | yb \"帮我写一个commit消息\"\n"
-               "  yb --shell \"找当前目录下所有json文件\"\n",
+        description=get_text("GENERAL", "app_description"),
+        epilog=get_text("GENERAL", "app_epilog"),
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     parser.add_argument(
         "prompt", nargs="?", 
-        help="要发送给模型的提示内容"
+        help=get_text("GENERAL", "prompt_help")
     )
     parser.add_argument(
         "--shell", "-s", action="store_true",
-        help="生成并可选执行 shell 命令"
+        help=get_text("GENERAL", "shell_help")
+    )
+    parser.add_argument(
+        "--config", "-c", action="store_true",
+        help=get_text("GENERAL", "config_help")
     )
     return parser
 

@@ -10,6 +10,8 @@ from viby.llm.models import ModelManager
 from viby.commands.shell import ShellExecutor
 from viby.utils.logging import setup_logging
 from viby.utils.formatting import response
+from viby.locale import init_text_manager, get_text
+from viby.config_wizard import run_config_wizard
 
 
 # Setup logging early
@@ -24,6 +26,13 @@ def main():
         
         # 解析命令行参数
         args = parse_arguments()
+        
+        # 首次运行或指定 --config 参数时启动交互式配置向导
+        if config.is_first_run or args.config:
+            run_config_wizard(config)
+        
+        # 初始化文本管理器
+        init_text_manager(config)
         
         # 初始化模型管理器
         model_manager = ModelManager(config)
@@ -43,8 +52,8 @@ def main():
             return response(model_manager, user_input, return_raw=False)
             
     except KeyboardInterrupt:
-        print("\n用户取消操作")
+        print(f"\n{get_text('GENERAL', 'operation_cancelled')}")
         return 130
     except Exception as e:
-        logger.error(f"错误: {str(e)}")
+        logger.error(f"{str(e)}")
         return 1

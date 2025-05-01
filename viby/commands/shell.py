@@ -13,6 +13,7 @@ from viby.llm.models import ModelManager
 from viby.utils.formatting import Colors
 from viby.utils.formatting import extract_answer
 from viby.utils.formatting import response
+from viby.locale import get_text
 
 
 class ShellExecutor:
@@ -24,10 +25,10 @@ class ShellExecutor:
     def generate_and_execute(self, user_prompt: str) -> int:
         """生成 shell 命令并支持流式输出，用户可选择执行"""
         # 强化提示，要求只返回 shell 命令
-        shell_prompt = f"请只生成一个用于：{user_prompt} 的 shell 命令。只返回命令本身，不要解释，不要 markdown。"
+        shell_prompt = get_text("SHELL", "command_prompt", user_prompt)
 
         # 流式获取命令内容
-        print(f"{Colors.BLUE}[AI 正在生成命令...]{Colors.END}")
+        print(f"{Colors.BLUE}{get_text('SHELL', 'generating_command')}{Colors.END}")
         raw_response = response(self.model_manager, shell_prompt, return_raw=True)
         command = extract_answer(raw_response)
 
@@ -37,26 +38,26 @@ class ShellExecutor:
         if command.startswith('`') and command.endswith('`'):
             command = command[1:-1].strip()
         
-        print(f"{Colors.BLUE}执行命令│  {Colors.GREEN}{command}{Colors.BLUE}  │?")
+        print(f"{Colors.BLUE}{get_text('SHELL', 'execute_prompt', command)}{Colors.END}")
 
-        choice = input(f"{Colors.YELLOW}[r]运行, [e]编辑, [y]复制, [q]放弃 (默认: 放弃): ").strip().lower()
+        choice = input(f"{Colors.YELLOW}{get_text('SHELL', 'choice_prompt')}").strip().lower()
 
         if choice in ('r', 'run'):
             return self._execute_command(command)
         elif choice == 'e':
-            new_command = prompt(f"编辑命令（原命令: {command}）:\n> ", default=command)
+            new_command = prompt(get_text('SHELL', 'edit_prompt', command), default=command)
             if new_command:
                 command = new_command
             return self._execute_command(command)
         elif choice == 'y':
             try:
                 pyperclip.copy(command)
-                print(f"{Colors.GREEN}命令已复制到剪贴板！{Colors.END}")
+                print(f"{Colors.GREEN}{get_text('GENERAL', 'copy_success')}{Colors.END}")
             except Exception as e:
-                print(f"{Colors.RED}复制失败: {e}{Colors.END}")
+                print(f"{Colors.RED}{get_text('GENERAL', 'copy_fail', str(e))}{Colors.END}")
             return 0
         else:
-            print(f"{Colors.YELLOW}操作已取消。{Colors.END}")
+            print(f"{Colors.YELLOW}{get_text('GENERAL', 'operation_cancelled')}{Colors.END}")
             return 0
     
     def _execute_command(self, command: str) -> int:
@@ -69,7 +70,7 @@ class ShellExecutor:
             terminal_width = shutil.get_terminal_size().columns
             separator = "─" * terminal_width
             
-            print(f"\n{Colors.BOLD}{Colors.BLUE}执行命令:{Colors.END} {Colors.YELLOW}{command}{Colors.END}")
+            print(f"\n{Colors.BOLD}{Colors.BLUE}{get_text('SHELL', 'executing', command)}{Colors.END}")
             print(f"{Colors.BLUE}{separator}{Colors.END}")
             
             process = subprocess.run(
@@ -81,9 +82,9 @@ class ShellExecutor:
             # 根据返回码显示不同颜色
             status_color = Colors.GREEN if process.returncode == 0 else Colors.RED
             print(f"{Colors.BLUE}{separator}{Colors.END}")
-            print(f"{status_color}命令完成 [返回码: {process.returncode}]{Colors.END}\n")
+            print(f"{status_color}{get_text('SHELL', 'command_complete', process.returncode)}{Colors.END}\n")
             
             return process.returncode
         except Exception as e:
-            print(f"{Colors.RED}命令执行出错: {str(e)}{Colors.END}")
+            print(f"{Colors.RED}{get_text('SHELL', 'command_error', str(e))}{Colors.END}")
             return 1

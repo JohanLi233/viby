@@ -18,6 +18,7 @@ class Config:
         self.base_url = "http://localhost:11434"
         self.api_timeout = 300
         self.api_key = ""
+        self.language = "en-US"  #options: en-US, zh-CN
 
         # 设置配置文件路径
         # 如果未指定路径，则使用系统标准位置：~/.config/viby/config.yaml
@@ -33,10 +34,12 @@ class Config:
         # 确保配置目录存在
         os.makedirs(self.config_dir, exist_ok=True)
 
-        # 如果配置文件不存在，使用默认值创建
-        if not os.path.exists(self.config_path):
+        # 如果配置文件不存在，标记为首次启动
+        self.is_first_run = not os.path.exists(self.config_path)
+        if self.is_first_run:
+            # 先保存默认配置，稍后会被通过向导替换
             self.save_config()
-
+        
         # 如果存在则加载配置
         self.load_config()
     
