@@ -1,3 +1,6 @@
+from rich.console import Console
+from rich.markdown import Markdown
+
 class Colors:
     GREEN = '\033[92m'
     BLUE = '\033[94m'
@@ -20,13 +23,26 @@ def extract_answer(raw_text: str) -> str:
 
 def response(model_manager, user_input, return_raw):
     """
-    流式获取模型回复并输出到终端。
+    流式获取模型回复并使用Rich渲染Markdown输出到终端。
     """
+    console = Console()
     raw_response = ""
+    line_buffer = ""
     for chunk in model_manager.stream_response(user_input):
-        print(chunk, end="", flush=True)
         raw_response += chunk
-    print()
+        line_buffer += chunk
+        while '\n' in line_buffer:
+            line, line_buffer = line_buffer.split('\n', 1)
+            # 处理<think>标签并渲染该行
+            formatted_line = line.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
+            if formatted_line.strip():
+                console.print(Markdown(formatted_line, justify="left"))
+    # 打印最后一行（如果没有以换行结尾）
+    if line_buffer.strip():
+        formatted_line = line_buffer.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
+        console.print(Markdown(formatted_line, justify="left"))
+    console.print("")
+
     if return_raw:
         return raw_response
     return 0

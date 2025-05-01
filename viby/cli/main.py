@@ -5,8 +5,8 @@ viby CLI 入口点 - 处理命令行交互
 
 
 from viby.cli.arguments import parse_arguments, process_input, get_parser
-from viby.core.config import Config
-from viby.core.models import ModelManager
+from viby.config import Config
+from viby.llm.models import ModelManager
 from viby.commands.shell import ShellExecutor
 from viby.utils.logging import setup_logging
 from viby.utils.formatting import response

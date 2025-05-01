@@ -9,7 +9,7 @@ import pyperclip
 
 from prompt_toolkit import prompt
 
-from viby.core.models import ModelManager
+from viby.llm.models import ModelManager
 from viby.utils.formatting import Colors
 from viby.utils.formatting import extract_answer
 from viby.utils.formatting import response
