@@ -11,6 +11,8 @@ from prompt_toolkit import prompt
 
 from viby.core.models import ModelManager
 from viby.utils.formatting import Colors
+from viby.utils.formatting import extract_answer
+from viby.utils.formatting import response
 
 
 class ShellExecutor:
@@ -26,13 +28,8 @@ class ShellExecutor:
 
         # 流式获取命令内容
         print(f"{Colors.BLUE}[AI 正在生成命令...]{Colors.END}")
-        raw_response = ""
-        for chunk in self.model_manager.stream_response(shell_prompt):
-            print(chunk, end="", flush=True)
-            raw_response += chunk
-        print()  # 换行
-
-        command = self._extract_command(raw_response)
+        raw_response = response(self.model_manager, shell_prompt, return_raw=True)
+        command = extract_answer(raw_response)
 
         # 清理 markdown 包裹
         if command.startswith('```') and command.endswith('```'):
@@ -61,18 +58,6 @@ class ShellExecutor:
         else:
             print(f"{Colors.YELLOW}操作已取消。{Colors.END}")
             return 0
-    
-    def _extract_command(self, raw_text: str) -> str:
-        clean_text = raw_text.strip()
-        
-        # 去除所有 <think>...</think> 块
-        while "<think>" in clean_text and "</think>" in clean_text:
-            think_start = clean_text.find("<think>")
-            think_end = clean_text.find("</think>") + len("</think>")
-            clean_text = clean_text[:think_start] + clean_text[think_end:]
-        
-        # 最后再清理一次空白字符
-        return clean_text.strip()
     
     def _execute_command(self, command: str) -> int:
         """执行 shell 命令并返回其退出代码"""

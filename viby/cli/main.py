@@ -9,6 +9,7 @@ from viby.core.config import Config
 from viby.core.models import ModelManager
 from viby.commands.shell import ShellExecutor
 from viby.utils.logging import setup_logging
+from viby.utils.formatting import response
 
 
 # Setup logging early
@@ -39,11 +40,7 @@ def main():
             shell_executor = ShellExecutor(model_manager)
             return shell_executor.generate_and_execute(user_input)
         else:
-            # 普通模式 - 流式获取模型回复
-            for chunk in model_manager.stream_response(user_input):
-                print(chunk, end="", flush=True)
-            print()
-            return 0
+            return response(model_manager, user_input, return_raw=False)
             
     except KeyboardInterrupt:
         print("\n用户取消操作")
