@@ -67,9 +67,18 @@ SHELL = {
     "command_prompt": "请只生成一个用于：{0} 的 shell 命令。只返回命令本身，不要解释，不要 markdown。",
     "generating_command": "[AI 正在生成命令...]",
     "execute_prompt": "执行命令│  {0}  │?",
-    "choice_prompt": "[r]运行, [e]编辑, [y]复制, [q]放弃 (默认: 运行): ",
+    "choice_prompt": "[r]运行, [e]编辑, [y]复制, [c]继续对话, [q]放弃 (默认: 运行): ",
     "edit_prompt": "编辑命令（原命令: {0}）:\n> ",
     "executing": "执行命令: {0}",
     "command_complete": "命令完成 [返回码: {0}]",
     "command_error": "命令执行出错: {0}",
+    "continue_chat": "继续与AI对话改进命令...",
+    "command_generated": "生成命令: {0}",
+    "improve_command_prompt": "改进这个命令: {0}, 用户的反馈: {1}",
+}
+
+# 聊天对话相关
+CHAT = {
+    "welcome": "欢迎使用 Viby 对话模式，输入 'exit' 可退出对话",
+    "input_prompt": "|> "
 }

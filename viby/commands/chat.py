@@ -1,6 +1,7 @@
 from pocketflow import Flow
 from viby.llm.nodes.input_node import InputNode
 from viby.llm.nodes.reply_node import ReplyNode
+from viby.llm.nodes.dummy_node import DummyNode
 from viby.llm.models import ModelManager
 
 class ChatCommand:
@@ -21,6 +22,7 @@ class ChatCommand:
         # 连接节点以创建流程
         input_node - "reply" >> reply_node
         reply_node - "continue" >> input_node  # ReplyNode 现在直接循环到输入节点
+        input_node >> DummyNode()
         
         # 保存流程实例
         self.flow = Flow(start=input_node)
@@ -29,7 +31,6 @@ class ChatCommand:
         # 准备共享状态
         shared = {
             "model_manager": self.model_manager,
-            "messages": []
         }
         
         # 执行流程

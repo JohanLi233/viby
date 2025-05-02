@@ -5,6 +5,7 @@ Shell command execution for viby - 使用 pocketflow 框架的重构版本
 from pocketflow import Flow
 from viby.llm.models import ModelManager
 from viby.llm.nodes.command_node import CommandNode
+from viby.llm.nodes.dummy_node import DummyNode
 from viby.llm.nodes.execute_shell_command_node import ExecuteShellCommandNode
 
 
@@ -32,6 +33,12 @@ class ShellCommand:
         # 连接节点以创建流程
         shell_prompt_node - "execute" >> execute_command_node
         
+        # 添加对话循环：如果用户选择'c'，直接返回到命令节点继续对话
+        execute_command_node - "chat" >> shell_prompt_node
+        
+        # 默认结束映射，避免Flow警告
+        execute_command_node >> DummyNode()
+        
         # 保存流程实例
         self.flow = Flow(start=shell_prompt_node)
     
@@ -41,8 +48,15 @@ class ShellCommand:
         """
         shared = {
             "model_manager": self.model_manager,
-            "user_input": user_prompt
+            "user_input": user_prompt,
+            "messages": []
         }
+        
+        # 先添加用户的初始输入到消息历史
+        shared["messages"].append({
+            "role": "user",
+            "content": user_prompt
+        })
         
         # 执行流程
         self.flow.run(shared)

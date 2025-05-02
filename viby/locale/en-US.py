@@ -67,9 +67,18 @@ SHELL = {
     "command_prompt": "Please generate only a shell command for: {0}. Return only the command itself, no explanation, no markdown.",
     "generating_command": "[AI is generating command...]",
     "execute_prompt": "Execute command│  {0}  │?",
-    "choice_prompt": "[r]run, [e]edit, [y]copy, [q]quit (default: run): ",
+    "choice_prompt": "[r]run, [e]edit, [y]copy, [c]continue chat, [q]quit (default: run): ",
     "edit_prompt": "Edit command (original: {0}):\n> ",
     "executing": "Executing command: {0}",
     "command_complete": "Command completed [Return code: {0}]",
     "command_error": "Command execution error: {0}",
+    "continue_chat": "Continuing chat with AI to improve the command...",
+    "command_generated": "Generated command: {0}",
+    "improve_command_prompt": "Improve this command: {0}, User feedback: {1}",
+}
+
+# Chat dialog related
+CHAT = {
+    "welcome": "Welcome to Viby chat mode, type 'exit' to end conversation",
+    "input_prompt": "|> "
 }

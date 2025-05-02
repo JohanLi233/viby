@@ -12,38 +12,17 @@ class CommandNode(Node):
     3. 提取命令内容
     """
     def prep(self, shared):
-        # 获取必要数据
-        result = {
+        return {
             "model_manager": shared.get("model_manager"),
+            "user_input": shared.get("user_input")
         }
-        
-        # 检查是否有响应（来自 ReplyNode）
-        if "response" in shared:
-            # 如果是从对话流程过来的，使用响应作为命令
-            result["from_chat"] = True
-            result["command"] = shared.get("response")
-        else:
-            # 如果是正常流程，使用用户输入
-            result["user_input"] = shared.get("user_input")
-            
-        return result
     
     def exec(self, prep_res):
-        if not prep_res or not prep_res.get("model_manager"):
-            return None
-            
-        model_manager = prep_res["model_manager"]
-        
-        # 检查是否是从对话流程过来的
-        if prep_res.get("from_chat"):
-            # 如果是从对话过来的，直接使用响应作为命令
-            return prep_res.get("command", "")
-        
-        # 正常流程：生成命令
-        if not prep_res.get("user_input"):
+        if not prep_res or not prep_res.get("user_input") or not prep_res.get("model_manager"):
             return None
             
         user_input = prep_res["user_input"]
+        model_manager = prep_res["model_manager"]
         
         shell_prompt = [
             {

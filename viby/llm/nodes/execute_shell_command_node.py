@@ -3,6 +3,7 @@ import subprocess
 import pyperclip
 from pocketflow import Node
 from prompt_toolkit import prompt
+from prompt_toolkit.formatted_text import HTML
 from viby.utils.formatting import Colors, print_separator
 from viby.locale import get_text
 
@@ -30,7 +31,9 @@ class ExecuteShellCommandNode(Node):
         
         # 显示命令并获取用户选择
         print(f"{Colors.BLUE}{get_text('SHELL', 'execute_prompt', command)}{Colors.END}")
-        choice = input(f"{Colors.YELLOW}{get_text('SHELL', 'choice_prompt')}").strip().lower()
+        # 使用prompt_toolkit的HTML标记来添加颜色
+        choice_prompt_html = HTML(f'<ansiyellow>{get_text("SHELL", "choice_prompt")}</ansiyellow>')
+        choice = prompt(choice_prompt_html).strip().lower()
         
         # 根据用户选择执行不同操作
         if choice == 'e':
@@ -49,6 +52,12 @@ class ExecuteShellCommandNode(Node):
         elif choice == 'q':
             print(f"{Colors.YELLOW}{get_text('GENERAL', 'operation_cancelled')}{Colors.END}")
             return {"status": "cancelled", "code": 0}
+        elif choice == 'c':
+            print(f"{Colors.GREEN}{get_text('SHELL', 'continue_chat')}{Colors.END}")
+            # 获取用户对命令的反馈或问题
+            feedback_prompt = HTML('<ansicyan>|> </ansicyan>')
+            user_feedback = prompt(feedback_prompt)
+            return {"status": "chat", "command": command, "user_feedback": user_feedback, "code": 0}
         else:
             # 默认行为：执行命令（包括 'r'/'run' 选项或直接回车）
             return self._execute_command(command)
@@ -86,6 +95,12 @@ class ExecuteShellCommandNode(Node):
         # 将执行结果保存到共享状态
         if exec_res:
             shared["shell_result"] = exec_res
-        
-        # 结束流程
-        return "end"
+            
+            # 如果用户选择继续对话，返回chat动作
+            if exec_res.get("status") == "chat":
+                # 更新用户输入，这样命令节点可以看到最新的对话内容
+                command = exec_res.get('command', '')
+                feedback = exec_res.get('user_feedback', '')
+                shared["user_input"] = get_text('SHELL', 'improve_command_prompt', command, feedback)
+                
+                return "chat"
