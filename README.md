@@ -13,6 +13,7 @@ A multifunctional command-line tool for interacting with large language models.
 ## Features
 
 - Ask questions and get AI-generated answers
+- Interactive chat mode for multi-turn conversations
 - Generate shell commands and explanations
 - Process piped input (e.g., content from `git diff`)
 - Support for OpenAI-compatible API interfaces
@@ -30,6 +31,16 @@ pip install viby
 ```sh
 yb "Write a quicksort in python"
 # -> Sure! Here is a quicksort algorithm implemented in **Python**:
+```
+
+### Interactive Chat Mode
+
+```sh
+yb -c
+<|: Tell me about quantum computing
+# -> [AI responds about quantum computing]
+<|: What are the practical applications?
+# -> [AI responds with follow-up information]
 ```
 
 ### Process Piped Content
