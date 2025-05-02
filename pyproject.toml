@@ -1,6 +1,6 @@
 [project]
 name = "viby"
-version = "0.0.4"
+version = "0.0.5"
 description = "A multifunctional command-line tool for interacting with large language models."
 authors = [
     { name = "JohanLi233", email = "li_zhonghan@qq.com" }

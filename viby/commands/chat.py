@@ -31,6 +31,7 @@ class ChatCommand:
         # 准备共享状态
         shared = {
             "model_manager": self.model_manager,
+            "task_type": "chat"  # 指定任务类型为对话
         }
         
         # 执行流程

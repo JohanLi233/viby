@@ -98,9 +98,9 @@ class ExecuteShellCommandNode(Node):
             
             # 如果用户选择继续对话，返回chat动作
             if exec_res.get("status") == "chat":
-                # 更新用户输入，这样命令节点可以看到最新的对话内容
+                # 将用户的改进反馈追加到消息历史
                 command = exec_res.get('command', '')
                 feedback = exec_res.get('user_feedback', '')
-                shared["user_input"] = get_text('SHELL', 'improve_command_prompt', command, feedback)
-                
+                improve_prompt = get_text('SHELL', 'improve_command_prompt', command, feedback)
+                shared["messages"].append({"role": "user", "content": improve_prompt})
                 return "chat"

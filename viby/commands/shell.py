@@ -3,8 +3,9 @@ Shell command execution for viby - 使用 pocketflow 框架的重构版本
 """
 
 from pocketflow import Flow
+from viby.locale import get_text
 from viby.llm.models import ModelManager
-from viby.llm.nodes.command_node import CommandNode
+from viby.llm.nodes.reply_node import ReplyNode
 from viby.llm.nodes.dummy_node import DummyNode
 from viby.llm.nodes.execute_shell_command_node import ExecuteShellCommandNode
 
@@ -27,36 +28,38 @@ class ShellCommand:
         self.model_manager = model_manager
         
         # 创建节点
-        shell_prompt_node = CommandNode()
+        reply_node = ReplyNode()
         execute_command_node = ExecuteShellCommandNode()
         
         # 连接节点以创建流程
-        shell_prompt_node - "execute" >> execute_command_node
+        reply_node - "execute" >> execute_command_node
         
         # 添加对话循环：如果用户选择'c'，直接返回到命令节点继续对话
-        execute_command_node - "chat" >> shell_prompt_node
+        execute_command_node - "chat" >> reply_node
         
         # 默认结束映射，避免Flow警告
         execute_command_node >> DummyNode()
         
         # 保存流程实例
-        self.flow = Flow(start=shell_prompt_node)
+        self.flow = Flow(start=reply_node)
     
     def execute(self, user_prompt: str) -> int:
         """
         执行 shell 命令生成和交互流程
         """
+        # 创建 shell 命令生成提示消息
+        shell_prompt = get_text("SHELL", "command_prompt", user_prompt)
+        
         shared = {
             "model_manager": self.model_manager,
-            "user_input": user_prompt,
-            "messages": []
+            "task_type": "shell",  # 指定任务类型为 shell 命令生成
+            "messages": [
+                {
+                    "role": "user",
+                    "content": shell_prompt
+                }
+            ]
         }
-        
-        # 先添加用户的初始输入到消息历史
-        shared["messages"].append({
-            "role": "user",
-            "content": user_prompt
-        })
         
         # 执行流程
         self.flow.run(shared)

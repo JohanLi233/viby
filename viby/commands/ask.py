@@ -1,5 +1,6 @@
 from viby.llm.models import ModelManager
 from viby.llm.nodes.reply_node import ReplyNode
+from pocketflow import Flow
 
 class AskCommand:
     """
@@ -9,11 +10,14 @@ class AskCommand:
     def __init__(self, model_manager: ModelManager):
         self.model_manager = model_manager
         self.reply_node = ReplyNode()
+        # 使用Flow运行ReplyNode
+        self.flow = Flow(start=self.reply_node)
     
     def execute(self, user_input):
         # 准备共享状态
         shared = {
             "model_manager": self.model_manager,
+            "task_type": "chat",  # 指定任务类型为对话
             "messages": [
                 {
                     "role": "user",
@@ -22,6 +26,7 @@ class AskCommand:
             ]
         }
         
-        self.reply_node.run(shared)
+        # 执行Flow
+        self.flow.run(shared)
         
         return 0
