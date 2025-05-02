@@ -17,6 +17,7 @@ GENERAL = {
     "operation_cancelled": "操作已取消。",
     "copy_success": "内容已复制到剪贴板！",
     "copy_fail": "复制失败: {0}",
+    "help_text": "显示此帮助信息并退出",
     
     # 错误信息
     "config_load_error": "警告：无法从 {0} 加载配置：{1}",

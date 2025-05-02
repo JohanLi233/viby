@@ -20,6 +20,7 @@ GENERAL = {
     # Error messages
     "config_load_error": "Warning: Could not load config from {0}: {1}",
     "config_save_error": "Warning: Could not save config to {0}: {1}",
+    "help_text": "show this help message and exit",
 
     # LLM Response
     "llm_empty_response": "Model did not return any content, please check your config",

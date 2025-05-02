@@ -10,10 +10,18 @@ from viby.locale import get_text
 
 
 def get_parser() -> argparse.ArgumentParser:
+    # 禁用默认的帮助选项，以便我们可以添加自定义的中文帮助选项
     parser = argparse.ArgumentParser(
         description=get_text("GENERAL", "app_description"),
         epilog=get_text("GENERAL", "app_epilog"),
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False  # 禁用默认的英文帮助选项
+    )
+    
+    # 添加自定义的中文帮助选项
+    parser.add_argument(
+        "-h", "--help", action="help", default=argparse.SUPPRESS,
+        help=get_text("GENERAL", "help_text")
     )
     parser.add_argument(
         "prompt", nargs="?", 
