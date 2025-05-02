@@ -52,5 +52,5 @@ def process_input(args: argparse.Namespace) -> Tuple[str, bool]:
         f"{prompt}\n{pipe_content}" if prompt and pipe_content
         else prompt or pipe_content
     )
-    
+
     return user_input, bool(user_input)

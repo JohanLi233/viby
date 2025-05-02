@@ -20,6 +20,44 @@ GENERAL = {
     # Error messages
     "config_load_error": "Warning: Could not load config from {0}: {1}",
     "config_save_error": "Warning: Could not save config to {0}: {1}",
+
+    # LLM Response
+    "llm_empty_response": "Model did not return any content, please check your config",
+}
+
+# Configuration wizard related
+CONFIG_WIZARD = {
+    "model_qwen3": "qwen3:30b",
+    "model_deepseek": "deepseek-v3",
+    "model_gpt4o": "gpt-4o",
+    "model_custom": "custom",
+    # Headers and titles
+    "header_title": "Viby Configuration Wizard",
+    "checking_chinese": "Checking if terminal supports Chinese...",
+    
+    # Input validation
+    "invalid_number": "Please enter a valid number!",
+    "number_range_error": "Please enter a number between 1-{0}!",
+    "url_error": "URL must start with http:// or https://!",
+    "input_error": "Input error! Please choose from: {0}",
+    "temperature_range": "Temperature must be between 0.0 and 1.0!",
+    "invalid_decimal": "Please enter a valid decimal number!",
+    "tokens_positive": "Token count must be greater than 0!",
+    "invalid_integer": "Please enter a valid integer!",
+    "timeout_positive": "Timeout must be greater than 0!",
+    
+    # Prompts
+    "language_prompt": "Please select interface language:",
+    "selected_language": "Selected English interface",
+    "model_prompt": "Select default model",
+    "temperature_prompt": "Temperature (0.0-1.0)",
+    "max_tokens_prompt": "Maximum tokens",
+    "api_url_prompt": "API base URL",
+    "api_timeout_prompt": "API timeout (seconds)",
+    "api_key_prompt": "API key (if needed)",
+    "custom_model_prompt": "Select default model (custom)",
+    "config_saved": "Configuration saved to",
+    "continue_prompt": "Press Enter to continue...",
 }
 
 # Shell command related

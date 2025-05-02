@@ -4,7 +4,6 @@ Shell command execution for viby
 
 import os
 import subprocess
-import shutil
 import pyperclip
 
 from prompt_toolkit import prompt
@@ -14,6 +13,7 @@ from viby.utils.formatting import Colors
 from viby.utils.formatting import extract_answer
 from viby.utils.formatting import response
 from viby.locale import get_text
+from viby.utils.formatting import print_separator
 
 
 class ShellExecutor:
@@ -66,12 +66,10 @@ class ShellExecutor:
             # 使用用户的 shell 执行
             shell = os.environ.get('SHELL', '/bin/sh')
             
-            # 获取终端宽度，用于分隔线
-            terminal_width = shutil.get_terminal_size().columns
-            separator = "─" * terminal_width
-            
-            print(f"\n{Colors.BOLD}{Colors.BLUE}{get_text('SHELL', 'executing', command)}{Colors.END}")
-            print(f"{Colors.BLUE}{separator}{Colors.END}")
+            print(f"{Colors.BOLD}{Colors.BLUE}{get_text('SHELL', 'executing', command)}{Colors.END}")
+            print(f"{Colors.BLUE}", end="")
+            print_separator()
+            print(Colors.END, end="")
             
             process = subprocess.run(
                 command,
@@ -81,8 +79,10 @@ class ShellExecutor:
             
             # 根据返回码显示不同颜色
             status_color = Colors.GREEN if process.returncode == 0 else Colors.RED
-            print(f"{Colors.BLUE}{separator}{Colors.END}")
-            print(f"{status_color}{get_text('SHELL', 'command_complete', process.returncode)}{Colors.END}\n")
+            print(f"{Colors.BLUE}", end="")
+            print_separator()
+            print(Colors.END, end="")
+            print(f"{status_color}{get_text('SHELL', 'command_complete', process.returncode)}{Colors.END}")
             
             return process.returncode
         except Exception as e:

@@ -1,17 +1,21 @@
 """
-交互式配置向导模块
+Interactive configuration wizard module
 """
 
 import os
 import sys
+import shutil
+from viby.locale import get_text, init_text_manager
+from viby.utils.formatting import print_separator
 
 
 def print_header(title):
     """打印配置向导标题"""
-    width = 60
-    print("\n" + "=" * width)
-    print(f"{title:^{width}}")
-    print("=" * width + "\n")
+    print()
+    print_separator("=")
+    print(f"{title:^{shutil.get_terminal_size().columns}}")
+    print_separator("=")
+    print()
 
 
 def get_input(prompt, default=None, validator=None, choices=None):
@@ -56,25 +60,25 @@ def number_choice(choices, prompt):
             if 1 <= choice_num <= len(choices):
                 return choices[choice_num - 1]
             else:
-                print(f"请输入 1-{len(choices)} 之间的数字!")
+                print(get_text("CONFIG_WIZARD", "number_range_error").format(len(choices)))
         except ValueError:
-            print("请输入有效数字!")
+            print(get_text("CONFIG_WIZARD", "invalid_number"))
 
 
 def validate_url(url):
     """验证URL格式"""
     if not url.startswith(("http://", "https://")):
-        print("URL 必须以 http:// 或 https:// 开头!")
+        print(get_text("CONFIG_WIZARD", "url_error"))
         return False
     return True
 
 
 def run_config_wizard(config):
     """运行交互式配置向导"""
-    # 检查当前终端环境支持的语言
+    # Check Chinese support in current terminal
     is_chinese_supported = True
     try:
-        print("正在检查终端是否支持中文...")
+        print(get_text("CONFIG_WIZARD", "checking_chinese"))
         sys.stdout.write("测试中文支持\n")
         sys.stdout.flush()
     except UnicodeEncodeError:
@@ -99,40 +103,42 @@ def run_config_wizard(config):
     language = number_choice(language_choices, language_prompt)
     if language in ["中文", "Chinese"]:
         config.language = "zh-CN"
-        print("\n已选择中文界面")
+        init_text_manager(config)
+        print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
         
-        # 中文界面提示
-        model_prompt = "选择默认模型"
-        temp_prompt = "温度参数 (0.0-1.0)"
-        max_tokens_prompt = "最大令牌数"
-        api_url_prompt = "API 基础URL"
-        api_timeout_prompt = "API 超时时间(秒)"
-        api_key_prompt = "API 密钥(如需)"
-        
-        save_prompt = "配置已保存至"
-        continue_prompt = "按 Enter 键继续..."
     else:
         config.language = "en-US"
-        print("\nSelected English interface")
+        init_text_manager(config)
+        print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
         
-        # 英文界面提示
-        model_prompt = "Select default model"
-        temp_prompt = "Temperature (0.0-1.0)"
-        max_tokens_prompt = "Maximum tokens"
-        api_url_prompt = "API base URL"
-        api_timeout_prompt = "API timeout (seconds)"
-        api_key_prompt = "API key (if needed)"
-        
-        save_prompt = "Configuration saved to"
-        continue_prompt = "Press Enter to continue..."
+    model_prompt = get_text("CONFIG_WIZARD", "model_prompt")
+    temp_prompt = get_text("CONFIG_WIZARD", "temperature_prompt")
+    max_tokens_prompt = get_text("CONFIG_WIZARD", "max_tokens_prompt")
+    api_url_prompt = get_text("CONFIG_WIZARD", "api_url_prompt")
+    api_timeout_prompt = get_text("CONFIG_WIZARD", "api_timeout_prompt")
+    api_key_prompt = get_text("CONFIG_WIZARD", "api_key_prompt")
+    save_prompt = get_text("CONFIG_WIZARD", "config_saved")
+    continue_prompt = get_text("CONFIG_WIZARD", "continue_prompt")
     
-    print("\n" + "-" * 60)
+    print()
+    print_separator()
+
+    # API URL
+    config.base_url = get_input(api_url_prompt, config.base_url, validator=validate_url)
     
+    # API Key
+    config.api_key = get_input(api_key_prompt, config.api_key or "")
+
     # 模型选择
-    models = ["qwen3:30b", "qwen3:7b", "llama3:70b", "llama3:8b", "mistral:7b", "custom"]
+    models = [
+    get_text("CONFIG_WIZARD", "model_qwen3"),
+    get_text("CONFIG_WIZARD", "model_deepseek"),
+    get_text("CONFIG_WIZARD", "model_gpt4o"),
+    get_text("CONFIG_WIZARD", "model_custom")
+]
     chosen_model = number_choice(models, model_prompt)
-    if chosen_model == "custom":
-        config.model = get_input(f"{model_prompt} (custom)", config.model)
+    if chosen_model == get_text("CONFIG_WIZARD", "model_custom"):
+        config.model = get_input(f"{model_prompt} ({get_text('CONFIG_WIZARD', 'model_custom')})", config.model)
     else:
         config.model = chosen_model
     
@@ -144,9 +150,9 @@ def run_config_wizard(config):
             if 0.0 <= temp_value <= 1.0:
                 config.temperature = temp_value
                 break
-            print("温度值必须在 0.0 到 1.0 之间!")
+            print(get_text("CONFIG_WIZARD", "temperature_range"))
         except ValueError:
-            print("请输入有效的小数!")
+            print(get_text("CONFIG_WIZARD", "invalid_decimal"))
     
     # 最大令牌数
     while True:
@@ -156,12 +162,10 @@ def run_config_wizard(config):
             if tokens_value > 0:
                 config.max_tokens = tokens_value
                 break
-            print("令牌数必须大于 0!")
+            print(get_text("CONFIG_WIZARD", "tokens_positive"))
         except ValueError:
-            print("请输入有效的整数!")
+            print(get_text("CONFIG_WIZARD", "invalid_integer"))
     
-    # API URL
-    config.base_url = get_input(api_url_prompt, config.base_url, validator=validate_url)
     
     # API 超时
     while True:
@@ -171,17 +175,16 @@ def run_config_wizard(config):
             if timeout_value > 0:
                 config.api_timeout = timeout_value
                 break
-            print("超时时间必须大于 0!")
+            print(get_text("CONFIG_WIZARD", "timeout_positive"))
         except ValueError:
-            print("请输入有效的整数!")
+            print(get_text("CONFIG_WIZARD", "invalid_integer"))
     
-    # API Key
-    config.api_key = get_input(api_key_prompt, config.api_key or "")
     
     # 保存配置
     config.save_config()
     
-    print("\n" + "-" * 60)
+    print()
+    print_separator()
     print(f"{save_prompt}: {config.config_path}")
     input(f"\n{continue_prompt}")
     return config
