@@ -37,9 +37,9 @@ yb "Write a quicksort in python"
 
 ```sh
 yb -c
-<|: Tell me about quantum computing
+|> Tell me about quantum computing
 # -> [AI responds about quantum computing]
-<|: What are the practical applications?
+|> What are the practical applications?
 # -> [AI responds with follow-up information]
 ```
 
@@ -61,7 +61,7 @@ yb "What is this project about?" < README.md
 ```sh
 yb -s "How many lines of python code did I write?"
 # -> find . -type f -name "*.py" | xargs wc -l
-# -> [r]run, [e]edit, [y]yank, [q]quit: r
+# -> [r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): 
 ```
 
 ## Configuration

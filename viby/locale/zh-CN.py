@@ -67,7 +67,7 @@ SHELL = {
     "command_prompt": "请只生成一个用于：{0} 的 shell 命令。只返回命令本身，不要解释，不要 markdown。",
     "generating_command": "[AI 正在生成命令...]",
     "execute_prompt": "执行命令│  {0}  │?",
-    "choice_prompt": "[r]运行, [e]编辑, [y]复制, [c]继续对话, [q]放弃 (默认: 运行): ",
+    "choice_prompt": "[r]运行, [e]编辑, [y]复制, [c]对话, [q]放弃 (默认: 运行): ",
     "edit_prompt": "编辑命令（原命令: {0}）:\n> ",
     "executing": "执行命令: {0}",
     "command_complete": "命令完成 [返回码: {0}]",

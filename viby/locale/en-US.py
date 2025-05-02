@@ -67,7 +67,7 @@ SHELL = {
     "command_prompt": "Please generate only a shell command for: {0}. Return only the command itself, no explanation, no markdown.",
     "generating_command": "[AI is generating command...]",
     "execute_prompt": "Execute command│  {0}  │?",
-    "choice_prompt": "[r]run, [e]edit, [y]copy, [c]continue chat, [q]quit (default: run): ",
+    "choice_prompt": "[r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): ",
     "edit_prompt": "Edit command (original: {0}):\n> ",
     "executing": "Executing command: {0}",
     "command_complete": "Command completed [Return code: {0}]",
