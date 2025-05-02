@@ -4,7 +4,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/release/python-3100/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![UV](https://img.shields.io/badge/UV-Package%20Manager-blueviolet)](https://github.com/astral-sh/uv)
-<!-- [![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://github.com/estitesc/mission-control-link) -->
+[![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://github.com/estitesc/mission-control-link)
 
 [English](https://github.com/JohanLi233/viby/blob/main/README.md) | 中文
 
@@ -63,9 +63,21 @@ yb -s "我写了多少行python代码"
 # -> [r]运行, [e]编辑, [y]复制, [c]对话, [q]放弃 (默认: 运行): 
 ```
 
+### 使用MCP工具
+
+```sh
+yb -t "现在几点了？"
+# -> [AI使用时间工具获取当前时间]
+# -> "datetime": "2025-05-03T00:49:57+08:00",
+```
+
 ## 配置
 
 Viby 从 `~/.config/viby/config.json` 读取配置。你可以在此设置模型和参数。
+
+### MCP服务器配置
+
+Viby支持模型上下文协议(MCP)服务器以提供扩展功能。MCP配置存储在 `~/.config/viby/mcp_servers.json` 文件中。
 
 ## 语言切换
 

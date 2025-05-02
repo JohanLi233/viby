@@ -4,7 +4,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/release/python-3100/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![UV](https://img.shields.io/badge/UV-Package%20Manager-blueviolet)](https://github.com/astral-sh/uv)
-<!-- [![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://github.com/estitesc/mission-control-link) -->
+[![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://github.com/estitesc/mission-control-link)
 
 
 English | [中文](https://github.com/JohanLi233/viby/blob/main/README.zh-CN.md)
@@ -22,6 +22,11 @@ A multifunctional command-line tool for interacting with large language models.
 
 ```sh
 pip install viby
+```
+### OR install from source
+
+```sh
+uv pip install -e .
 ```
 
 ## Usage Examples
@@ -64,6 +69,18 @@ yb -s "How many lines of python code did I write?"
 # -> [r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): 
 ```
 
+### Use MCP Tools
+
+```sh
+yb -t "What time is it now?"
+# -> [AI uses time tool to get current time]
+# -> "datetime": "2025-05-03T00:49:57+08:00"
+```
+
 ## Configuration
 
 Viby reads configuration from `~/.config/viby/config.json`. You can set the model and parameters here.
+
+### MCP Server Configuration
+
+Viby supports Model Context Protocol (MCP) servers for extended capabilities. MCP configurations are stored in `~/.config/viby/mcp_servers.json`.

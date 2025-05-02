@@ -10,6 +10,8 @@ GENERAL = {
     "prompt_help": "Prompt content to send to the model",
     "chat_help": "Start an interactive chat session with the model",
     "shell_help": "Generate and optionally execute shell commands",
+    "mcp_help": "Use MCP (Model Context Protocol) tools to solve problems",
+    "server_help": "Specify MCP server path or URL (default: simple_server.py)",
     "config_help": "Launch interactive configuration wizard",
     
     # Interface text
@@ -81,4 +83,25 @@ SHELL = {
 CHAT = {
     "welcome": "Welcome to Viby chat mode, type 'exit' to end conversation",
     "input_prompt": "|> "
+}
+
+# MCP tool related
+MCP = {
+    # GetToolsNode
+    "getting_tools": "🔍 Getting available tools...",
+    "tools_error": "\nError: Failed to get MCP tools: {0}",
+    
+    # DecideToolNode
+    "analyzing": "🤔 Analyzing question and deciding which tool to use...",
+    "system_prompt": "You are a helpful assistant that can use tools to solve problems.",
+    "tool_prompt": """\n### CONTEXT\nYou are an assistant that can use tools via Model Context Protocol (MCP).\n\n### ACTION SPACE\n{0}\n\n### TASK\nAnswer this question: \"{1}\"\n\n## NEXT ACTION\nAnalyze the question, extract any numbers or parameters, and decide which tool to use.\nReturn your response in this format:\n\n```yaml\ntool: <name of the tool to use>\nparameters:\n    <parameter_name>: <parameter_value>\n    <parameter_name>: <parameter_value>\n```""",
+    "parsing_error": "❌ Error parsing LLM response: {0}",
+    "selected_tool": "💡 Selected tool: {0}",
+    "extracted_params": "🔢 Extracted parameters: {0}",
+    
+    # ExecuteToolNode
+    "executing_tool": "🔧 Executing tool '{0}' with parameters: {1}",
+    "execution_error": "\n❌ Tool execution error: {0}",
+    "error_message": "Error executing tool: {0}",
+    "result": "\n✅ Result: {0}"
 }

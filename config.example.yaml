@@ -1,11 +1,7 @@
-# 模型配置
-model: qwen3:30b     
-
-# API 设置
-base_url: http://localhost:11434  
-api_key: ""          
-
-# 生成参数
-max_tokens: 40960   
-temperature: 0.7   
-api_timeout: 300   
+model: qwen3-30b-a3b-mlx
+temperature: 0.7
+max_tokens: 40960
+base_url: http://localhost:1234
+api_timeout: 300
+api_key: ''
+language: zh-CN

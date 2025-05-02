@@ -10,6 +10,7 @@ from viby.llm.models import ModelManager
 from viby.commands.shell import ShellCommand
 from viby.commands.ask import AskCommand
 from viby.commands.chat import ChatCommand
+from viby.commands.mcp import MCPCommand
 from viby.utils.logging import setup_logging
 from viby.locale import init_text_manager, get_text
 from viby.config_wizard import run_config_wizard
@@ -54,6 +55,10 @@ def main():
             # shell 命令生成与执行模式
             shell_command = ShellCommand(model_manager)
             return shell_command.execute(user_input)
+        elif args.mcp:
+            # MCP工具调用模式
+            mcp_command = MCPCommand(model_manager)
+            return mcp_command.execute(user_input)
         else:
             ask_command = AskCommand(model_manager)
             return ask_command.execute(user_input)

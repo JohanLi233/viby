@@ -9,7 +9,9 @@ GENERAL = {
     "app_epilog": "示例:\n  viby \"什么是斐波那契数列?\"\n  git diff | viby \"帮我写一个commit消息\"\n  viby --shell \"找当前目录下所有json文件\"\n",
     "prompt_help": "要发送给模型的提示内容",
     "chat_help": "启动与模型的交互式对话会话",
-    "shell_help": "生成并可选执行 shell 命令",
+    "shell_help": "生成并选择性执行Shell命令",
+    "mcp_help": "使用MCP（模型上下文协议）工具解决问题",
+    "server_help": "指定MCP服务器路径或URL（默认: simple_server.py）",
     "config_help": "启动交互式配置向导",
     
     # 界面文本
@@ -81,4 +83,25 @@ SHELL = {
 CHAT = {
     "welcome": "欢迎使用 Viby 对话模式，输入 'exit' 可退出对话",
     "input_prompt": "|> "
+}
+
+# MCP工具相关
+MCP = {
+    # GetToolsNode
+    "getting_tools": "🔍 获取可用工具...",
+    "tools_error": "\n错误: 无法获取MCP工具: {0}",
+    
+    # DecideToolNode
+    "analyzing": "🤔 分析问题并决定使用哪个工具...",
+    "system_prompt": "你是一个可以使用工具解决问题的助手",
+    "tool_prompt": """\n### 上下文\n你是一个可以通过模型上下文协议(MCP)使用工具的助手。\n\n### 工具\n{0}\n\n### 任务\n回答这个问题: \"{1}\"\n\n## 下一步行动\n分析问题，提取所有数字或参数，然后决定使用哪个工具。\n按照这个格式返回你的响应:\n\n```yaml\ntool: <要使用的工具名称>\nparameters:\n    <参数名>: <参数值>\n    <参数名>: <参数值>\n```""",
+    "parsing_error": "❌ 解析LLM响应时出错: {0}",
+    "selected_tool": "💡 选择工具: {0}",
+    "extracted_params": "🔢 提取参数: {0}",
+    
+    # ExecuteToolNode
+    "executing_tool": "🔧 执行工具 '{0}' 并使用参数: {1}",
+    "execution_error": "\n❌ 执行工具时出错: {0}",
+    "error_message": "执行工具时出错: {0}",
+    "result": "\n✅ 结果: {0}"
 }

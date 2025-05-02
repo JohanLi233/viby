@@ -36,6 +36,10 @@ def get_parser() -> argparse.ArgumentParser:
         help=get_text("GENERAL", "shell_help")
     )
     parser.add_argument(
+        "--mcp", "-t", action="store_true",
+        help=get_text("GENERAL", "mcp_help")
+    )
+    parser.add_argument(
         "--config", action="store_true",
         help=get_text("GENERAL", "config_help")
     )

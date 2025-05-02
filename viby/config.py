@@ -19,7 +19,6 @@ class Config:
         self.api_timeout = 300
         self.api_key = ""
         self.language = "en-US"  # options: en-US, zh-CN
-
         self.config_dir = os.path.join(os.path.expanduser("~"), ".config", "viby")
         self.config_path = os.path.join(self.config_dir, "config.yaml")
 
