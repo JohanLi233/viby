@@ -1,54 +1,56 @@
 # viby
 
-一个用于与大语言模型交互的多功能命令行工具。
+English | [中文](./README.zh-CN.md)
 
-## 功能特点
+A multifunctional command-line tool for interacting with large language models.
 
-- 提问并获取 AI 生成的答案
-- 生成 shell 命令及其解释
-- 处理管道输入（例如：来自 git diff 的内容）
-- 支持Open AI 格式接口调用
+## Features
 
-## 安装
+- Ask questions and get AI-generated answers
+- Generate shell commands and explanations
+- Process piped input (e.g., content from `git diff`)
+- Support for OpenAI-compatible API interfaces
+
+## Installation
 
 ```sh
-# 使用 uv 安装（推荐）
+# Recommended: install with uv
 uv pip install -e .
 
-# 或使用 pip
+# Or install with pip
 pip install -e .
 ```
 
-## 使用示例
+## Usage Examples
 
-### 基本提问
+### Basic Question
 
 ```sh
-yb "用python写一个快速排序"
-# -> 当然可以！下面是一个用 **Python** 实现的 **快速排序（Quick Sort）** 算法：
+yb "Write a quicksort in python"
+# -> Sure! Here is a quicksort algorithm implemented in **Python**:
 ```
 
-### 处理管道内容
+### Process Piped Content
 
 ```sh
-git diff | yb "生成一个commit message"
-# -> 在README中新增了信息
+git diff | yb "Generate a commit message"
+# -> Added information to the README
 ```
 
 ```sh
-yb 这个项目是关于什么的 < README.md 
-# -> 这个项目是关于...
+yb "What is this project about?" < README.md
+# -> This project is about...
 ```
 
 
-### 生成 shell 命令
+### Generate Shell Command
 
 ```sh
-yb --shell "我写了多少行python代码"
+yb -s "How many lines of python code did I write?"
 # -> find . -type f -name "*.py" | xargs wc -l
-# -> [r]运行, [e]编辑, [y]复制, [q]放弃: r
+# -> [r]run, [e]edit, [y]yank, [q]quit: r
 ```
 
-## 配置
+## Configuration
 
-Viby 从 `~/.config/viby/config.json` 读取配置。你可以在此设置模型和参数。
+Viby reads configuration from `~/.config/viby/config.json`. You can set the model and parameters here.
