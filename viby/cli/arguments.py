@@ -28,11 +28,15 @@ def get_parser() -> argparse.ArgumentParser:
         help=get_text("GENERAL", "prompt_help")
     )
     parser.add_argument(
+        "--chat", "-c", action="store_true",
+        help=get_text("GENERAL", "chat_help")
+    )
+    parser.add_argument(
         "--shell", "-s", action="store_true",
         help=get_text("GENERAL", "shell_help")
     )
     parser.add_argument(
-        "--config", "-c", action="store_true",
+        "--config", action="store_true",
         help=get_text("GENERAL", "config_help")
     )
     return parser

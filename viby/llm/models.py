@@ -3,7 +3,7 @@ Model management for viby - handles interactions with LLM providers
 """
 
 import openai
-from typing import Iterator, Dict, Any
+from typing import Dict, Any, Iterator
 from viby.config import Config
 from viby.locale import get_text
 
@@ -13,13 +13,15 @@ class ModelManager:
     def __init__(self, config: Config):
         self.config = config
         
-    
-    def stream_response(self, prompt: str) -> Iterator[str]:
-        """流式获取模型回复"""
+        
+    def stream_response(self, messages) -> Iterator[str]:
+        """
+        流式获取模型回复
+        """
         model_config = self.config.get_model_config()
-        yield from self._call_llm(prompt, model_config)
+        yield from self._call_llm(messages, model_config)
     
-    def _call_llm(self, prompt: str, model_config: Dict[str, Any]) -> Iterator[str]:
+    def _call_llm(self, messages, model_config: Dict[str, Any]) -> Iterator[str]:
         model = model_config["model"]
         base_url = model_config["base_url"].rstrip("/")
         api_key = model_config.get("api_key", "")
@@ -33,7 +35,7 @@ class ModelManager:
             # 准备请求参数
             params = {
                 "model": model,
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": messages,
                 "temperature": model_config["temperature"],
                 "max_tokens": model_config["max_tokens"],
                 "stream": True,

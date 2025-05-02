@@ -106,7 +106,7 @@ def process_latex(text):
 
     return text
 
-def response(model_manager, user_input, return_raw):
+def stream_render_response(model_manager, input):
     """
     流式获取模型回复并使用 Rich 渲染 Markdown 输出到终端。
     自动按段落（以空行分隔）分块渲染，支持表格、列表、代码块及保留 <think> 标签。
@@ -115,7 +115,7 @@ def response(model_manager, user_input, return_raw):
     console = Console()
     raw_response = ""
     buf = ""
-    for chunk in model_manager.stream_response(user_input):
+    for chunk in model_manager.stream_response(input):
         raw_response += chunk
         buf += chunk
         # 渲染完整段落
@@ -132,7 +132,4 @@ def response(model_manager, user_input, return_raw):
         escaped = process_latex(escaped)
         console.print(Markdown(escaped, justify="left"))
 
-    if return_raw:
-        return raw_response
-    else:
-        return 0
+    return raw_response

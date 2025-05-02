@@ -7,9 +7,10 @@ viby CLI 入口点 - 处理命令行交互
 from viby.cli.arguments import parse_arguments, process_input, get_parser
 from viby.config import Config
 from viby.llm.models import ModelManager
-from viby.commands.shell import ShellExecutor
+from viby.commands.shell import ShellCommand
+from viby.commands.ask import AskCommand
+from viby.commands.chat import ChatCommand
 from viby.utils.logging import setup_logging
-from viby.utils.formatting import response
 from viby.locale import init_text_manager, get_text
 from viby.config_wizard import run_config_wizard
 
@@ -40,16 +41,22 @@ def main():
         # 处理输入来源（组合命令行参数和管道输入）
         user_input, has_input = process_input(args)
         
+        # 如果是聊天模式，即使没有提示内容也可以继续
+        if args.chat:
+            chat_command = ChatCommand(model_manager)
+            return chat_command.execute()
+        
         if not has_input:
             get_parser().print_help()
             return 1
             
         if args.shell:
             # shell 命令生成与执行模式
-            shell_executor = ShellExecutor(model_manager)
-            return shell_executor.generate_and_execute(user_input)
+            shell_command = ShellCommand(model_manager)
+            return shell_command.execute(user_input)
         else:
-            return response(model_manager, user_input, return_raw=False)
+            ask_command = AskCommand(model_manager)
+            return ask_command.execute(user_input)
             
     except KeyboardInterrupt:
         print(f"\n{get_text('GENERAL', 'operation_cancelled')}")
