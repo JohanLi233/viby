@@ -1,6 +1,12 @@
 # viby
 
-[English](./README.md) | 中文
+[![GitHub Repo](https://img.shields.io/badge/GitHub-viby-181717?logo=github)](https://github.com/JohanLi233/viby)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/release/python-3100/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![UV](https://img.shields.io/badge/UV-Package%20Manager-blueviolet)](https://github.com/astral-sh/uv)
+<!-- [![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://github.com/estitesc/mission-control-link) -->
+
+[English](https://github.com/JohanLi233/viby/blob/main/README.md) | 中文
 
 一个用于与大语言模型交互的多功能命令行工具。
 
@@ -14,11 +20,7 @@
 ## 安装
 
 ```sh
-# 使用 uv 安装（推荐）
-uv pip install -e .
-
-# 或使用 pip
-pip install -e .
+pip install viby
 ```
 
 ## 使用示例

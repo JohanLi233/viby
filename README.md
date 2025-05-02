@@ -1,7 +1,13 @@
 # viby
 
-English | [中文](./README.zh-CN.md)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-viby-181717?logo=github)](https://github.com/JohanLi233/viby)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/release/python-3100/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![UV](https://img.shields.io/badge/UV-Package%20Manager-blueviolet)](https://github.com/astral-sh/uv)
+<!-- [![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://github.com/estitesc/mission-control-link) -->
 
+
+English | [中文](https://github.com/JohanLi233/viby/blob/main/README.zh-CN.md)
 A multifunctional command-line tool for interacting with large language models.
 
 ## Features
@@ -14,11 +20,7 @@ A multifunctional command-line tool for interacting with large language models.
 ## Installation
 
 ```sh
-# Recommended: install with uv
-uv pip install -e .
-
-# Or install with pip
-pip install -e .
+pip install viby
 ```
 
 ## Usage Examples
