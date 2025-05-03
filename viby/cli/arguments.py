@@ -39,6 +39,10 @@ def get_parser() -> argparse.ArgumentParser:
         "--config", action="store_true",
         help=get_text("GENERAL", "config_help")
     )
+    parser.add_argument(
+        "--think", "-t", action="store_true",
+        help=get_text("GENERAL", "think_help")
+    )
     return parser
 
 def parse_arguments() -> argparse.Namespace:

@@ -34,8 +34,8 @@ def main():
         if config.is_first_run or args.config:
             run_config_wizard(config)
         
-        # 初始化模型管理器
-        model_manager = ModelManager(config)
+        # 初始化模型管理器，传递 args 参数以支持 -t/--think 模式
+        model_manager = ModelManager(config, args)
         
         # 处理输入来源（组合命令行参数和管道输入）
         user_input, has_input = process_input(args)

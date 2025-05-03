@@ -3,22 +3,28 @@ Model management for viby - handles interactions with LLM providers
 """
 
 import openai
-from typing import Dict, Any, Iterator
+from typing import Dict, Any, Iterator, Optional
 from viby.config.app_config import Config
 from viby.locale import get_text
 
 
 class ModelManager:
     
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, args = None):
         self.config = config
-        
+        # 从命令行参数中获取是否使用 think model
+        self.use_think_model = args.think if args and hasattr(args, 'think') else False
         
     def stream_response(self, messages) -> Iterator[str]:
         """
         流式获取模型回复
+        :param use_think_model: 是否使用 think model，如果为 None 则使用实例的 use_think_model 设置
         """
-        model_config = self.config.get_model_config()
+        model_name = None
+        if self.use_think_model and getattr(self.config, 'think_model', None):
+            model_name = self.config.think_model
+        
+        model_config = self.config.get_model_config(model_name)
         yield from self._call_llm(messages, model_config)
     
     def _call_llm(self, messages, model_config: Dict[str, Any]) -> Iterator[str]:

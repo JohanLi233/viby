@@ -13,6 +13,7 @@ GENERAL = {
     "mcp_help": "Use MCP (Model Context Protocol) tools to solve problems",
     "server_help": "Specify MCP server path or URL (default: simple_server.py)",
     "config_help": "Launch interactive configuration wizard",
+    "think_help": "Use think model for reasoning",
     
     # Interface text
     "generating": "[AI is generating response...]",
@@ -54,6 +55,7 @@ CONFIG_WIZARD = {
     "language_prompt": "Please select interface language:",
     "selected_language": "Selected English interface",
     "model_prompt": "Select default model",
+    "think_model_prompt": "Think model name (optional)",
     "temperature_prompt": "Temperature (0.0-1.0)",
     "max_tokens_prompt": "Maximum tokens",
     "api_url_prompt": "API base URL",

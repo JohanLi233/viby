@@ -13,6 +13,7 @@ class Config:
     def __init__(self):
         # Default configuration parameters
         self.model = "qwen3:30b"
+        self.think_model = ""  # 新增 think_model 字段
         self.temperature = 0.7
         self.max_tokens = 40960
         self.base_url = "http://localhost:11434"

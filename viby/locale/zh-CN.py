@@ -13,6 +13,7 @@ GENERAL = {
     "mcp_help": "使用MCP（模型上下文协议）工具解决问题",
     "server_help": "指定MCP服务器路径或URL（默认: simple_server.py）",
     "config_help": "启动交互式配置向导",
+    "think_help": "使用思考模型进行推理",
     
     # 界面文本
     "generating": "[AI 正在生成回复...]",
@@ -54,6 +55,7 @@ CONFIG_WIZARD = {
     "language_prompt": "请选择界面语言:",
     "selected_language": "已选择中文界面",
     "model_prompt": "选择默认模型",
+    "think_model_prompt": "Think模型名称（可选）",
     "temperature_prompt": "温度参数 (0.0-1.0)",
     "max_tokens_prompt": "最大令牌数",
     "api_url_prompt": "API 基础URL",
