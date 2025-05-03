@@ -1,51 +1,93 @@
-"""
-MCP (Model Context Protocol) utilities for Viby
-"""
 import asyncio
-from typing import Dict, Any, List, Optional
-
+import json
+import os
+from typing import Any, Dict, List, Optional
 from fastmcp import Client
-from viby.utils.mcp_config import get_server_config
+from viby.utils.mcp_config import CONFIG_FILE, get_server_config
 
-def get_client(server_name: Optional[str] = None) -> Client:
-    """获取MCP客户端
-    
-    Args:
-        server_name: 服务器名称，如果为None则使用完整配置
-        
-    Returns:
-        配置好的MCP客户端
-    """
-    # 直接获取服务器配置，自动配置已在get_server_config中处理
-    server_config = get_server_config(server_name)
-    return Client(server_config)
+class MCPManager:
+    def __init__(self, servers: Optional[List[str]] = None):
+        cfg = get_server_config()
+        self.servers = servers or list(cfg.get("mcpServers", {}))
+        self._clients = {
+            n: Client({"mcpServers": {n: cfg["mcpServers"][n]}})
+            for n in self.servers
+            if n in cfg.get("mcpServers", {})
+        }
 
-def get_tools(server_name: Optional[str] = None) -> List[Any]:
-    """同步获取所有可用工具
-    
-    Args:
-        server_name: 服务器名称，如果为None则使用默认服务器
-        
-    Returns:
-        工具列表
-    """
-    async def _get():
-        async with get_client(server_name) as client:
-            return await client.list_tools()
-    return asyncio.run(_get())
+    async def _with_client(self, name: str, func):
+        client = self._clients[name]
+        async with client:
+            return await func(client)
 
-def call_tool(server_name: Optional[str] = None, tool_name: str = None, arguments: Dict[str, Any] = None):
-    """同步调用指定工具
-    
-    Args:
-        server_name: 服务器名称，如果为None则使用默认服务器
-        tool_name: 工具名称
-        arguments: 工具参数
-        
-    Returns:
-        工具执行结果
-    """
-    async def _call():
-        async with get_client(server_name) as client:
-            return await client.call_tool(tool_name, arguments)
-    return asyncio.run(_call())
+    async def list_tools_async(self) -> Dict[str, Any]:
+        tasks = {
+            n: asyncio.create_task(self._with_client(n, lambda c: c.list_tools()))
+            for n in self._clients
+        }
+        results = {}
+        for n, t in tasks.items():
+            try:
+                results[n] = await t
+            except Exception as e:
+                results[n] = {"error": str(e)}
+        return results
+
+    async def call_tool_async(self, tool: str, args: Dict[str, Any]=None, server: Optional[str]=None) -> Any:
+        if server:
+            return await self._with_client(server, lambda c: c.call_tool(tool, args))
+        tools = await self.list_tools_async()
+        for n, lst in tools.items():
+            if isinstance(lst, list) and any(t.name == tool for t in lst):
+                return await self._with_client(n, lambda c: c.call_tool(tool, args))
+        raise KeyError(f"没有找到提供工具 '{tool}' 的服务器")
+
+    def list_tools(self, server: Optional[str]=None) -> List[Any]:
+        if server:
+            return asyncio.run(self._with_client(server, lambda c: c.list_tools()))
+        all_tools = asyncio.run(self.list_tools_async())
+        return [t for sub in all_tools.values() if isinstance(sub, list) for t in sub]
+
+    def call_tool(self, tool_name: str, arguments: Dict[str,Any]=None, server: Optional[str]=None):
+        return asyncio.run(self.call_tool_async(tool_name, arguments, server=server))
+
+    def save_config(self, cfg: Dict[str, Any]):
+        os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
+        with open(CONFIG_FILE,'w',encoding='utf-8') as f:
+            json.dump(cfg, f, indent=2, ensure_ascii=False)
+        self.__init__(self.servers)
+
+    def add_server(self, name: str, command: str, args: List[str]):
+        cfg = get_server_config()
+        cfg.setdefault("mcpServers", {})[name] = {"command":command, "args":args}
+        self.save_config(cfg)
+
+    def remove_server(self, name: str):
+        cfg = get_server_config()
+        cfg.get("mcpServers",{}).pop(name, None)
+        self.save_config(cfg)
+
+    def list_servers(self) -> List[str]:
+        return list(self._clients.keys())
+
+# 全局单例
+_manager = MCPManager()
+
+def get_client(server: Optional[str]=None) -> Client:
+    return _manager._clients.get(server or (_manager.servers[0] if _manager.servers else None))
+
+def get_tools(server: Optional[str]=None):
+    return _manager.list_tools(server)
+
+def call_tool(server: Optional[str]=None, tool_name: str=None, arguments: Dict[str,Any]=None):
+    return _manager.call_tool(tool_name, arguments, server=server)
+
+def add_server(name: str, command: str, args: List[str]):
+    return _manager.add_server(name, command, args)
+
+def remove_server(name: str):
+    return _manager.remove_server(name)
+
+def list_servers():
+    return _manager.list_servers()
+

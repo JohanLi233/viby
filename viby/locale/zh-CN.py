@@ -90,18 +90,21 @@ MCP = {
     # GetToolsNode
     "getting_tools": "🔍 获取可用工具...",
     "tools_error": "\n错误: 无法获取MCP工具: {0}",
+    "format_server_tools": "服务器 '{0}':\n{1}\n",
     
     # DecideToolNode
     "analyzing": "🤔 分析问题并决定使用哪个工具...",
     "system_prompt": "你是一个可以使用工具解决问题的助手",
-    "tool_prompt": """\n### 上下文\n你是一个可以通过模型上下文协议(MCP)使用工具的助手。\n\n### 工具\n{0}\n\n### 任务\n回答这个问题: \"{1}\"\n\n## 下一步行动\n分析问题，提取所有数字或参数，然后决定使用哪个工具。\n按照这个格式返回你的响应:\n\n```yaml\ntool: <要使用的工具名称>\nparameters:\n    <参数名>: <参数值>\n    <参数名>: <参数值>\n```""",
+    "tool_prompt": """\n### 上下文\n你是一个可以通过模型上下文协议(MCP)使用工具的助手。\n\n### 可用的服务器和工具\n{0}\n\n### 任务\n回答这个问题: \"{1}\"\n\n## 下一步行动\n分析问题，提取所有数字或参数，然后决定使用哪个服务器和工具。\n按照这个格式返回你的响应:\n\n```yaml\nserver: <要使用的服务器名称>\ntool: <要使用的工具名称>\nparameters:\n    <参数名>: <参数值>\n    <参数名>: <参数值>\n```""",
     "parsing_error": "❌ 解析LLM响应时出错: {0}",
     "selected_tool": "💡 选择工具: {0}",
+    "selected_server": "🖥️ 选择服务器: {0}",
     "extracted_params": "🔢 提取参数: {0}",
     
     # ExecuteToolNode
     "executing_tool": "🔧 执行工具 '{0}' 并使用参数: {1}",
+    "auto_selecting_server": "🔄 自动选择服务器: {0}",
     "execution_error": "\n❌ 执行工具时出错: {0}",
     "error_message": "执行工具时出错: {0}",
-    "result": "\n✅ 结果: {0}"
+    "result": "✅ 结果: {0}"
 }

@@ -17,14 +17,6 @@ DEFAULT_SERVERS = {
 }
 
 def get_server_config(server_name: Optional[str] = None) -> Dict[str, Any]:
-    """获取MCP客户端配置
-    
-    Args:
-        server_name: 服务器名称，如果为None则返回完整配置
-        
-    Returns:
-        符合fastmcp要求的配置字典
-    """
     # 如果配置文件不存在，创建默认配置
     if not os.path.exists(CONFIG_FILE):
         os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
