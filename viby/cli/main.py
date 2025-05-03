@@ -5,7 +5,8 @@ viby CLI 入口点 - 处理命令行交互
 
 
 from viby.cli.arguments import parse_arguments, process_input, get_parser
-from viby.config import Config
+from viby.config.app_config import Config
+from viby.config.wizard import run_config_wizard
 from viby.llm.models import ModelManager
 from viby.commands.shell import ShellCommand
 from viby.commands.ask import AskCommand
@@ -13,7 +14,6 @@ from viby.commands.chat import ChatCommand
 from viby.commands.mcp import MCPCommand
 from viby.utils.logging import setup_logging
 from viby.locale import init_text_manager, get_text
-from viby.config_wizard import run_config_wizard
 
 
 # Setup logging early
@@ -25,6 +25,9 @@ def main():
     try:
         # 提前创建 config 以获取默认值
         config = Config()
+        # 初始化文本管理器，保证所有命令都能安全使用 get_text
+
+        init_text_manager(config)
         
         # 解析命令行参数
         args = parse_arguments()
@@ -32,9 +35,6 @@ def main():
         # 首次运行或指定 --config 参数时启动交互式配置向导
         if config.is_first_run or args.config:
             run_config_wizard(config)
-        
-        # 初始化文本管理器
-        init_text_manager(config)
         
         # 初始化模型管理器
         model_manager = ModelManager(config)

@@ -3,13 +3,12 @@
 """
 
 import importlib
-from viby.config import Config
 
 
 class TextManager:
     """管理多语言提示和界面文本"""
     
-    def __init__(self, config: Config):
+    def __init__(self, config):
         self.config = config
         self.texts = {}
         self.load_texts()
@@ -58,7 +57,7 @@ class TextManager:
 text_manager = None
 
 
-def init_text_manager(config: Config) -> None:
+def init_text_manager(config) -> None:
     """初始化全局文本管理器"""
     global text_manager
     text_manager = TextManager(config)
@@ -68,6 +67,5 @@ def get_text(group: str, key: str, *args) -> str:
     """便捷函数，获取文本"""
     global text_manager
     if text_manager is None:
-        # 如果未初始化，使用默认配置初始化
-        init_text_manager(Config())
+        raise RuntimeError("Text manager not initialized, please call init_text_manager(config) first.")
     return text_manager.get(group, key, *args)

@@ -4,7 +4,7 @@ Model management for viby - handles interactions with LLM providers
 
 import openai
 from typing import Dict, Any, Iterator
-from viby.config import Config
+from viby.config.app_config import Config
 from viby.locale import get_text
 
 

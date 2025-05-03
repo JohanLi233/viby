@@ -3,7 +3,7 @@ import json
 import os
 from typing import Any, Dict, List, Optional
 from fastmcp import Client
-from viby.utils.mcp_config import CONFIG_FILE, get_server_config
+from viby.config.mcp_config import CONFIG_FILE, get_server_config
 from viby.locale import get_text
 
 class MCPManager:

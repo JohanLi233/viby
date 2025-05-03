@@ -5,7 +5,7 @@ import sys
 from typing import Optional
 
 from viby.llm.models import ModelManager
-from viby.config import Config
+from viby.config.app_config import Config
 from viby.llm.nodes.mcp_nodes import GetToolsNode, ExecuteToolNode
 from viby.llm.nodes.llm_node import LLMNode
 from pocketflow import Flow

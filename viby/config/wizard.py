@@ -75,6 +75,9 @@ def validate_url(url):
 
 def run_config_wizard(config):
     """运行交互式配置向导"""
+    # 初始化文本管理器，加载初始语言文本
+    init_text_manager(config)
+    
     # Check Chinese support in current terminal
     is_chinese_supported = True
     try:
@@ -103,13 +106,10 @@ def run_config_wizard(config):
     language = number_choice(language_choices, language_prompt)
     if language in ["中文", "Chinese"]:
         config.language = "zh-CN"
-        init_text_manager(config)
-        print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
-        
     else:
         config.language = "en-US"
-        init_text_manager(config)
-        print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
+    init_text_manager(config)
+    print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
         
     model_prompt = get_text("CONFIG_WIZARD", "model_prompt")
     temp_prompt = get_text("CONFIG_WIZARD", "temperature_prompt")
@@ -131,11 +131,11 @@ def run_config_wizard(config):
 
     # 模型选择
     models = [
-    get_text("CONFIG_WIZARD", "model_qwen3"),
-    get_text("CONFIG_WIZARD", "model_deepseek"),
-    get_text("CONFIG_WIZARD", "model_gpt4o"),
-    get_text("CONFIG_WIZARD", "model_custom")
-]
+        get_text("CONFIG_WIZARD", "model_qwen3"),
+        get_text("CONFIG_WIZARD", "model_deepseek"),
+        get_text("CONFIG_WIZARD", "model_gpt4o"),
+        get_text("CONFIG_WIZARD", "model_custom")
+    ]
     chosen_model = number_choice(models, model_prompt)
     if chosen_model == get_text("CONFIG_WIZARD", "model_custom"):
         config.model = get_input(f"{model_prompt} ({get_text('CONFIG_WIZARD', 'model_custom')})", config.model)
