@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="./assets/viby-icon.svg" alt="Viby 图标" width="120" height="120">
+</div>
+
 # viby
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-viby-181717?logo=github)](https://github.com/JohanLi233/viby)
@@ -8,7 +12,6 @@
 [![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://github.com/estitesc/mission-control-link)
 
 [English](https://github.com/JohanLi233/viby/blob/main/README.md) | 中文
-
 一个用于与大语言模型交互的多功能命令行工具。
 
 ## 功能特点
@@ -18,11 +21,16 @@
 - 生成 shell 命令及其解释
 - 处理管道输入（例如：来自 git diff 的内容）
 - 支持Open AI 格式接口调用
+- 支持MCP（模型上下文协议）工具集成以提供扩展功能
 
 ## 安装
 
 ```sh
 pip install viby
+```
+### 或从源码安装
+```sh
+uv pip install -e .
 ```
 
 ## 使用示例
@@ -64,32 +72,33 @@ yb -s "我写了多少行python代码"
 # -> [r]运行, [e]编辑, [y]复制, [c]对话, [q]放弃 (默认: 运行): 
 ```
 
-### 使用MCP工具
+### 自动使用MCP工具
 
 ```sh
-yb -t "现在几点了？"
-# -> [AI使用时间工具获取当前时间]
-# -> "datetime": "2025-05-03T00:49:57+08:00",
+yb "现在几点了？"
+# -> [AI自动使用时间工具获取当前时间]
+# -> "datetime": "2025-05-03T18:41:33+08:00"
 ```
 
 ## 配置
 
-Viby 从 `~/.config/viby/config.json` 读取配置。你可以在此设置模型和参数。
+Viby 从 `~/.config/viby/config.yaml` 读取配置。你可以在此设置模型、参数和MCP选项。
+
+### 交互式配置
+
+使用配置向导设置你的偏好：
+
+```sh
+yb --config
+```
+
+这允许你配置：
+- API端点和密钥
+- 模型
+- 温度和token设置
+- MCP工具启用选项
+- 界面语言
 
 ### MCP服务器配置
 
 Viby支持模型上下文协议(MCP)服务器以提供扩展功能。MCP配置存储在 `~/.config/viby/mcp_servers.json` 文件中。
-
-## 语言切换
-
-Viby 默认使用英文界面。首次启动或通过 `--config` 参数可以进入交互式配置向导，在其中选择中文或其他支持的语言。
-
-- 默认语言：English (en-US)
-- 切换到中文：在配置向导中选择 `中文 (zh-CN)` 即可。
-
-**示例：**
-
-```sh
-yb --config
-# 按提示选择语言（中文或英文）
-```

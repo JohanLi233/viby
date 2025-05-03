@@ -1,7 +1,7 @@
 [project]
 name = "viby"
-version = "0.0.6"
-description = "A multifunctional command-line tool for interacting with large language models."
+version = "0.0.7"
+description = "Viby agent at your terminal"
 authors = [
     { name = "JohanLi233", email = "li_zhonghan@qq.com" }
 ]

@@ -179,6 +179,15 @@ def run_config_wizard(config):
         except ValueError:
             print(get_text("CONFIG_WIZARD", "invalid_integer"))
     
+    # MCP 工具设置
+    enable_mcp_prompt = get_text("CONFIG_WIZARD", "enable_mcp_prompt")
+    enable_mcp_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
+    enable_mcp = number_choice(enable_mcp_choices, enable_mcp_prompt)
+    config.enable_mcp = (enable_mcp == get_text("CONFIG_WIZARD", "yes"))
+    
+    # 如果启用了MCP，显示配置文件夹信息
+    if config.enable_mcp:
+        print("\n" + get_text("CONFIG_WIZARD", "mcp_config_info").format(config.config_dir))
     
     # 保存配置
     config.save_config()

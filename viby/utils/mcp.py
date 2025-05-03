@@ -52,9 +52,10 @@ class MCPManager:
                     return await self._with_client(n, lambda c: c.call_tool(tool, args))
             return {"error": get_text("mcp", "no_server_for_tool", tool)}
         except BaseException as e:
-            while hasattr(e, "exceptions"):
-                e = e.exceptions[0]
-            return {"error": str(e)}
+            first = e
+            while hasattr(first, "exceptions") and isinstance(first.exceptions, (list, tuple)) and first.exceptions:
+                first = first.exceptions[0]
+            return {"error": str(first)}
 
     def list_tools(self, server: Optional[str]=None) -> List[Any]:
         if server:

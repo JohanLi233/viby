@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="./assets/viby-icon.svg" alt="Viby Logo" width="120" height="120">
+</div>
+
 # viby
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-viby-181717?logo=github)](https://github.com/JohanLi233/viby)
@@ -9,7 +13,7 @@
 
 
 English | [中文](https://github.com/JohanLi233/viby/blob/main/README.zh-CN.md)
-A multifunctional command-line tool for interacting with large language models.
+Viby agent at your terminal
 
 ## Features
 
@@ -18,6 +22,7 @@ A multifunctional command-line tool for interacting with large language models.
 - Generate shell commands and explanations
 - Process piped input (e.g., content from `git diff`)
 - Support for OpenAI-compatible API interfaces
+- MCP (Model Context Protocol) tools integration for extended capabilities
 
 ## Installation
 
@@ -70,26 +75,33 @@ yb -s "How many lines of python code did I write?"
 # -> [r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): 
 ```
 
-### Use MCP Tools
+### Automatically Use MCP Tools When Needed
 
 ```sh
-yb -t "What time is it now?"
+yb "What time is it now?"
 # -> [AI uses time tool to get current time]
 # -> "datetime": "2025-05-03T00:49:57+08:00"
 ```
 
 ## Configuration
 
-Viby reads configuration from `~/.config/viby/config.json`. You can set the model and parameters here.
+Viby reads configuration from `~/.config/viby/config.yaml`. You can set the model, parameters, and MCP options here.
+
+### Interactive Configuration
+
+Use the configuration wizard to set up your preferences:
+
+```sh
+yb --config
+```
+
+This allows you to configure:
+- API endpoint and key
+- Model
+- Temperature and token settings
+- MCP tools enablement
+- Interface language
 
 ### MCP Server Configuration
 
 Viby supports Model Context Protocol (MCP) servers for extended capabilities. MCP configurations are stored in `~/.config/viby/mcp_servers.json`.
-
-## Language Switching
-
-Viby defaults to an English interface. On first launch or with the `--config` argument, you can enter an interactive configuration wizard to select Chinese or other supported languages.
-
-- Default language: English (en-US)
-
-**Example:**

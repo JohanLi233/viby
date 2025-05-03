@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="128" cy="128" r="120" fill="#F0F0F0"/>
+  
+  <!-- Simple side profile outline -->
+  <path d="M160 88C160 74.7452 149.255 64 136 64H120C106.745 64 96 74.7452 96 88V168C96 181.255 106.745 192 120 192H136C149.255 192 160 181.255 160 168V88Z" fill="#333333"/>
+  
+  <!-- Face details -->
+  <path d="M96 120C96 120 112 104 128 104C144 104 160 120 160 120" stroke="#F0F0F0" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Eye -->
+  <circle cx="144" cy="96" r="6" fill="#F0F0F0"/>
+  
+  <!-- Sound wave elements -->
+  <path d="M176 104C184.837 104 192 111.163 192 120C192 128.837 184.837 136 176 136" stroke="#333333" stroke-width="4" stroke-linecap="round"/>
+  <path d="M184 96C196.15 96 206 105.85 206 118C206 130.15 196.15 140 184 140" stroke="#333333" stroke-width="4" stroke-linecap="round"/>
+  <path d="M192 88C207.464 88 220 100.536 220 116C220 131.464 207.464 144 192 144" stroke="#333333" stroke-width="4" stroke-linecap="round"/>
+</svg>

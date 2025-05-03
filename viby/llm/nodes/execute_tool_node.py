@@ -22,5 +22,12 @@ class ExecuteToolNode(Node):
         """Process the final result"""
         print(get_text("MCP", "result", exec_res))
         shared["response"] = exec_res
+        
+        # Add the tool result as an assistant message
         shared["messages"].append({"role": "assistant", "content": str(exec_res)})
-        return "done"
+        
+        # Add a follow-up prompt asking the LLM to interpret the tool result
+        result_prompt = get_text("MCP", "tool_result_prompt", exec_res)
+        shared["messages"].append({"role": "user", "content": result_prompt})
+
+        return "call_llm"

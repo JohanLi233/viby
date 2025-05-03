@@ -1,5 +1,4 @@
 from pocketflow import Flow
-from viby.config import Config
 from viby.llm.models import ModelManager
 from viby.llm.nodes.prompt_node import PromptNode
 from viby.llm.nodes.execute_tool_node import ExecuteToolNode
@@ -17,15 +16,12 @@ class AskCommand:
         self.llm_node = LLMNode()
         self.prompt_node = PromptNode()
         self.execute_tool_node = ExecuteToolNode()
-        self.config = Config()
-        if self.config.enable_mcp:
-            self.prompt_node - "prompt" >> self.llm_node
-            self.llm_node - "execute_tool" >> self.execute_tool_node
-            self.llm_node - "continue" >> DummyNode()
-            self.execute_tool_node - "chat" >> self.llm_node
-            self.flow = Flow(start=self.prompt_node)
-        else:
-            self.flow = Flow(start=self.llm_node)
+
+        self.prompt_node - "prompt" >> self.llm_node
+        self.llm_node - "execute_tool" >> self.execute_tool_node
+        self.llm_node - "continue" >> DummyNode()
+        self.execute_tool_node - "call_llm" >> self.llm_node
+        self.flow = Flow(start=self.prompt_node)
             
     
     def execute(self, user_input: str) -> int:

@@ -1,5 +1,7 @@
 from pocketflow import Flow
 from viby.llm.nodes.input_node import InputNode
+from viby.llm.nodes.prompt_node import PromptNode
+from viby.llm.nodes.execute_tool_node import ExecuteToolNode
 from viby.llm.nodes.llm_node import LLMNode
 from viby.llm.nodes.dummy_node import DummyNode
 from viby.llm.models import ModelManager
@@ -14,24 +16,29 @@ class ChatCommand:
         """初始化并创建对话流程"""
         # 保存模型管理器
         self.model_manager = model_manager
-        
+
         # 创建节点
-        input_node = InputNode()
-        reply_node = LLMNode()
+        self.input_node = InputNode()
+        self.prompt_node = PromptNode()
+        self.llm_node = LLMNode()
+        self.execute_tool_node = ExecuteToolNode()
         
-        # 连接节点以创建流程
-        input_node - "reply" >> reply_node
-        reply_node - "continue" >> input_node  # ReplyNode 现在直接循环到输入节点
-        input_node >> DummyNode()
+        # 根据配置决定是否启用MCP工具
+        # 初始化流程从输入节点开始
+        self.flow = Flow(start=self.prompt_node)
         
-        # 保存流程实例
-        self.flow = Flow(start=input_node)
+        self.prompt_node - "prompt" >> self.input_node
+        self.input_node - "call_llm" >> self.llm_node
+        self.llm_node - "execute_tool" >> self.execute_tool_node
+        self.llm_node - "continue" >> self.input_node
+        self.execute_tool_node - "call_llm" >> self.llm_node
+        self.input_node - "exit" >> DummyNode()
     
     def execute(self):
         # 准备共享状态
         shared = {
             "model_manager": self.model_manager,
-            "task_type": "chat"  # 指定任务类型为对话
+            "task_type": "chat",  # 指定任务类型为对话
         }
         
         # 执行流程
