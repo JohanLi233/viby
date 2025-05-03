@@ -1,5 +1,6 @@
 import os
 import subprocess
+import platform
 import pyperclip
 from pocketflow import Node
 from prompt_toolkit import prompt
@@ -65,19 +66,32 @@ class ExecuteShellCommandNode(Node):
     def _execute_command(self, command: str) -> dict:
         """执行 shell 命令并返回结果"""
         try:
-            # 使用用户的 shell 执行
-            shell = os.environ.get('SHELL', '/bin/sh')
+            # 根据操作系统决定 shell 执行方式
+            system = platform.system()
+            if system == "Windows":
+                # Windows 下不指定 executable，让 shell=True 自动使用 cmd.exe
+                shell_exec = None
+            else:
+                # Linux/macOS 使用用户的 shell 或默认 /bin/sh
+                shell_exec = os.environ.get('SHELL', '/bin/sh')
             
             print(f"{Colors.BOLD}{Colors.BRIGHT_CYAN}{get_text('SHELL', 'executing', command)}{Colors.END}")
             print(f"{Colors.BLUE}", end="")
             print_separator()
             print(Colors.END, end="")
             
-            process = subprocess.run(
-                command,
-                shell=True,
-                executable=shell
-            )
+            # 根据操作系统决定是否传递 executable 参数
+            if shell_exec:
+                process = subprocess.run(
+                    command,
+                    shell=True,
+                    executable=shell_exec
+                )
+            else:
+                process = subprocess.run(
+                    command,
+                    shell=True
+                )
             
             # 根据返回码显示不同颜色
             status_color = Colors.GREEN if process.returncode == 0 else Colors.RED

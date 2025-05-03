@@ -2,6 +2,8 @@
 Shell command execution for viby - 使用 pocketflow 框架的重构版本
 """
 
+import os
+import platform
 from pocketflow import Flow
 from viby.locale import get_text
 from viby.llm.models import ModelManager
@@ -47,8 +49,10 @@ class ShellCommand:
         """
         执行 shell 命令生成和交互流程
         """
-        # 创建 shell 命令生成提示消息
-        shell_prompt = get_text("SHELL", "command_prompt", user_prompt)
+        shell = os.environ.get("SHELL") or os.environ.get("COMSPEC") or "unknown"
+        shell_name = os.path.basename(shell) if shell else "unknown"
+        os_name = platform.system()
+        shell_prompt = get_text("SHELL", "command_prompt", user_prompt, shell_name, os_name)
         
         shared = {
             "model_manager": self.model_manager,

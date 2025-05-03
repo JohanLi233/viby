@@ -66,7 +66,7 @@ CONFIG_WIZARD = {
 
 # Shell command related
 SHELL = {
-    "command_prompt": "Please generate only a shell command for: {0}. Return only the command itself, no explanation, no markdown.",
+    "command_prompt": "Please generate a single shell ({1}) command for: {0} (OS: {2}). Only return the command itself, no explanations, no markdown.",
     "generating_command": "[AI is generating command...]",
     "execute_prompt": "Execute command│  {0}  │?",
     "choice_prompt": "[r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): ",
