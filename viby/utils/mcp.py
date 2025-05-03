@@ -6,6 +6,10 @@ from fastmcp import Client
 from viby.config.mcp_config import CONFIG_FILE, get_server_config
 from viby.locale import get_text
 
+def _snake_to_camel(name: str) -> str:
+    parts = name.split('_')
+    return parts[0] + ''.join(p.title() for p in parts[1:])
+
 class MCPManager:
     def __init__(self, servers: Optional[List[str]] = None):
         cfg = get_server_config()
@@ -35,13 +39,22 @@ class MCPManager:
         return results
 
     async def call_tool_async(self, tool: str, args: Dict[str, Any]=None, server: Optional[str]=None) -> Any:
-        if server:
-            return await self._with_client(server, lambda c: c.call_tool(tool, args))
-        tools = await self.list_tools_async()
-        for n, lst in tools.items():
-            if isinstance(lst, list) and any(t.name == tool for t in lst):
-                return await self._with_client(n, lambda c: c.call_tool(tool, args))
-        raise KeyError(get_text("mcp", "no_server_for_tool", tool))
+        # convert snake_case keys to camelCase for MCP APIs
+        if args:
+            args = { _snake_to_camel(k): v for k, v in args.items() }
+        try:
+            if server:
+                return await self._with_client(server, lambda c: c.call_tool(tool, args))
+
+            tools = await self.list_tools_async()
+            for n, lst in tools.items():
+                if isinstance(lst, list) and any(t.name == tool for t in lst):
+                    return await self._with_client(n, lambda c: c.call_tool(tool, args))
+            return {"error": get_text("mcp", "no_server_for_tool", tool)}
+        except BaseException as e:
+            while hasattr(e, "exceptions"):
+                e = e.exceptions[0]
+            return {"error": str(e)}
 
     def list_tools(self, server: Optional[str]=None) -> List[Any]:
         if server:
@@ -58,16 +71,6 @@ class MCPManager:
             json.dump(cfg, f, indent=2, ensure_ascii=False)
         self.__init__(self.servers)
 
-    def add_server(self, name: str, command: str, args: List[str]):
-        cfg = get_server_config()
-        cfg.setdefault("mcpServers", {})[name] = {"command":command, "args":args}
-        self.save_config(cfg)
-
-    def remove_server(self, name: str):
-        cfg = get_server_config()
-        cfg.get("mcpServers",{}).pop(name, None)
-        self.save_config(cfg)
-
     def list_servers(self) -> List[str]:
         return list(self._clients.keys())
 
@@ -83,12 +86,5 @@ def get_tools(server: Optional[str]=None):
 def call_tool(server: Optional[str]=None, tool_name: str=None, arguments: Dict[str,Any]=None):
     return _manager.call_tool(tool_name, arguments, server=server)
 
-def add_server(name: str, command: str, args: List[str]):
-    return _manager.add_server(name, command, args)
-
-def remove_server(name: str):
-    return _manager.remove_server(name)
-
 def list_servers():
     return _manager.list_servers()
-

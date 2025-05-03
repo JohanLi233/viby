@@ -1,11 +1,8 @@
-"""
-MCP (Model Context Protocol) 节点 - 提供工具调用功能
-"""
 from pocketflow import Node
-from viby.utils.mcp import call_tool, get_tools, list_servers
 from viby.locale import get_text
+from viby.utils.mcp import get_tools, list_servers
 
-class GetToolsNode(Node):
+class PromptNode(Node):
     def prep(self, shared):
         """Initialize and get tools"""
         mcp_server = shared.get("mcp_server") # 从shared获取服务器名称，可为None默认
@@ -42,35 +39,10 @@ class GetToolsNode(Node):
             tool_descriptions = "\n".join([f"- {t.name}: {t.description}" for t in tools])
             formatted_tools += get_text("MCP", "format_server_tools", server, tool_descriptions)
         
-        system_prompt = get_text("MCP", "system_prompt")
-        user_prompt = get_text("MCP", "tool_prompt", formatted_tools, shared.get("user_input", ""))
+        system_prompt = get_text("AGENT", "prompt", formatted_tools, shared.get("user_input", ""))
         
         shared["messages"] = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
         ]
         
-        return "decide"
-
-class ExecuteToolNode(Node):
-    def prep(self, shared):
-        """Prepare tool execution parameters"""
-        server_name = shared.get("selected_server")
-        return shared["tool_name"], shared["parameters"], server_name
-
-    def exec(self, inputs):
-        """Execute the chosen tool"""
-        tool_name, parameters, server_name = inputs
-        try:
-            result = call_tool(server_name, tool_name, parameters)
-            return result
-        except Exception as e:
-            print(get_text("MCP", "execution_error", e))
-            return get_text("MCP", "error_message", e)
-
-    def post(self, shared, prep_res, exec_res):
-        """Process the final result"""
-        print(get_text("MCP", "result", exec_res))
-        shared["response"] = exec_res
-        shared["messages"].append({"role": "assistant", "content": str(exec_res)})
-        return "done"
+        return "prompt"

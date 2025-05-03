@@ -7,7 +7,7 @@ class LLMNode(Node):
     """通用的模型回复节点"""
     
     def prep(self, shared):
-        """通用提取共享状态，消息构建在 command 层完成"""
+        """通用提取共享状态，消息构建在 prompt_node 完成"""
         return {
             "model_manager": shared.get("model_manager"),
             "messages": shared.get("messages"),
@@ -27,7 +27,8 @@ class LLMNode(Node):
         shared["response"] = exec_res
         task_type = prep_res.get("task_type", "chat")
         shared["messages"].append({"role": "assistant", "content": exec_res})
-        if task_type == "mcp_decide":
+        # 自动检测 YAML 工具调用
+        if "yabi_tool_call\n```yaml" in exec_res:
             return self._handle_mcp(shared, exec_res)
         if task_type == "shell":
             shared["command"] = exec_res
