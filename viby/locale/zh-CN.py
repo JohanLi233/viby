@@ -32,7 +32,7 @@ GENERAL = {
 CONFIG_WIZARD = {
     # 模型名称本地化
     "model_qwen3": "qwen3:30b",
-    "model_deepseek": "deepseek-v3",
+    "model_deepseek": "deepseek-chat",
     "model_gpt4o": "gpt-4o",
     "model_custom": "自定义",
     # 标题和提示

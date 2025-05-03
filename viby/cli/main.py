@@ -19,7 +19,6 @@ from viby.locale import init_text_manager, get_text
 # Setup logging early
 logger = setup_logging()
 
-
 def main():
     """viby CLI 的主入口"""
     try:

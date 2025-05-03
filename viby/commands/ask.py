@@ -9,7 +9,7 @@ class AskCommand:
     def __init__(self, model_manager: ModelManager):
         """初始化单次提问命令流程"""
         self.model_manager = model_manager
-        self.reply_node = LLMNode()
+        self.llm_node = LLMNode()
     
     def execute(self, user_input: str) -> int:
         # 准备共享状态
@@ -24,6 +24,6 @@ class AskCommand:
             ]
         }
         
-        self.reply_node.run(shared)
+        self.llm_node.run(shared)
         
         return 0

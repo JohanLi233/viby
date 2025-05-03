@@ -32,7 +32,7 @@ GENERAL = {
 # Configuration wizard related
 CONFIG_WIZARD = {
     "model_qwen3": "qwen3:30b",
-    "model_deepseek": "deepseek-v3",
+    "model_deepseek": "deepseek-chat",
     "model_gpt4o": "gpt-4o",
     "model_custom": "custom",
     # Headers and titles
