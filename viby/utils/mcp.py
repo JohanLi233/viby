@@ -4,6 +4,7 @@ import os
 from typing import Any, Dict, List, Optional
 from fastmcp import Client
 from viby.utils.mcp_config import CONFIG_FILE, get_server_config
+from viby.locale import get_text
 
 class MCPManager:
     def __init__(self, servers: Optional[List[str]] = None):
@@ -40,7 +41,7 @@ class MCPManager:
         for n, lst in tools.items():
             if isinstance(lst, list) and any(t.name == tool for t in lst):
                 return await self._with_client(n, lambda c: c.call_tool(tool, args))
-        raise KeyError(f"没有找到提供工具 '{tool}' 的服务器")
+        raise KeyError(get_text("mcp", "no_server_for_tool", tool))
 
     def list_tools(self, server: Optional[str]=None) -> List[Any]:
         if server:
