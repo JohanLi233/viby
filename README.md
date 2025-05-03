@@ -1,6 +1,7 @@
 # viby
 
 [![GitHub Repo](https://img.shields.io/badge/GitHub-viby-181717?logo=github)](https://github.com/JohanLi233/viby)
+[![PyPI version](https://img.shields.io/pypi/v/viby?color=brightgreen)](https://pypi.org/project/viby/)
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/release/python-3100/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![UV](https://img.shields.io/badge/UV-Package%20Manager-blueviolet)](https://github.com/astral-sh/uv)
@@ -84,3 +85,11 @@ Viby reads configuration from `~/.config/viby/config.json`. You can set the mode
 ### MCP Server Configuration
 
 Viby supports Model Context Protocol (MCP) servers for extended capabilities. MCP configurations are stored in `~/.config/viby/mcp_servers.json`.
+
+## Language Switching
+
+Viby defaults to an English interface. On first launch or with the `--config` argument, you can enter an interactive configuration wizard to select Chinese or other supported languages.
+
+- Default language: English (en-US)
+
+**Example:**

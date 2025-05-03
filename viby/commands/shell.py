@@ -7,7 +7,7 @@ import platform
 from pocketflow import Flow
 from viby.locale import get_text
 from viby.llm.models import ModelManager
-from viby.llm.nodes.reply_node import ReplyNode
+from viby.llm.nodes.llm_node import LLMNode
 from viby.llm.nodes.dummy_node import DummyNode
 from viby.llm.nodes.execute_shell_command_node import ExecuteShellCommandNode
 
@@ -30,7 +30,7 @@ class ShellCommand:
         self.model_manager = model_manager
         
         # 创建节点
-        reply_node = ReplyNode()
+        reply_node = LLMNode()
         execute_command_node = ExecuteShellCommandNode()
         
         # 连接节点以创建流程
