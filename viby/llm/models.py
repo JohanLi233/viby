@@ -3,7 +3,7 @@ Model management for viby - handles interactions with LLM providers
 """
 
 import openai
-from typing import Dict, Any, Iterator, Optional
+from typing import Dict, Any, Iterator
 from viby.config.app_config import Config
 from viby.locale import get_text
 
@@ -12,16 +12,19 @@ class ModelManager:
     
     def __init__(self, config: Config, args = None):
         self.config = config
-        # 从命令行参数中获取是否使用 think model
+        # 从命令行参数中获取是否使用 think model 和 fast model
         self.use_think_model = args.think if args and hasattr(args, 'think') else False
+        self.use_fast_model = args.fast if args and hasattr(args, 'fast') else False
         
     def stream_response(self, messages) -> Iterator[str]:
         """
         流式获取模型回复
-        :param use_think_model: 是否使用 think model，如果为 None 则使用实例的 use_think_model 设置
         """
         model_name = None
-        if self.use_think_model and getattr(self.config, 'think_model', None):
+        # 优先级：fast > think > 默认模型
+        if self.use_fast_model and getattr(self.config, 'fast_model', None):
+            model_name = self.config.fast_model
+        elif self.use_think_model and getattr(self.config, 'think_model', None):
             model_name = self.config.think_model
         
         model_config = self.config.get_model_config(model_name)

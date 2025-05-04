@@ -146,6 +146,10 @@ def run_config_wizard(config):
     think_model_prompt = get_text("CONFIG_WIZARD", "think_model_prompt") if callable(get_text) else "Think Model 名称（如需）："
     config.think_model = get_input(think_model_prompt, config.think_model if hasattr(config, 'think_model') else "")
     
+    # fast model 配置
+    fast_model_prompt = get_text("CONFIG_WIZARD", "fast_model_prompt") if callable(get_text) else "快速模型名称（如需）："
+    config.fast_model = get_input(fast_model_prompt, config.fast_model if hasattr(config, 'fast_model') else "")
+    
     # 温度设置
     while True:
         temp = get_input(temp_prompt, str(config.temperature))
