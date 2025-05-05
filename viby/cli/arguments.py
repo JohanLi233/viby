@@ -64,13 +64,10 @@ def process_input(args: argparse.Namespace) -> Tuple[str, bool]:
         Tuple[str, bool]: (用户输入, 是否有效输入)
     """
     # 获取命令行提示词和管道上下文
-    prompt = args.prompt.strip() if args.prompt else None
-    pipe_content = sys.stdin.read().strip() if not sys.stdin.isatty() else None
+    prompt = args.prompt.strip() if args.prompt else ''
+    pipe_content = sys.stdin.read().strip() if not sys.stdin.isatty() else ''
 
-    # 构造最终输入
-    user_input = (
-        f"{prompt}\n{pipe_content}" if prompt and pipe_content
-        else prompt or pipe_content
-    )
+    # 构造最终输入，过滤空值
+    user_input = '\n'.join(filter(None, [prompt, pipe_content]))
 
     return user_input, bool(user_input)

@@ -10,25 +10,18 @@ GENERAL = {
     "prompt_help": "Prompt content to send to the model",
     "chat_help": "Start an interactive chat session with the model",
     "shell_help": "Generate and optionally execute shell commands",
-    "mcp_help": "Use MCP (Model Context Protocol) tools to solve problems",
-    "server_help": "Specify MCP server path or URL (default: simple_server.py)",
     "config_help": "Launch interactive configuration wizard",
     "think_help": "Use think model for reasoning",
     "fast_help": "Use fast model for quick responses",
     
     # Interface text
-    "generating": "[AI is generating response...]",
     "operation_cancelled": "Operation cancelled.",
     "copy_success": "Content copied to clipboard!",
     "copy_fail": "Copy failed: {0}",
-    
-    # Error messages
-    "config_load_error": "Warning: Could not load config from {0}: {1}",
-    "config_save_error": "Warning: Could not save config to {0}: {1}",
     "help_text": "show this help message and exit",
-
+    
     # LLM Response
-    "llm_empty_response": "Model did not return any content, please check your config",
+    "llm_empty_response": "Model did not return any content, please try again or check your prompt.",
 }
 
 # Configuration wizard related
@@ -37,15 +30,11 @@ CONFIG_WIZARD = {
     "model_deepseek": "deepseek-chat",
     "model_gpt4o": "gpt-4o",
     "model_custom": "custom",
-    # Headers and titles
-    "header_title": "Viby Configuration Wizard",
-    "checking_chinese": "Checking if terminal supports Chinese...",
     
     # Input validation
     "invalid_number": "Please enter a valid number!",
     "number_range_error": "Please enter a number between 1-{0}!",
     "url_error": "URL must start with http:// or https://!",
-    "input_error": "Input error! Please choose from: {0}",
     "temperature_range": "Temperature must be between 0.0 and 1.0!",
     "invalid_decimal": "Please enter a valid decimal number!",
     "tokens_positive": "Token count must be greater than 0!",
@@ -53,7 +42,7 @@ CONFIG_WIZARD = {
     "timeout_positive": "Timeout must be greater than 0!",
     
     # Prompts
-    "language_prompt": "Please select interface language:",
+    "checking_chinese": "Checking if terminal supports Chinese...",
     "selected_language": "Selected English interface",
     "model_prompt": "Select default model",
     "think_model_prompt": "Think model name (optional)",
@@ -63,7 +52,6 @@ CONFIG_WIZARD = {
     "api_url_prompt": "API base URL",
     "api_timeout_prompt": "API timeout (seconds)",
     "api_key_prompt": "API key (if needed)",
-    "custom_model_prompt": "Select default model (custom)",
     "config_saved": "Configuration saved to",
     "continue_prompt": "Press Enter to continue...",
     "yes": "Yes",
@@ -75,7 +63,6 @@ CONFIG_WIZARD = {
 # Shell command related
 SHELL = {
     "command_prompt": "Please generate a single shell ({1}) command for: {0} (OS: {2}). Only return the command itself, no explanations, no markdown.",
-    "generating_command": "[AI is generating command...]",
     "execute_prompt": "Execute command│  {0}  │?",
     "choice_prompt": "[r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): ",
     "edit_prompt": "Edit command (original: {0}):\n> ",
@@ -83,7 +70,6 @@ SHELL = {
     "command_complete": "Command completed [Return code: {0}]",
     "command_error": "Command execution error: {0}",
     "continue_chat": "Continuing chat with AI to improve the command...",
-    "command_generated": "Generated command: {0}",
     "improve_command_prompt": "Improve this command: {0}, User feedback: {1}",
 }
 
@@ -95,23 +81,8 @@ CHAT = {
 
 # MCP tool related
 MCP = {
-    # GetToolsNode
-    "getting_tools": "🔍 Getting available tools...",
     "tools_error": "\nError: Failed to get MCP tools: {0}",
-    "format_server_tools": "Server '{0}':\n{1}\n",
-    
-    # DecideToolNode
-    "analyzing": "🤔 Analyzing question and deciding which tool to use...",
-    "system_prompt": "You are a helpful assistant that can use tools to solve problems.",
-    "tool_prompt": """\n### CONTEXT\nYou are an assistant that can use tools via Model Context Protocol (MCP).\n\n### AVAILABLE SERVERS AND TOOLS\n{0}\n\n### TASK\nAnswer this question: \"{1}\"\n\n## NEXT ACTION\nAnalyze the question, extract any numbers or parameters, and decide which server and tool to use.\nReturn your response in this format:\n\n```yaml\nserver: <name of the server to use>\ntool: <name of the tool to use>\nparameters:\n    <parameter_name>: <parameter_value>\n    <parameter_name>: <parameter_value>\n```""",
     "parsing_error": "❌ Error parsing LLM response: {0}",
-    "selected_tool": "💡 Selected tool: {0}",
-    "selected_server": "🖥️ Selected server: {0}",
-    "extracted_params": "🔢 Extracted parameters: {0}",
-    
-    # ExecuteToolNode
-    "executing_tool": "🔧 Executing tool '{0}' with parameters: {1}",
-    "auto_selecting_server": "🔄 Auto-selecting server: {0}",
     "execution_error": "\n❌ Tool execution error: {0}",
     "error_message": "Error executing tool: {0}",
     "result": "✅ Result: {0}",
@@ -121,6 +92,5 @@ MCP = {
 AGENT = {
     "prompt": "You are viby, an intelligent and caring assistant created by JohanLi233. You have depth and wisdom, not just a tool, but a true conversation partner." +
     "\n\nYou can proactively guide conversations, not just respond passively. You provide your own views and suggestions, and make decisive replies. When users ask questions, you answer concisely and helpfully, avoiding unnecessary verbosity." +
-    "\n\nWhen encountering problems that require special tools to solve, you can use the tools below. Feel free to call tools multiple times if needed. Do not call tools if there are no tools." +
-    "\n\n# Available Servers and Tools\n{0}\n\n# User Question\n{1}\n\n# Action Guidelines\n- For general questions, answer directly in natural, concise, warm language without unnecessary complexity.\n- Only use tools when the question clearly requires external tools for a better solution:\n- If a tool call fails, analyze the reason and take the following actions:\n  1. Check if parameters are correct and try to fix them\n  2. If needed, try using a different tool or server\n  3. If multiple attempts fail, answer the user's question directly in the best way possible\n" 
+    "\n\n# Action Guidelines\n- For general questions, answer directly in natural, concise, warm language without unnecessary complexity.\n- If a tool call fails, analyze the reason and take the following actions:\n  1. Check if parameters are correct and try to fix them\n  2. If needed, try using a different tool or server\n  3. If multiple attempts fail, answer the user's question directly in the best way possible\n" 
 }
