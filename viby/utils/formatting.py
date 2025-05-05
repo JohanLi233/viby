@@ -106,11 +106,38 @@ def process_latex(text):
 
     return text
 
+def process_markdown_links(text):
+    """
+    处理 Markdown 链接，使其同时显示链接文本和 URL。
+    将 [text](url) 格式转换为 [text (url)](url) 格式，这样 Rich 渲染时会同时显示文本和 URL。
+    
+    Args:
+        text: 原始 Markdown 文本
+    
+    Returns:
+        处理后的 Markdown 文本，链接同时显示文本和 URL
+    """
+    # 正则表达式匹配 Markdown 链接 [text](url)
+    link_pattern = r'\[([^\]]+)\]\(([^)]+)\)'
+    
+    def replace_link(match):
+        text = match.group(1)
+        url = match.group(2)
+        # 如果链接文本中已经包含 URL，则不做修改
+        if url in text:
+            return f'[{text}]({url})'
+        # 否则将 URL 添加到链接文本中
+        return f'[{text} ({url})]({url})'
+    
+    # 替换所有链接
+    return re.sub(link_pattern, replace_link, text)
+
 def stream_render_response(model_manager, messages, tools=None):
     """
     流式获取模型回复并使用 Rich 渲染 Markdown 输出到终端。
     自动按段落（以空行分隔）分块渲染，支持表格、列表、代码块及保留 <think> 标签。
     支持简单的 LaTeX 数学公式渲染。
+    显示 Markdown 链接的原始 URL。
     
     Args:
         model_manager: 模型管理器
@@ -131,12 +158,16 @@ def stream_render_response(model_manager, messages, tools=None):
             escaped = part.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
             # 处理 LaTeX 公式
             escaped = process_latex(escaped)
+            # 处理 Markdown 链接，使其显示原始 URL
+            escaped = process_markdown_links(escaped)
             console.print(Markdown(escaped, justify="left"))
     # 渲染剩余内容
     if buf.strip():
         escaped = buf.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
         # 处理 LaTeX 公式
         escaped = process_latex(escaped)
+        # 处理 Markdown 链接，使其显示原始 URL
+        escaped = process_markdown_links(escaped)
         console.print(Markdown(escaped, justify="left"))
 
     return raw_response
