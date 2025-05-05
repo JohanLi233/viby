@@ -1,6 +1,6 @@
 import json
 from pocketflow import Node
-from viby.utils.formatting import stream_render_response, extract_answer
+from viby.utils.formatting import stream_render_response
 from viby.locale import get_text
 
 class LLMNode(Node):
@@ -11,7 +11,6 @@ class LLMNode(Node):
         return {
             "model_manager": shared.get("model_manager"),
             "messages": shared.get("messages"),
-            "task_type": shared.get("task_type", "chat"),
             "tools": shared.get("tools")
         }
 
@@ -21,20 +20,15 @@ class LLMNode(Node):
         tools = prep_res.get("tools")
         if not manager or not messages:
             return None
-        t = prep_res.get("task_type", "chat")
         raw = stream_render_response(manager, messages, tools)
-        return extract_answer(raw) if t == "shell" else raw
+        return raw
     
     def post(self, shared, prep_res, exec_res):
         shared["response"] = exec_res
-        task_type = prep_res.get("task_type", "chat")
         shared["messages"].append({"role": "assistant", "content": exec_res})
         # 自动检测 tool 调用
         if "```tool" in exec_res:
             return self._handle_tool_call(shared, exec_res)
-        if task_type == "shell":
-            shared["command"] = exec_res
-            return "execute"
         return "continue"
     
     def _handle_tool_call(self, shared, exec_res):

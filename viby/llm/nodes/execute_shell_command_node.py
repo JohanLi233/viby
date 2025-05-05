@@ -5,7 +5,7 @@ import pyperclip
 from pocketflow import Node
 from prompt_toolkit import prompt
 from prompt_toolkit.formatted_text import HTML
-from viby.utils.formatting import Colors, print_separator
+from viby.utils.formatting import Colors, print_separator, extract_answer
 from viby.locale import get_text
 
 
@@ -20,11 +20,12 @@ class ExecuteShellCommandNode(Node):
     """
     def prep(self, shared):
         # 从共享状态获取生成的命令，返回纯数据，不做任何副作用
-        return shared.get("command")
+        return shared.get("messages")[-1].get("content")
     
     def exec(self, prep_res):
         """纯计算步骤：直接返回命令字符串，不做任何 I/O 或共享状态访问"""
-        return prep_res
+        command = extract_answer(prep_res)
+        return command
     
     def post(self, shared, prep_res, exec_res):
         """根据用户交互执行命令或其他操作，并写回 shared"""

@@ -34,7 +34,7 @@ class ShellCommand:
         execute_command_node = ExecuteShellCommandNode()
         
         # 连接节点以创建流程
-        reply_node - "execute" >> execute_command_node
+        reply_node - "continue" >> execute_command_node
         
         # 添加对话循环：如果用户选择'c'，直接返回到命令节点继续对话
         execute_command_node - "chat" >> reply_node
@@ -56,7 +56,6 @@ class ShellCommand:
         
         shared = {
             "model_manager": self.model_manager,
-            "task_type": "shell",  # 指定任务类型为 shell 命令生成
             "messages": [
                 {
                     "role": "user",
