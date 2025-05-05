@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/viby-icon.png" alt="Viby 图标" width="120" height="120">
+  <img src="https://raw.githubusercontent.com/JohanLi233/viby/main/assets/viby-icon.png" alt="Viby 图标" width="120" height="120">
   <h1>Viby</h1>
   <p><strong>Viby vibes everything</strong></p>
 </div>
@@ -25,7 +25,7 @@ Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解
 ## ✨ 特性
 
 - **智能对话** - 进行自然的多回合对话
-- **命令生成** - 获取优化的 Shell 命令及其解释
+- **命令生成** - 获取优化的 Shell 命令
 - **管道集成** - 处理来自其他命令的数据（例如，`git diff | viby "写一个提交消息"`）
 - **MCP 工具** - 通过模型上下文协议集成扩展能力
 

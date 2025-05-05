@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./assets/viby-icon.png" alt="Viby Logo" width="120" height="120">
+  <img src="https://raw.githubusercontent.com/JohanLi233/viby/main/assets/viby-icon.png" alt="Viby Logo" width="120" height="120">
   <h1>Viby</h1>
   <!-- <p><strong>Viby vibes everything</strong> - Your universal agent for solving any task</p> -->
   <p><strong>Viby vibes everything</strong></p>
@@ -26,7 +26,7 @@ Viby is a powerful AI agent that lives in your terminal, designed to solve virtu
 ## ✨ Features
 
 - **Intelligent Conversations** - Engage in natural multi-turn dialogues
-- **Command Generation** - Get optimized shell commands with explanations
+- **Command Generation** - Get optimized shell commands
 - **Pipeline Integration** - Process data from other commands (e.g., `git diff | viby "write a commit message"`)
 - **MCP Tools** - Extended capabilities through Model Context Protocol integration
 
