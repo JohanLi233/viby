@@ -1,18 +1,21 @@
 from pocketflow import Node
-from viby.utils.mcp import call_tool
+from viby.mcp import call_tool
 from viby.locale import get_text
 
 class ExecuteToolNode(Node):
     def prep(self, shared):
         """Prepare tool execution parameters"""
-        server_name = shared.get("selected_server")
-        return shared["tool_name"], shared["parameters"], server_name
+        # 同时获取工具名称、参数和服务器名称
+        tool_name = shared["tool_name"]
+        parameters = shared["parameters"]
+        selected_server = shared["selected_server"]
+        return tool_name, parameters, selected_server
 
     def exec(self, inputs):
         """Execute the chosen tool"""
-        tool_name, parameters, server_name = inputs
+        tool_name, parameters, selected_server = inputs
         try:
-            result = call_tool(server_name, tool_name, parameters)
+            result = call_tool(tool_name, selected_server, parameters)
             return result
         except Exception as e:
             print(get_text("MCP", "execution_error", e))

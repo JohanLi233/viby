@@ -1,51 +1,45 @@
 from pocketflow import Node
 from viby.locale import get_text
-from viby.utils.mcp import get_tools, list_servers
+from viby.mcp import list_tools  # 仅使用 list_tools
 from viby.config import Config
 
 class PromptNode(Node):
     def prep(self, shared):
-        """Initialize and get tools"""
-        mcp_server = shared.get("mcp_server") # 从shared获取服务器名称，可为None默认
         self.config = Config()
-        return mcp_server
 
     def exec(self, server_name):
         """Retrieve tools from the MCP server"""
+        result = {
+            "tools": []
+        }
+        
         if not self.config.enable_mcp:
-            return {}
+            return result
+            
         try:
-            if server_name:
-                # 如果指定了服务器，只获取该服务器的工具
-                tools = get_tools(server_name)
-                return {server_name: tools}
-            else:
-                # 获取所有服务器的工具
-                all_servers = list_servers()
-                result = {}
-                for server in all_servers:
-                    try:
-                        server_tools = get_tools(server)
-                        result[server] = server_tools
-                    except Exception as e:
-                        print(get_text("MCP", "tools_error", e))
-                return result
+            # 使用同步接口获取工具列表，结果为 {server_name: [tool1, tool2, ...], ...}
+            tools_dict = list_tools(server_name)
+            
+            # 展平所有工具列表并直接在每个工具中添加服务器信息
+            result["tools"] = [
+                {**tool, "server_name": srv_name}
+                for srv_name, tools in tools_dict.items()
+                for tool in tools
+            ]
+            
+            return result
         except Exception as e:
             print(get_text("MCP", "tools_error", e))
-            return {}
+            return result
 
     def post(self, shared, prep_res, exec_res):
         """Store tools and process to decision node"""
-        server_tools = exec_res
+        shared["tools"] = exec_res["tools"]
         
-        formatted_tools = ""
-        for server, tools in server_tools.items():
-            tool_descriptions = "\n".join([f"- {t.name}: {t.description}" for t in tools])
-            formatted_tools += get_text("MCP", "format_server_tools", server, tool_descriptions)
-        system_prompt = get_text("AGENT", "prompt", formatted_tools, shared.get("user_input", ""))
-        
+        # 构建初始消息
         shared["messages"] = [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": get_text("AGENT", "prompt")},
+            {"role": "user", "content": shared['user_input']},
         ]
         
-        return "prompt"
+        return "call_llm"

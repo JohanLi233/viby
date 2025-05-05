@@ -25,9 +25,11 @@ class ChatCommand:
         
         # 根据配置决定是否启用MCP工具
         # 初始化流程从输入节点开始
-        self.flow = Flow(start=self.prompt_node)
+        self.flow = Flow(start=self.input_node)
         
-        self.prompt_node - "prompt" >> self.input_node
+        # 先获取输入再初始化工具
+        self.input_node - "first_input" >> self.prompt_node
+        self.prompt_node - "call_llm" >> self.llm_node
         self.input_node - "call_llm" >> self.llm_node
         self.llm_node - "execute_tool" >> self.execute_tool_node
         self.llm_node - "continue" >> self.input_node

@@ -17,7 +17,7 @@ class AskCommand:
         self.prompt_node = PromptNode()
         self.execute_tool_node = ExecuteToolNode()
 
-        self.prompt_node - "prompt" >> self.llm_node
+        self.prompt_node - "call_llm" >> self.llm_node
         self.llm_node - "execute_tool" >> self.execute_tool_node
         self.llm_node - "continue" >> DummyNode()
         self.execute_tool_node - "call_llm" >> self.llm_node

@@ -106,22 +106,29 @@ def process_latex(text):
 
     return text
 
-def stream_render_response(model_manager, input):
+def stream_render_response(model_manager, messages, tools=None):
     """
     流式获取模型回复并使用 Rich 渲染 Markdown 输出到终端。
     自动按段落（以空行分隔）分块渲染，支持表格、列表、代码块及保留 <think> 标签。
     支持简单的 LaTeX 数学公式渲染。
+    
+    Args:
+        model_manager: 模型管理器
+        input: 消息列表或用户输入
+        tools: 可选，要传递给模型的工具列表
     """
     console = Console()
     raw_response = ""
     buf = ""
-    for chunk in model_manager.stream_response(input):
+    for chunk in model_manager.stream_response(messages, tools):
         raw_response += chunk
-        buf += chunk
+        # Ensure <think> tags occupy their own lines
+        formatted_chunk = chunk.replace("<think>", "\n<think>\n").replace("</think>", "\n</think>\n")
+        buf += formatted_chunk
         # 渲染完整段落
         while "\n\n" in buf:
             part, buf = buf.split("\n\n", 1)
-            escaped = part.replace("<think>", "`<think>`\n").replace("</think>", "\n`</think>`")
+            escaped = part.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
             # 处理 LaTeX 公式
             escaped = process_latex(escaped)
             console.print(Markdown(escaped, justify="left"))

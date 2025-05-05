@@ -23,9 +23,21 @@ class InputNode(Node):
             return 'exit'
             
         # 添加用户消息到历史
+        # 如果还没有消息历史，初始化它
+        if "messages" not in shared:
+            shared["messages"] = []
+            
+        # 将用户输入存到 shared 中，便于 PromptNode 使用
+        shared["user_input"] = exec_res
+            
+        # 添加用户消息到历史
         shared["messages"].append({
             "role": "user",
             "content": exec_res
         })
         
-        return "call_llm"  # 下一步操作
+        # 如果消息历史只有一条（当前消息），说明是第一次输入
+        if len(shared["messages"]) == 1:
+            return "first_input"  # 路由到 PromptNode 获取工具
+        else:
+            return "call_llm"  # 直接到 LLM 节点

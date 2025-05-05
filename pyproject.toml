@@ -1,6 +1,6 @@
 [project]
 name = "viby"
-version = "0.0.7"
+version = "0.0.8"
 description = "Viby agent at your terminal"
 authors = [
     { name = "JohanLi233", email = "li_zhonghan@qq.com" }
@@ -8,7 +8,7 @@ authors = [
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "fastmcp>=2.2.6",
+    "fastmcp>=2.2.7",
     "openai>=1.76.2",
     "pocketflow>=0.0.2",
     "prompt-toolkit>=3.0.51",
