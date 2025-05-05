@@ -3,7 +3,7 @@ from prompt_toolkit import prompt
 from prompt_toolkit.formatted_text import HTML
 from viby.locale import get_text
 
-class InputNode(Node):
+class ChatInputNode(Node):
     """获取用户输入并将其添加到消息历史中"""
     
     def exec(self, prep_res):

@@ -51,6 +51,7 @@ ConnectionConfig = Union[StdioConfig, SSEConfig, WebsocketConfig]
 # 全局连接池，用于保存已初始化的客户端连接
 _connection_pool = {}
 
+
 class MCPClient:
     """MCP 客户端，提供与 MCP 服务器的连接管理和工具调用"""
 
@@ -65,34 +66,39 @@ class MCPClient:
         self.exit_stack = AsyncExitStack()
         self.clients: Dict[str, Client] = {}
         self._initialized = False
-        
+
     @classmethod
-    async def get_connection(cls, server_name: str, config: Optional[Dict[str, ConnectionConfig]] = None):
+    async def get_connection(
+        cls, server_name: str, config: Optional[Dict[str, ConnectionConfig]] = None
+    ):
         """
         从连接池获取指定服务器的连接，如果不存在则创建
-        
+
         Args:
             server_name: 服务器名称
             config: 服务器配置字典
-            
+
         Returns:
             Client 实例
         """
         global _connection_pool
-        
+
         # 如果连接池中已有此服务器的客户端，直接返回
-        if server_name in _connection_pool and _connection_pool[server_name] is not None:
+        if (
+            server_name in _connection_pool
+            and _connection_pool[server_name] is not None
+        ):
             return _connection_pool[server_name]
-            
+
         # 否则创建新的客户端并初始化
         client = cls(config)
         await client.initialize()
-        
+
         # 获取对应服务器的Client实例
         if server_name in client.clients:
             _connection_pool[server_name] = client.clients[server_name]
             return client.clients[server_name]
-            
+
         return None
 
     async def initialize(self):
@@ -281,6 +287,7 @@ class MCPClient:
         """异步上下文管理器出口"""
         await self.close()
 
+
 def _run_sync(awaitable):
     """在新的事件循环中运行 awaitable 并返回结果"""
     return asyncio.run(awaitable)
@@ -337,7 +344,10 @@ def call_tool(
     # 获取指定服务器的配置
     server_config = get_server_config(server_name)
     if not server_config:
-        return {"is_error": True, "content": [{"type": "text", "text": f"服务器 {server_name} 配置不存在"}]}
+        return {
+            "is_error": True,
+            "content": [{"type": "text", "text": f"服务器 {server_name} 配置不存在"}],
+        }
 
     async def _runner():
         # 使用临时客户端调用工具
@@ -347,7 +357,12 @@ def call_tool(
             except Exception as e:
                 return {
                     "is_error": True,
-                    "content": [{"type": "text", "text": f"服务器 {server_name} 调用失败: {str(e)}"}],
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"服务器 {server_name} 调用失败: {str(e)}",
+                        }
+                    ],
                 }
 
     return _run_sync(_runner())

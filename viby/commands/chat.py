@@ -1,5 +1,5 @@
 from pocketflow import Flow
-from viby.llm.nodes.input_node import InputNode
+from viby.llm.nodes.chat_input_node import ChatInputNode
 from viby.llm.nodes.prompt_node import PromptNode
 from viby.llm.nodes.execute_tool_node import ExecuteToolNode
 from viby.llm.nodes.llm_node import LLMNode
@@ -18,7 +18,7 @@ class ChatCommand:
         self.model_manager = model_manager
 
         # 创建节点
-        self.input_node = InputNode()
+        self.input_node = ChatInputNode()
         self.prompt_node = PromptNode()
         self.llm_node = LLMNode()
         self.execute_tool_node = ExecuteToolNode()
