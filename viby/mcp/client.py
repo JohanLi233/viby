@@ -160,6 +160,36 @@ class MCPClient:
             await self.initialize()
         return list(self.clients.keys())
 
+    def _convert_tools_to_standard_format(self, tools_response):
+        """
+        将MCP工具响应转换为符合OpenAI标准的工具格式
+        
+        Args:
+            tools_response: 来自MCP服务器的工具列表
+            
+        Returns:
+            标准化的工具列表
+        """
+        standard_tools = []
+        
+        for tool in tools_response:
+            # 构建符合 OpenAI 格式的工具对象
+            function_obj = {
+                "name": tool.name if hasattr(tool, "name") else str(tool),
+                "description": tool.description if hasattr(tool, "description") else "",
+            }
+
+            # 处理参数
+            if hasattr(tool, "parameters"):
+                function_obj["parameters"] = tool.parameters
+            elif hasattr(tool, "inputSchema"):
+                function_obj["parameters"] = tool.inputSchema
+
+            # 添加到工具列表
+            standard_tools.append({"type": "function", "function": function_obj})
+            
+        return standard_tools
+    
     async def list_tools(self, server_name: Optional[str] = None) -> Dict[str, Any]:
         """
         列出指定服务器或所有服务器的工具
@@ -176,59 +206,18 @@ class MCPClient:
         result = {}
 
         if server_name:
+            # 处理单个服务器
             if server_name not in self.clients:
                 raise ValueError(f"服务器 {server_name} 不存在")
 
+            # 获取工具并转换格式
             tools_response = await self.clients[server_name].list_tools()
-
-            # 转换为符合 OpenAI 的工具格式
-            standard_tools = []
-            for tool in tools_response:
-                # 构建符合 OpenAI 格式的工具对象
-                function_obj = {
-                    "name": tool.name if hasattr(tool, "name") else str(tool),
-                    "description": tool.description
-                    if hasattr(tool, "description")
-                    else "",
-                }
-
-                # 处理参数
-                if hasattr(tool, "parameters"):
-                    function_obj["parameters"] = tool.parameters
-                elif hasattr(tool, "inputSchema"):
-                    function_obj["parameters"] = tool.inputSchema
-
-                # 添加到工具列表
-                standard_tools.append({"type": "function", "function": function_obj})
-
-            result[server_name] = standard_tools
+            result[server_name] = self._convert_tools_to_standard_format(tools_response)
         else:
+            # 处理所有服务器
             for name, client in self.clients.items():
                 tools_response = await client.list_tools()
-
-                # 转换为符合 OpenAI 的工具格式
-                standard_tools = []
-                for tool in tools_response:
-                    # 构建符合 OpenAI 格式的工具对象
-                    function_obj = {
-                        "name": tool.name if hasattr(tool, "name") else str(tool),
-                        "description": tool.description
-                        if hasattr(tool, "description")
-                        else "",
-                    }
-
-                    # 处理参数
-                    if hasattr(tool, "parameters"):
-                        function_obj["parameters"] = tool.parameters
-                    elif hasattr(tool, "inputSchema"):
-                        function_obj["parameters"] = tool.inputSchema
-
-                    # 添加到工具列表
-                    standard_tools.append(
-                        {"type": "function", "function": function_obj}
-                    )
-
-                result[name] = standard_tools
+                result[name] = self._convert_tools_to_standard_format(tools_response)
 
         return result
 
