@@ -106,24 +106,15 @@ class MCPClient:
                 env = config.get("env") or {}
                 env.setdefault("PATH", os.environ.get("PATH", ""))
                 server_cfg = {
+                    "transport": "stdio",
                     "command": config["command"],
                     "args": config["args"],
                     "env": env,
-                    "encoding": config.get("encoding", DEFAULT_ENCODING),
-                    "encodingErrorHandler": config.get(
-                        "encoding_error_handler", DEFAULT_ENCODING_ERROR_HANDLER
-                    ),
-                    "transport": "stdio",
                 }
             elif transport == "sse":
                 server_cfg = {
-                    "url": config["url"],
-                    "headers": config.get("headers", {}),
-                    "timeout": config.get("timeout", DEFAULT_HTTP_TIMEOUT),
-                    "sseReadTimeout": config.get(
-                        "sse_read_timeout", DEFAULT_SSE_READ_TIMEOUT
-                    ),
                     "transport": "sse",
+                    "url": config["url"],
                 }
             elif transport == "websocket":
                 server_cfg = {
@@ -133,8 +124,19 @@ class MCPClient:
             else:
                 raise ValueError(f"不支持的传输类型: {transport}")
 
-            client_config = {"mcpServers": {server_name: server_cfg}}
-            client = Client(client_config)
+            # 确保服务器配置格式符合 fastmcp 预期
+            if transport == "stdio":
+                client_arg = {"mcpServers": {server_name: server_cfg}}
+                client = Client(client_arg)
+            elif transport == "sse":
+                url = server_cfg["url"]
+                client = Client(url)
+            elif transport == "websocket":
+                url = server_cfg["url"]
+                client = Client(url)
+            else:
+                raise ValueError(f"Unsupport: {transport}")
+            # 进入上下文
             await self.exit_stack.enter_async_context(client)
             self.clients[server_name] = client
 

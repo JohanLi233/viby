@@ -12,6 +12,7 @@ CONFIG_FILE = os.path.join(os.path.expanduser("~/.config/viby"), "mcp_servers.js
 DEFAULT_SERVERS = {
     "mcpServers": {
         "time": {
+            "transport": "stdio",
             "command": "uvx",
             "args": ["mcp-server-time", "--local-timezone=Asia/Shanghai"]
         }
