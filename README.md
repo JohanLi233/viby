@@ -1,37 +1,46 @@
 <div align="center">
-  <img src="./assets/viby-icon.svg" alt="Viby Logo" width="120" height="120">
+  <img src="./assets/viby-icon.png" alt="Viby Logo" width="120" height="120">
+  <h1>Viby</h1>
+  <!-- <p><strong>Viby vibes everything</strong> - Your universal agent for solving any task</p> -->
+  <p><strong>Viby vibes everything</strong></p>
 </div>
 
-# viby
+<p align="center">
+  <a href="https://github.com/JohanLi233/viby"><img src="https://img.shields.io/badge/GitHub-viby-181717?logo=github" alt="GitHub Repo"></a>
+  <a href="https://pypi.org/project/viby/"><img src="https://img.shields.io/pypi/v/viby?color=brightgreen" alt="PyPI version"></a>
+  <a href="https://www.python.org/downloads/release/python-3100/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python Version"></a>
+  <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
+  <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/badge/UV-Package%20Manager-blueviolet" alt="UV"></a>
+  <a href="https://github.com/estitesc/mission-control-link"><img src="https://img.shields.io/badge/MCP-Compatible-brightgreen" alt="MCP"></a>
+</p>
 
-[![GitHub Repo](https://img.shields.io/badge/GitHub-viby-181717?logo=github)](https://github.com/JohanLi233/viby)
-[![PyPI version](https://img.shields.io/pypi/v/viby?color=brightgreen)](https://pypi.org/project/viby/)
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/release/python-3100/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![UV](https://img.shields.io/badge/UV-Package%20Manager-blueviolet)](https://github.com/astral-sh/uv)
-[![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://github.com/estitesc/mission-control-link)
+<p align="center">
+  <a href="https://github.com/JohanLi233/viby/blob/main/README.md">English</a> | 
+  <a href="https://github.com/JohanLi233/viby/blob/main/README.zh-CN.md">中文</a>
+</p>
 
+<!-- ## 🚀 Overview
 
-English | [中文](https://github.com/JohanLi233/viby/blob/main/README.zh-CN.md)
-Viby agent at your terminal
+Viby is a powerful AI agent that lives in your terminal, designed to solve virtually any task you throw at it. Whether you need code assistance, shell commands, information retrieval, or creative content - Viby vibes with your needs and delivers solutions instantly. -->
 
-## Features
+## ✨ Features
 
-- Ask questions and get AI-generated answers
-- Interactive chat mode for multi-turn conversations
-- Generate shell commands and explanations
-- Process piped input (e.g., content from `git diff`)
-- Support for OpenAI-compatible API interfaces
-- MCP (Model Context Protocol) tools integration for extended capabilities
+- **Intelligent Conversations** - Engage in natural multi-turn dialogues
+- **Command Generation** - Get optimized shell commands with explanations
+- **Pipeline Integration** - Process data from other commands (e.g., `git diff | viby "write a commit message"`)
+- **MCP Tools** - Extended capabilities through Model Context Protocol integration
 
-## Installation
+## 🔧 Installation
 
 ```sh
+# Install from PyPI
 pip install viby
 ```
-### OR install from source
+
+### Alternative Installation
 
 ```sh
+# Install from source with uv
 uv pip install -e .
 ```
 

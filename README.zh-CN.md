@@ -1,27 +1,98 @@
 <div align="center">
-  <img src="./assets/viby-icon.svg" alt="Viby 图标" width="120" height="120">
+  <img src="./assets/viby-icon.png" alt="Viby 图标" width="120" height="120">
+  <h1>Viby</h1>
+  <p><strong>Viby vibes everything</strong></p>
 </div>
 
-# viby
+<p align="center">
+  <a href="https://github.com/JohanLi233/viby"><img src="https://img.shields.io/badge/GitHub-viby-181717?logo=github" alt="GitHub 仓库"></a>
+  <a href="https://pypi.org/project/viby/"><img src="https://img.shields.io/pypi/v/viby?color=brightgreen" alt="PyPI 版本"></a>
+  <a href="https://www.python.org/downloads/release/python-3100/"><img src="https://img.shields.io/badge/python-3.10%2B-blue" alt="Python 版本"></a>
+  <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="许可证: GPL v3"></a>
+  <a href="https://github.com/astral-sh/uv"><img src="https://img.shields.io/badge/UV-Package%20Manager-blueviolet" alt="UV"></a>
+  <a href="https://github.com/estitesc/mission-control-link"><img src="https://img.shields.io/badge/MCP-Compatible-brightgreen" alt="MCP"></a>
+</p>
 
-[![GitHub Repo](https://img.shields.io/badge/GitHub-viby-181717?logo=github)](https://github.com/JohanLi233/viby)
-[![PyPI version](https://img.shields.io/pypi/v/viby?color=brightgreen)](https://pypi.org/project/viby/)
-[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/release/python-3100/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![UV](https://img.shields.io/badge/UV-Package%20Manager-blueviolet)](https://github.com/astral-sh/uv)
-[![MCP](https://img.shields.io/badge/MCP-Compatible-brightgreen)](https://github.com/estitesc/mission-control-link)
+<p align="center">
+  <a href="https://github.com/JohanLi233/viby/blob/main/README.md">English</a> | 
+  <a href="https://github.com/JohanLi233/viby/blob/main/README.zh-CN.md">中文</a>
+</p>
 
-[English](https://github.com/JohanLi233/viby/blob/main/README.md) | 中文
-一个用于与大语言模型交互的多功能命令行工具。
+<!-- ## 🚀 概述
 
-## 功能特点
+Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解决你抛给它的任何任务。无论你需要代码帮助、Shell 命令、信息检索还是创意内容 - Viby 都能与你的需求产生共鸣，并立即提供解决方案。 -->
 
-- 提问并获取 AI 生成的答案
-- 交互式对话模式进行多轮对话
-- 生成 shell 命令及其解释
-- 处理管道输入（例如：来自 git diff 的内容）
-- 支持Open AI 格式接口调用
-- 支持MCP（模型上下文协议）工具集成以提供扩展功能
+## ✨ 特性
+
+- **智能对话** - 进行自然的多回合对话
+- **命令生成** - 获取优化的 Shell 命令及其解释
+- **管道集成** - 处理来自其他命令的数据（例如，`git diff | viby "写一个提交消息"`）
+- **MCP 工具** - 通过模型上下文协议集成扩展能力
+
+## 🔧 安装
+
+```sh
+# 从 PyPI 安装
+pip install viby
+```
+
+### 替代安装方式
+
+```sh
+# 使用 uv 从源代码安装
+uv pip install -e .
+```
+
+## 使用示例
+
+### 基本问题
+
+```sh
+yb "用 Python 写一个快速排序"
+# -> 当然！以下是用 **Python** 实现的快速排序算法：
+```
+
+### 交互式对话模式
+
+```sh
+yb -c
+|> 告诉我量子计算的相关信息
+# -> [AI 回答量子计算相关内容]
+|> 有哪些实际应用？
+# -> [AI 回答后续信息]
+```
+
+### 处理管道内容
+
+```sh
+git diff | yb "生成一个提交消息"
+# -> 添加了 README 的相关信息
+```
+
+```sh
+yb "这个项目是关于什么的？" < README.md
+# -> 这个项目是关于...
+```
+
+### 生成 Shell 命令
+
+```sh
+yb -s "我写了多少行 Python 代码？"
+# -> find . -type f -name "*.py" | xargs wc -l
+# -> [r]运行, [e]编辑, [y]复制, [c]对话, [q]放弃 (默认: 运行): 
+```
+
+### 自动使用 MCP 工具
+
+```sh
+yb "现在几点了？"
+# -> [AI 使用时间工具获取当前时间]
+# -> "datetime": "2025-05-03T00:49:57+08:00"
+```
+
+## 配置
+
+Viby 从 `~/.config/viby/config.yaml` 读取配置。你可以在这里设置模型、参数和 MCP 选项。
 
 ## 安装
 
@@ -31,53 +102,6 @@ pip install viby
 ### 或从源码安装
 ```sh
 uv pip install -e .
-```
-
-## 使用示例
-
-### 基本提问
-
-```sh
-yb "用python写一个快速排序"
-# -> 当然可以！下面是一个用 **Python** 实现的 **快速排序（Quick Sort）** 算法：
-```
-
-### 交互式对话模式
-
-```sh
-yb -c
-|> 解释一下量子计算的基本原理
-# -> [AI 回复关于量子计算的解释]
-|> 它在实际中有哪些应用？
-# -> [AI 提供后续相关信息]
-```
-
-### 处理管道内容
-
-```sh
-git diff | yb "生成一个commit message"
-# -> 在README中新增了信息
-```
-
-```sh
-yb 这个项目是关于什么的 < README.md 
-# -> 这个项目是关于...
-```
-
-### 生成 shell 命令
-
-```sh
-yb -s "我写了多少行python代码"
-# -> find . -type f -name "*.py" | xargs wc -l
-# -> [r]运行, [e]编辑, [y]复制, [c]对话, [q]放弃 (默认: 运行): 
-```
-
-### 自动使用MCP工具
-
-```sh
-yb "现在几点了？"
-# -> [AI自动使用时间工具获取当前时间]
-# -> "datetime": "2025-05-03T18:41:33+08:00"
 ```
 
 ## 配置
