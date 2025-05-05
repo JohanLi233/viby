@@ -86,7 +86,9 @@ MCP = {
     "execution_error": "\n❌ Tool execution error: {0}",
     "error_message": "Error executing tool: {0}",
     "result": "✅ Result: {0}",
-    "tool_result_prompt": "Tool has been executed, here are the results:\n{0}\n\nBased on the tool execution results above, please provide a clear and helpful explanation and response to the user."
+    "tool_result_prompt": "Tool has been executed, here are the results:\n{0}\n\nBased on the tool execution results above, please provide a clear and helpful explanation and response to the user.",
+    "executing_tool": "Executing Tool Call",
+    "tool_result": "Tool Call Result"
 }
 
 AGENT = {

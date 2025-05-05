@@ -163,26 +163,87 @@ def process_markdown_links(text):
     # 替换所有链接
     return re.sub(link_pattern, replace_link, text)
 
-def stream_render_response(model_manager, messages, tools=None):
+def format_markdown(content, title=None, code_type=None):
     """
-    流式获取模型回复并使用 Rich 渲染 Markdown 输出到终端。
-    自动按段落（以空行分隔）分块渲染，支持表格、列表、代码块及保留 <think> 标签。
-    支持简单的 LaTeX 数学公式渲染。
-    显示 Markdown 链接的原始 URL。
+    将内容格式化为标准的 Markdown 格式。
     
     Args:
-        model_manager: 模型管理器
-        input: 消息列表或用户输入
-        tools: 可选，要传递给模型的工具列表
+        content: 要格式化的内容，可以是字符串、字典、列表等
+        title: 可选的标题
+        code_type: 代码块的类型，如 "json", "python" 等，为 None 则按纯文本处理
+        
+    Returns:
+        格式化后的 Markdown 字符串
+    """
+    import json
+    
+    result = []
+    
+    # 添加标题
+    if title:
+        result.append(f"## {title}\n")
+    
+    # 处理内容
+    if code_type:
+        # 如果提供了代码类型，则格式化为代码块
+        if isinstance(content, (dict, list)) and code_type == "json":
+            # 字典或列表转为JSON
+            formatted_content = json.dumps(content, ensure_ascii=False, indent=2)
+            result.append(f"```{code_type}\n{formatted_content}\n```")
+        else:
+            # 其他内容转为字符串
+            result.append(f"```{code_type}\n{str(content)}\n```")
+    else:
+        # 没有代码类型，直接添加内容
+        if isinstance(content, (dict, list)):
+            # 字典或列表转为JSON
+            formatted_content = json.dumps(content, ensure_ascii=False, indent=2)
+            result.append(f"```json\n{formatted_content}\n```")
+        else:
+            # 其他内容直接转为字符串
+            result.append(str(content))
+    
+    return "\n".join(result)
+
+def print_markdown(content, title=None, code_type=None):
+    """
+    以标准的 Markdown 格式打印内容。
+    
+    Args:
+        content: 要打印的内容，可以是字符串、字典、列表等
+        title: 可选的标题
+        code_type: 代码块的类型，如 "json", "python" 等，为 None 则按纯文本处理
+    """
+    from rich.console import Console
+    from rich.markdown import Markdown
+    
+    console = Console()
+    md_text = format_markdown(content, title, code_type)
+    console.print(Markdown(md_text, justify="left"))
+
+def render_markdown_stream(text_stream, return_full=True):
+    """
+    渲染 Markdown 文本流，并按段落自动分块展示。
+    
+    Args:
+        text_stream: 文本流迭代器
+        return_full: 是否返回完整响应文本
+        
+    Returns:
+        完整响应文本（如果 return_full=True）
     """
     console = Console()
     raw_response = ""
     buf = ""
-    for chunk in model_manager.stream_response(messages, tools):
-        raw_response += chunk
+    
+    for chunk in text_stream:
+        if return_full:
+            raw_response += chunk
+            
         # Ensure <think> tags occupy their own lines
         formatted_chunk = chunk.replace("<think>", "\n<think>\n").replace("</think>", "\n</think>\n")
         buf += formatted_chunk
+        
         # 渲染完整段落
         while "\n\n" in buf:
             part, buf = buf.split("\n\n", 1)
@@ -192,6 +253,7 @@ def stream_render_response(model_manager, messages, tools=None):
             # 处理 Markdown 链接，使其显示原始 URL
             escaped = process_markdown_links(escaped)
             console.print(Markdown(escaped, justify="left"))
+            
     # 渲染剩余内容
     if buf.strip():
         escaped = buf.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
@@ -201,4 +263,5 @@ def stream_render_response(model_manager, messages, tools=None):
         escaped = process_markdown_links(escaped)
         console.print(Markdown(escaped, justify="left"))
 
-    return raw_response
+    if return_full:
+        return raw_response

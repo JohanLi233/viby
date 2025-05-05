@@ -1,13 +1,12 @@
-import json
 from pocketflow import Node
-from viby.utils.formatting import stream_render_response
+from viby.utils.formatting import render_markdown_stream
 from viby.locale import get_text
 
 class LLMNode(Node):
-    """通用的模型回复节点"""
+    """通用的模型回复节点，负责调用LLM获取回复并处理工具调用"""
     
     def prep(self, shared):
-        """通用提取共享状态，消息构建在 prompt_node 完成"""
+        """准备模型调用所需的参数"""
         return {
             "model_manager": shared.get("model_manager"),
             "messages": shared.get("messages"),
@@ -15,30 +14,47 @@ class LLMNode(Node):
         }
 
     def exec(self, prep_res):
+        """执行模型调用并渲染输出，直接获取工具调用信息"""
         manager = prep_res.get("model_manager")
         messages = prep_res.get("messages")
         tools = prep_res.get("tools")
+        
         if not manager or not messages:
             return None
-        raw = stream_render_response(manager, messages, tools)
-        return raw
+        
+        # 使用新的方法直接获取文本内容和工具调用
+        text_content, tool_calls = manager.get_response_with_tools(messages, tools)
+        
+        # 渲染文本内容
+        render_markdown_stream([text_content])
+        
+        # 返回包含文本和工具调用的元组，符合节点设计模式
+        return {
+            "text_content": text_content,
+            "tool_calls": tool_calls
+        }
     
     def post(self, shared, prep_res, exec_res):
-        shared["response"] = exec_res
-        shared["messages"].append({"role": "assistant", "content": exec_res})
-        # 自动检测 tool 调用
-        if "```tool" in exec_res:
-            return self._handle_tool_call(shared, exec_res)
+        """处理模型响应，处理工具调用（如果有）"""
+        # 从 exec_res 中提取文本内容和工具调用
+        text_content = exec_res.get("text_content")
+        tool_calls = exec_res.get("tool_calls", [])
+        
+        # 保存模型响应到共享状态
+        shared["response"] = text_content
+        shared["messages"].append({"role": "assistant", "content": text_content})
+        
+        if tool_calls:
+            return self._handle_tool_call(shared, tool_calls[0])
+                
         return "continue"
     
-    def _handle_tool_call(self, shared, exec_res):
+    def _handle_tool_call(self, shared, tool_call):
+        """处理工具调用"""
         try:
-            json_block = exec_res.split("```tool")[1].split("```")[0].strip()
-            decision = json.loads(json_block)
-            
             # 获取工具名称和参数
-            tool_name = decision["tool"]
-            parameters = decision["parameters"]
+            tool_name = tool_call["name"]
+            parameters = tool_call["parameters"]
             
             # 从工具列表中找到对应的工具及其服务器
             selected_server = next(
@@ -57,9 +73,8 @@ class LLMNode(Node):
             return "execute_tool"
         except Exception as e:
             print(get_text("MCP", "parsing_error", e))
-            print("Raw response:", exec_res)
             return None
     
     def exec_fallback(self, prep_res, exc):
-        # 错误处理：提供友好的错误信息
+        """错误处理：提供友好的错误信息"""
         return f"Error: {str(exc)}"

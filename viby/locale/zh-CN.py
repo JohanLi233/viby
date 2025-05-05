@@ -87,7 +87,9 @@ MCP = {
     "execution_error": "\n❌ 执行工具时出错: {0}",
     "error_message": "执行工具时出错: {0}",
     "result": "✅ 结果: {0}",
-    "tool_result_prompt": "工具已执行，下面是执行结果：\n{0}\n\n请根据上面的工具执行结果，为用户提供清晰、有用的解释和回应。"
+    "tool_result_prompt": "工具已执行，下面是执行结果：\n{0}\n\n请根据上面的工具执行结果，为用户提供清晰、有用的解释和回应。",
+    "executing_tool": "正在执行工具调用",
+    "tool_result": "工具调用结果"
 }
 
 AGENT = {
