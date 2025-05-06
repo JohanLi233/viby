@@ -14,8 +14,6 @@ from viby.commands.chat import ChatCommand
 from viby.utils.logging import setup_logging
 from viby.locale import init_text_manager, get_text
 
-
-# Setup logging early
 logger = setup_logging()
 
 def main():

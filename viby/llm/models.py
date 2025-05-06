@@ -16,7 +16,7 @@ class ModelManager:
         self.use_think_model = args.think if args and hasattr(args, "think") else False
         self.use_fast_model = args.fast if args and hasattr(args, "fast") else False
 
-    def get_response_with_tools(self, messages, tools):
+    def get_response(self, messages, tools):
         """
         获取模型回复和工具调用信息
 

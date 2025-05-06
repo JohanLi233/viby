@@ -23,7 +23,7 @@ class LLMNode(Node):
             return None
         
         # 使用新的方法直接获取文本内容和工具调用
-        text_content, tool_calls = manager.get_response_with_tools(messages, tools)
+        text_content, tool_calls = manager.get_response(messages, tools)
         
         # 渲染文本内容
         render_markdown_stream([text_content])
