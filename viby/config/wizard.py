@@ -146,9 +146,23 @@ def run_config_wizard(config):
     think_model_prompt = get_text("CONFIG_WIZARD", "think_model_prompt") if callable(get_text) else "Think Model 名称（如需）："
     config.think_model = get_input(think_model_prompt, config.think_model if hasattr(config, 'think_model') else "")
     
+    # 如果设置了think_model，请求输入think_model_base_url
+    if config.think_model:
+        think_model_base_url_prompt = get_text("CONFIG_WIZARD", "think_model_base_url_prompt") if callable(get_text) else "Think Model API URL（如需）："
+        config.think_model_base_url = get_input(think_model_base_url_prompt, 
+                                              config.think_model_base_url if hasattr(config, 'think_model_base_url') else "", 
+                                              validator=validate_url if callable(validate_url) else None)
+    
     # fast model 配置
     fast_model_prompt = get_text("CONFIG_WIZARD", "fast_model_prompt") if callable(get_text) else "快速模型名称（如需）："
     config.fast_model = get_input(fast_model_prompt, config.fast_model if hasattr(config, 'fast_model') else "")
+    
+    # 如果设置了fast_model，请求输入fast_model_base_url
+    if config.fast_model:
+        fast_model_base_url_prompt = get_text("CONFIG_WIZARD", "fast_model_base_url_prompt") if callable(get_text) else "快速模型 API URL（如需）："
+        config.fast_model_base_url = get_input(fast_model_base_url_prompt, 
+                                             config.fast_model_base_url if hasattr(config, 'fast_model_base_url') else "", 
+                                             validator=validate_url if callable(validate_url) else None)
     
     # 温度设置
     while True:

@@ -15,9 +15,11 @@ class Config:
         self.model = "qwen3:30b"
         self.think_model = ""  # 新增 think_model 字段
         self.fast_model = ""   # 新增 fast_model 字段
+        self.base_url = "http://localhost:11434"  # 默认基础URL
+        self.think_model_base_url = ""  # think_model 的基础URL
+        self.fast_model_base_url = ""   # fast_model 的基础URL
         self.temperature = 0.7
         self.max_tokens = 40960
-        self.base_url = "http://localhost:11434"
         self.api_timeout = 300
         self.api_key = ""
         self.language = "en-US"  # options: en-US, zh-CN
@@ -69,11 +71,19 @@ class Config:
     def get_model_config(self, model_name: Optional[str] = None) -> Dict[str, Any]:
         """获取指定模型的配置"""
         model = model_name or self.model
+        
+        # 根据模型类型选择相应的 base_url
+        base_url = self.base_url
+        if model == self.think_model and self.think_model_base_url:
+            base_url = self.think_model_base_url
+        elif model == self.fast_model and self.fast_model_base_url:
+            base_url = self.fast_model_base_url
+            
         model_config = {
             "model": model,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
-            "base_url": self.base_url,
+            "base_url": base_url,
             "api_key": self.api_key,
         }
         return model_config
