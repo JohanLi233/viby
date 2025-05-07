@@ -126,6 +126,9 @@ jobs:
     name: Upload release to PyPI
     needs: [release_approval, setup_and_build, details]
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
     permissions:
       id-token: write
     steps:
@@ -136,7 +139,7 @@ jobs:
           path: dist/
           
       - name: Upload package to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.8.11
+        uses: pypa/gh-action-pypi-publish@release/v1
 
   github_release:
     name: Create GitHub Release
@@ -172,6 +175,8 @@ jobs:
     name: Update Homebrew Formula
     needs: [details, github_release, pypi_publish]
     runs-on: ubuntu-latest
+    environment:
+      name: release
     steps:
       - name: Dispatch Repository Dispatch event
         uses: peter-evans/repository-dispatch@v2
