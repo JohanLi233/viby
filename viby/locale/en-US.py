@@ -11,9 +11,9 @@ GENERAL = {
     "chat_help": "Start an interactive chat session with the model",
     "shell_help": "Generate and optionally execute shell commands",
     "config_help": "Launch interactive configuration wizard",
-    "think_help": "Use think model for reasoning",
-    "fast_help": "Use fast model for quick responses",
-    
+    "think_help": "Use the think model for deeper analysis (if configured)",
+    "fast_help": "Use the fast model for quicker responses (if configured)",
+    "version_help": "Show program's version number and exit",
     # Interface text
     "operation_cancelled": "Operation cancelled.",
     "copy_success": "Content copied to clipboard!",
@@ -26,11 +26,6 @@ GENERAL = {
 
 # Configuration wizard related
 CONFIG_WIZARD = {
-    "model_qwen3": "qwen3:30b",
-    "model_deepseek": "deepseek-chat",
-    "model_gpt4o": "gpt-4o",
-    "model_custom": "custom",
-    
     # Input validation
     "invalid_number": "Please enter a valid number!",
     "number_range_error": "Please enter a number between 1-{0}!",
@@ -42,18 +37,22 @@ CONFIG_WIZARD = {
     "timeout_positive": "Timeout must be greater than 0!",
     
     # Prompts
+    "PASS_PROMPT_HINT": "(type 'pass' to skip)",
     "checking_chinese": "Checking if terminal supports Chinese...",
     "selected_language": "Selected English interface",
-    "model_prompt": "Select default model",
-    "think_model_prompt": "Think model name (optional)",
-    "think_model_base_url_prompt": "Think model API URL (optional)",
-    "fast_model_prompt": "Fast model name (optional)",
-    "fast_model_base_url_prompt": "Fast model API URL (optional)",
+    "default_api_url_prompt": "Default API Base URL",
+    "default_api_key_prompt": "Default API Key (if needed)",
+    "default_model_header": "--- Default Model Configuration ---",
+    "default_model_name_prompt": "Default Model Name",
+    "model_specific_url_prompt": "API URL for {model_name} (optional, uses default if blank)",
+    "model_specific_key_prompt": "API Key for {model_name} (optional, uses default if blank)",
+    "think_model_header": "--- Think Model Configuration (Optional) ---",
+    "think_model_name_prompt": "Think Model Name (optional, leave blank to skip)",
+    "fast_model_header": "--- Fast Model Configuration (Optional) ---",
+    "fast_model_name_prompt": "Fast Model Name (optional, leave blank to skip)",
     "temperature_prompt": "Temperature (0.0-1.0)",
     "max_tokens_prompt": "Maximum tokens",
-    "api_url_prompt": "API base URL",
     "api_timeout_prompt": "API timeout (seconds)",
-    "api_key_prompt": "API key (if needed)",
     "config_saved": "Configuration saved to",
     "continue_prompt": "Press Enter to continue...",
     "yes": "Yes",

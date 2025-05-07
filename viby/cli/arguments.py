@@ -5,6 +5,8 @@ Command line argument parsing for viby
 import argparse
 import sys
 from typing import Tuple
+import importlib.metadata
+import pathlib
 
 from viby.locale import get_text
 
@@ -22,6 +24,33 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "-h", "--help", action="help", default=argparse.SUPPRESS,
         help=get_text("GENERAL", "help_text")
+    )
+
+    # --- Version string generation --- 
+    base_version = importlib.metadata.version('viby')
+    version_string = f"Viby {base_version}"
+
+    # Check if running from source (likely editable install)
+    # __file__ in this context is .../viby/cli/arguments.py
+    # Project root should be three levels up from the directory of this file.
+    try:
+        current_file_path = pathlib.Path(__file__).resolve()
+        project_root_marker = current_file_path.parent.parent.parent / "pyproject.toml"
+        if project_root_marker.is_file():
+            # If pyproject.toml exists at the expected project root relative to this file,
+            # it implies this code is running directly from the source tree (editable install).
+            version_string += " (dev)"
+    except Exception:
+        # In case __file__ is not available or path operations fail, fallback to base version string
+        pass
+    # --- End of version string generation ---
+
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=version_string,
+        help=get_text("GENERAL", "version_help")
     )
     parser.add_argument(
         "prompt", nargs="?", 

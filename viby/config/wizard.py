@@ -1,5 +1,5 @@
 """
-Interactive configuration wizard module
+交互式配置向导模块
 """
 
 import os
@@ -7,7 +7,9 @@ import sys
 import shutil
 from viby.locale import get_text, init_text_manager
 from viby.utils.formatting import print_separator
+from viby.config.app_config import ModelProfileConfig
 
+PASS_SENTINEL = "_viby_internal_pass_"
 
 def print_header(title):
     """打印配置向导标题"""
@@ -18,15 +20,23 @@ def print_header(title):
     print()
 
 
-def get_input(prompt, default=None, validator=None, choices=None):
+def get_input(prompt, default=None, validator=None, choices=None, allow_pass_keyword=False):
     """获取用户输入，支持默认值和验证"""
+    base_prompt_text = prompt
+    if allow_pass_keyword:
+        pass_hint = get_text("CONFIG_WIZARD", "PASS_PROMPT_HINT")
+        base_prompt_text = f"{prompt} {pass_hint}"
+            
     if default is not None:
-        prompt = f"{prompt} [{default}]: "
+        prompt_text = f"{base_prompt_text} [{default}]: "
     else:
-        prompt = f"{prompt}: "
+        prompt_text = f"{base_prompt_text}: "
     
     while True:
-        user_input = input(prompt).strip()
+        user_input = input(prompt_text).strip()
+
+        if allow_pass_keyword and user_input.lower() == "pass":
+            return PASS_SENTINEL
         
         # 用户未输入，使用默认值
         if not user_input and default is not None:
@@ -74,11 +84,11 @@ def validate_url(url):
 
 
 def run_config_wizard(config):
-    """运行交互式配置向导"""
+    """配置向导主函数"""
     # 初始化文本管理器，加载初始语言文本
     init_text_manager(config)
     
-    # Check Chinese support in current terminal
+    # 检查当前终端是否支持中文
     is_chinese_supported = True
     try:
         print(get_text("CONFIG_WIZARD", "checking_chinese"))
@@ -111,59 +121,130 @@ def run_config_wizard(config):
     init_text_manager(config)
     print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
         
-    model_prompt = get_text("CONFIG_WIZARD", "model_prompt")
     temp_prompt = get_text("CONFIG_WIZARD", "temperature_prompt")
     max_tokens_prompt = get_text("CONFIG_WIZARD", "max_tokens_prompt")
-    api_url_prompt = get_text("CONFIG_WIZARD", "api_url_prompt")
     api_timeout_prompt = get_text("CONFIG_WIZARD", "api_timeout_prompt")
-    api_key_prompt = get_text("CONFIG_WIZARD", "api_key_prompt")
     save_prompt = get_text("CONFIG_WIZARD", "config_saved")
     continue_prompt = get_text("CONFIG_WIZARD", "continue_prompt")
     
     print()
     print_separator()
 
-    # API URL
-    config.base_url = get_input(api_url_prompt, config.base_url, validator=validate_url)
+    # --- 全局API设置 --- 
+    default_api_url_prompt = get_text("CONFIG_WIZARD", "default_api_url_prompt") if callable(get_text) else "默认API基地址"
+    config.default_api_base_url = get_input(default_api_url_prompt, config.default_api_base_url or "http://localhost:11434", validator=validate_url)
     
-    # API Key
-    config.api_key = get_input(api_key_prompt, config.api_key or "")
+    default_api_key_prompt = get_text("CONFIG_WIZARD", "default_api_key_prompt") if callable(get_text) else "默认API密钥（可选）"
+    config.default_api_key = get_input(default_api_key_prompt, config.default_api_key or "", allow_pass_keyword=True)
+    if not config.default_api_key or config.default_api_key == PASS_SENTINEL: 
+        config.default_api_key = None
 
-    # 模型选择
-    models = [
-        get_text("CONFIG_WIZARD", "model_qwen3"),
-        get_text("CONFIG_WIZARD", "model_deepseek"),
-        get_text("CONFIG_WIZARD", "model_gpt4o"),
-        get_text("CONFIG_WIZARD", "model_custom")
-    ]
-    chosen_model = number_choice(models, model_prompt)
-    if chosen_model == get_text("CONFIG_WIZARD", "model_custom"):
-        config.model = get_input(f"{model_prompt} ({get_text('CONFIG_WIZARD', 'model_custom')})", config.model)
+    print_separator()
+
+    # --- 默认模型配置（必填） ---
+    print_header(get_text("CONFIG_WIZARD", "default_model_header"))
+    
+    # 确保default_model是ModelProfileConfig实例并且有一个名称。
+    # 这应该是由app_config.py的初始化保证的，但作为一个安全措施：
+    if not isinstance(config.default_model, ModelProfileConfig):
+        config.default_model = ModelProfileConfig(name="qwen3:30b") 
+    elif not config.default_model.name:
+        config.default_model.name = "qwen3:30b"
+
+    default_model_name_prompt_text = get_text("CONFIG_WIZARD", "default_model_name_prompt")
+    # 直接获取模型名称输入，使用现有名称作为默认值。
+    config.default_model.name = get_input(default_model_name_prompt_text, config.default_model.name)
+
+    # 格式化提示字符串以包含实际模型名称
+    formatted_default_model_url_prompt = get_text("CONFIG_WIZARD", "model_specific_url_prompt").format(model_name=config.default_model.name)
+    user_provided_default_model_url = get_input(
+        formatted_default_model_url_prompt, 
+        config.default_model.api_base_url or "", 
+        validator=lambda x: not x or validate_url(x), 
+        allow_pass_keyword=True
+    )
+    if not user_provided_default_model_url or user_provided_default_model_url == PASS_SENTINEL:
+        config.default_model.api_base_url = None  # 存储None以使用全局
     else:
-        config.model = chosen_model
+        config.default_model.api_base_url = user_provided_default_model_url
+        
+    # 格式化提示字符串以包含实际模型名称
+    formatted_default_model_key_prompt = get_text("CONFIG_WIZARD", "model_specific_key_prompt").format(model_name=config.default_model.name)
+    config.default_model.api_key = get_input(formatted_default_model_key_prompt, config.default_model.api_key or "", allow_pass_keyword=True)
+    if not config.default_model.api_key or config.default_model.api_key == PASS_SENTINEL:
+        config.default_model.api_key = None  # 存储None如果为空
 
-    # think model 配置
-    think_model_prompt = get_text("CONFIG_WIZARD", "think_model_prompt") if callable(get_text) else "Think Model 名称（如需）："
-    config.think_model = get_input(think_model_prompt, config.think_model if hasattr(config, 'think_model') else "")
+    print_separator()
+
+    # --- 思考模型配置（可选） ---
+    print_header(get_text("CONFIG_WIZARD", "think_model_header"))
+    think_model_name_prompt = get_text("CONFIG_WIZARD", "think_model_name_prompt")
+    current_think_model_name = config.think_model.name if config.think_model else ""
     
-    # 如果设置了think_model，请求输入think_model_base_url
-    if config.think_model:
-        think_model_base_url_prompt = get_text("CONFIG_WIZARD", "think_model_base_url_prompt") if callable(get_text) else "Think Model API URL（如需）："
-        config.think_model_base_url = get_input(think_model_base_url_prompt, 
-                                              config.think_model_base_url if hasattr(config, 'think_model_base_url') else "", 
-                                              validator=validate_url if callable(validate_url) else None)
-    
-    # fast model 配置
-    fast_model_prompt = get_text("CONFIG_WIZARD", "fast_model_prompt") if callable(get_text) else "快速模型名称（如需）："
-    config.fast_model = get_input(fast_model_prompt, config.fast_model if hasattr(config, 'fast_model') else "")
-    
-    # 如果设置了fast_model，请求输入fast_model_base_url
-    if config.fast_model:
-        fast_model_base_url_prompt = get_text("CONFIG_WIZARD", "fast_model_base_url_prompt") if callable(get_text) else "快速模型 API URL（如需）："
-        config.fast_model_base_url = get_input(fast_model_base_url_prompt, 
-                                             config.fast_model_base_url if hasattr(config, 'fast_model_base_url') else "", 
-                                             validator=validate_url if callable(validate_url) else None)
-    
+    think_model_name_input = get_input(think_model_name_prompt, current_think_model_name, allow_pass_keyword=True)
+
+    if think_model_name_input and think_model_name_input != PASS_SENTINEL:
+        if not config.think_model or config.think_model.name != think_model_name_input:
+            config.think_model = ModelProfileConfig(name=think_model_name_input)
+        # 如果名称没有改变并且配置文件存在，我们只需在下面确认/更新URL/密钥
+        
+        # 格式化提示字符串以包含实际模型名称
+        formatted_think_model_url_prompt = get_text("CONFIG_WIZARD", "model_specific_url_prompt").format(model_name=config.think_model.name)
+        user_provided_think_model_url = get_input(
+            formatted_think_model_url_prompt, 
+            config.think_model.api_base_url or "", 
+            validator=lambda x: not x or validate_url(x),
+            allow_pass_keyword=True
+        )
+        if not user_provided_think_model_url or user_provided_think_model_url == PASS_SENTINEL:
+            config.think_model.api_base_url = None
+        else:
+            config.think_model.api_base_url = user_provided_think_model_url
+
+        # 格式化提示字符串以包含实际模型名称
+        formatted_think_model_key_prompt = get_text("CONFIG_WIZARD", "model_specific_key_prompt").format(model_name=config.think_model.name)
+        config.think_model.api_key = get_input(formatted_think_model_key_prompt, config.think_model.api_key or "", allow_pass_keyword=True)
+        if not config.think_model.api_key or config.think_model.api_key == PASS_SENTINEL:
+            config.think_model.api_key = None
+    elif config.think_model: # 用户输入“pass”或空白名称
+        config.think_model = None 
+
+    print_separator()
+
+    # --- 快速模型配置（可选） ---
+    print_header(get_text("CONFIG_WIZARD", "fast_model_header"))
+    fast_model_name_prompt = get_text("CONFIG_WIZARD", "fast_model_name_prompt")
+    current_fast_model_name = config.fast_model.name if config.fast_model else ""
+
+    fast_model_name_input = get_input(fast_model_name_prompt, current_fast_model_name, allow_pass_keyword=True)
+
+    if fast_model_name_input and fast_model_name_input != PASS_SENTINEL:
+        if not config.fast_model or config.fast_model.name != fast_model_name_input:
+            config.fast_model = ModelProfileConfig(name=fast_model_name_input)
+        
+        # 格式化提示字符串以包含实际模型名称
+        formatted_fast_model_url_prompt = get_text("CONFIG_WIZARD", "model_specific_url_prompt").format(model_name=config.fast_model.name)
+        user_provided_fast_model_url = get_input(
+            formatted_fast_model_url_prompt, 
+            config.fast_model.api_base_url or "", 
+            validator=lambda x: not x or validate_url(x),
+            allow_pass_keyword=True
+        )
+        if not user_provided_fast_model_url or user_provided_fast_model_url == PASS_SENTINEL:
+            config.fast_model.api_base_url = None
+        else:
+            config.fast_model.api_base_url = user_provided_fast_model_url
+        
+        # 格式化提示字符串以包含实际模型名称
+        formatted_fast_model_key_prompt = get_text("CONFIG_WIZARD", "model_specific_key_prompt").format(model_name=config.fast_model.name)
+        config.fast_model.api_key = get_input(formatted_fast_model_key_prompt, config.fast_model.api_key or "", allow_pass_keyword=True)
+        if not config.fast_model.api_key or config.fast_model.api_key == PASS_SENTINEL:
+            config.fast_model.api_key = None
+    elif config.fast_model: # 用户输入“pass”或空白名称
+        config.fast_model = None 
+
+    print_separator()
+
     # 温度设置
     while True:
         temp = get_input(temp_prompt, str(config.temperature))
@@ -189,7 +270,7 @@ def run_config_wizard(config):
             print(get_text("CONFIG_WIZARD", "invalid_integer"))
     
     
-    # API 超时
+    # API超时
     while True:
         timeout = get_input(api_timeout_prompt, str(config.api_timeout))
         try:
@@ -201,7 +282,7 @@ def run_config_wizard(config):
         except ValueError:
             print(get_text("CONFIG_WIZARD", "invalid_integer"))
     
-    # MCP 工具设置
+    # MCP工具设置
     enable_mcp_prompt = get_text("CONFIG_WIZARD", "enable_mcp_prompt")
     enable_mcp_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
     enable_mcp = number_choice(enable_mcp_choices, enable_mcp_prompt)

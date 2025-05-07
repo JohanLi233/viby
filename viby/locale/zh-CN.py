@@ -11,8 +11,9 @@ GENERAL = {
     "chat_help": "启动与模型的交互式对话会话",
     "shell_help": "生成并选择性执行Shell命令",
     "config_help": "启动交互式配置向导",
-    "think_help": "使用思考模型进行推理",
-    "fast_help": "使用快速模型获取更快速的响应",
+    "think_help": "使用思考模型进行更深入的分析（如果已配置）",
+    "fast_help": "使用快速模型进行更快的响应（如果已配置）",
+    "version_help": "显示程序版本号并退出",
     
     # 界面文本
     "operation_cancelled": "操作已取消。",
@@ -26,12 +27,6 @@ GENERAL = {
 
 # 配置向导相关
 CONFIG_WIZARD = {
-    # 模型名称本地化
-    "model_qwen3": "qwen3:30b",
-    "model_deepseek": "deepseek-chat",
-    "model_gpt4o": "gpt-4o",
-    "model_custom": "自定义",
-    
     # 输入验证
     "invalid_number": "请输入有效数字!",
     "number_range_error": "请输入 1-{0} 之间的数字!",
@@ -43,18 +38,22 @@ CONFIG_WIZARD = {
     "timeout_positive": "超时时间必须大于 0!",
     
     # 提示文本
+    "PASS_PROMPT_HINT": "(输入 'pass' 跳过)",
     "checking_chinese": "正在检查终端是否支持中文...",
     "selected_language": "已选择中文界面",
-    "model_prompt": "选择默认模型",
-    "think_model_prompt": "Think模型名称（可选）",
-    "think_model_base_url_prompt": "Think模型API地址（可选）",
-    "fast_model_prompt": "快速模型名称（可选）",
-    "fast_model_base_url_prompt": "快速模型API地址（可选）",
+    "default_api_url_prompt": "默认 API 基础URL",
+    "default_api_key_prompt": "默认 API 密钥(如需)",
+    "default_model_header": "--- 默认模型配置 ---",
+    "default_model_name_prompt": "默认模型名称",
+    "model_specific_url_prompt": "{model_name} 的 API URL (可选, 留空则使用默认)",
+    "model_specific_key_prompt": "{model_name} 的 API 密钥 (可选, 留空则使用默认)",
+    "think_model_header": "--- Think 模型配置 (可选) ---",
+    "think_model_name_prompt": "Think 模型名称 (可选, 留空跳过)",
+    "fast_model_header": "--- Fast 模型配置 (可选) ---",
+    "fast_model_name_prompt": "Fast 模型名称 (可选, 留空跳过)",
     "temperature_prompt": "温度参数 (0.0-1.0)",
     "max_tokens_prompt": "最大令牌数",
-    "api_url_prompt": "API 基础URL",
     "api_timeout_prompt": "API 超时时间(秒)",
-    "api_key_prompt": "API 密钥(如需)",
     "config_saved": "配置已保存至",
     "continue_prompt": "按 Enter 键继续...",
     "yes": "是",

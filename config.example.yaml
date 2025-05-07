@@ -1,7 +1,16 @@
-model: qwen3-30b-a3b-mlx
+default_api_base_url: http://localhost:1234
+default_api_key: null
+default_model:
+  name: qwen3-30b-a3b-mlx@4bit
+  api_base_url: http://localhost:1234
+think_model:
+  name: qwen3-32b-mlx
+  api_base_url: http://localhost:1234
+fast_model:
+  name: qwen3-0.6b-mlx
 temperature: 0.7
 max_tokens: 40960
-base_url: http://localhost:1234
 api_timeout: 300
-api_key: ''
 language: zh-CN
+enable_mcp: true
+mcp_config_folder: null
