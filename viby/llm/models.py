@@ -27,14 +27,18 @@ class ModelManager:
         Returns:
             包含文本内容和工具调用的元组 (text_content, tool_calls)
         """
-        model_name = None
-        # 优先级：fast > think > 默认模型
-        if self.use_fast_model and getattr(self.config, "fast_model", None):
-            model_name = self.config.fast_model
-        elif self.use_think_model and getattr(self.config, "think_model", None):
-            model_name = self.config.think_model
+        model_type_to_use = "default"  # Default to "default"
 
-        model_config = self.config.get_model_config(model_name)
+        if self.use_fast_model:
+            model_type_to_use = "fast"
+        elif self.use_think_model:
+            model_type_to_use = "think"
+        
+        # model_type_to_use will be "fast", "think", or "default".
+        # get_model_config will correctly select the profile or fall back
+        # to the default_model if "fast" or "think" are requested but not
+        # properly configured (e.g., name is empty in config.yaml).
+        model_config = self.config.get_model_config(model_type_to_use)
         return self._call_llm(messages, model_config, tools)
 
     def _call_llm(self, messages, model_config: Dict[str, Any], tools):
