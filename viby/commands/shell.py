@@ -2,11 +2,10 @@
 Shell command execution for viby - 使用 pocketflow 框架的重构版本
 """
 
-import os
-import platform
 from pocketflow import Flow
-from viby.locale import get_text
 from viby.llm.models import ModelManager
+from viby.llm.nodes.prompt_node import PromptNode
+from viby.llm.nodes.execute_tool_node import ExecuteToolNode
 from viby.llm.nodes.llm_node import LLMNode
 from viby.llm.nodes.dummy_node import DummyNode
 from viby.llm.nodes.execute_shell_command_node import ExecuteShellCommandNode
@@ -20,7 +19,9 @@ class ShellCommand:
     用户输入 -> 生成 shell 命令 -> 用户交互(执行/编辑/复制/放弃)
     
     每个节点负责其特定的功能：
-    - ShellPromptNode: 生成 shell 命令
+    - PromptNode: 处理用户输入和命令调用
+    - LLMNode: 处理 LLM 相关逻辑
+    - ExecuteToolNode: 处理 MCP 工具调用
     - ExecuteShellCommandNode: 处理用户交互和命令执行
     """
     
@@ -30,38 +31,34 @@ class ShellCommand:
         self.model_manager = model_manager
         
         # 创建节点
-        reply_node = LLMNode()
-        execute_command_node = ExecuteShellCommandNode()
+        self.prompt_node = PromptNode()
+        self.llm_node = LLMNode()
+        self.execute_command_node = ExecuteShellCommandNode()
+        self.execute_tool_node = ExecuteToolNode()
+
         
-        # 连接节点以创建流程
-        reply_node - "continue" >> execute_command_node
+        # 启动 LLM 调用
+        self.prompt_node - "call_llm" >> self.llm_node
+
+        # 工具调用流程：来自 LLM 的 execute_tool 事件
+        self.llm_node - "execute_tool" >> self.execute_tool_node
+        self.execute_tool_node - "call_llm" >> self.llm_node
+
+        # Shell 命令执行流程：来自 LLM 的 continue 事件
+        self.llm_node - "continue" >> self.execute_command_node
+        self.execute_command_node - "call_llm" >> self.llm_node
+        self.execute_command_node >> DummyNode()
         
-        # 添加对话循环：如果用户选择'c'，直接返回到命令节点继续对话
-        execute_command_node - "chat" >> reply_node
-        
-        # 默认结束映射，避免Flow警告
-        execute_command_node >> DummyNode()
-        
-        # 保存流程实例
-        self.flow = Flow(start=reply_node)
+        self.flow = Flow(start=self.prompt_node)
     
     def execute(self, user_prompt: str) -> int:
         """
         执行 shell 命令生成和交互流程
         """
-        shell = os.environ.get("SHELL") or os.environ.get("COMSPEC") or "unknown"
-        shell_name = os.path.basename(shell) if shell else "unknown"
-        os_name = platform.system()
-        shell_prompt = get_text("SHELL", "command_prompt", user_prompt, shell_name, os_name)
-        
         shared = {
             "model_manager": self.model_manager,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": shell_prompt
-                }
-            ]
+            "user_input": user_prompt,
+            "command_type": "shell"
         }
         
         # 执行流程
