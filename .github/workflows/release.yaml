@@ -97,6 +97,7 @@ jobs:
 
       - name: Build source and wheel distribution
         run: |
+          source .venv/bin/activate
           python -m build
 
       - name: Upload artifacts
