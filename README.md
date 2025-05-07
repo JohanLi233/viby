@@ -56,11 +56,14 @@ yb "Write a quicksort in python"
 ### Interactive Chat Mode
 
 ```sh
+yb --chat
+# or
 yb -c
 |> Tell me about quantum computing
 # -> [AI responds about quantum computing]
 |> What are the practical applications?
 # -> [AI responds with follow-up information]
+|> exit
 ```
 
 ### Process Piped Content
@@ -75,13 +78,24 @@ yb "What is this project about?" < README.md
 # -> This project is about...
 ```
 
-
 ### Generate Shell Command
 
 ```sh
+yb --shell "How many lines of python code did I write?"
+# or
 yb -s "How many lines of python code did I write?"
 # -> find . -type f -name "*.py" | xargs wc -l
 # -> [r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): 
+```
+
+### Advanced Model Selection
+
+```sh
+# Use think model for complex analysis
+yb --think "Analyze this complex algorithm and suggest optimizations"
+
+# Use fast model for quick responses
+yb --fast "Translate 'Hello, World!' to French"
 ```
 
 ### Automatically Use MCP Tools When Needed
@@ -91,6 +105,8 @@ yb "What time is it now?"
 # -> [AI uses time tool to get current time]
 # -> "datetime": "2025-05-03T00:49:57+08:00"
 ```
+
+For more detailed examples and advanced usage, see the [Usage Examples](./docs/viby_usage_examples.md) documentation.
 
 ## Configuration
 
@@ -125,7 +141,8 @@ Viby supports Model Context Protocol (MCP) servers for extended capabilities. MC
 
 ## 📄 Documentation
 
-For more details on the project's design and architecture, please refer to the [Viby Project Design Document](./docs/viby_project_design.md).
+- [Usage Examples](./docs/viby_usage_examples.md) - Detailed examples of all Viby features
+- [Project Design Document](./docs/viby_project_design.md) - Technical architecture and design
 
 ## 🤝 Contributing
 
