@@ -111,7 +111,8 @@ jobs:
     needs: [setup_and_build, details]
     runs-on: ubuntu-latest
     environment:
-      name: release
+      name: pypi-approval
+      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
     permissions:
       id-token: write
     steps:
@@ -120,19 +121,28 @@ jobs:
         with:
           name: dist
           path: dist/
-
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+          
+      - name: Display release information for review
+        run: |
+          echo "准备发布版本 ${{ needs.details.outputs.tag_name }} 到 PyPI"
+          echo "请在GitHub中批准此步骤以继续发布流程。"
+          
+      - name: Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.8.11
 
   github_release:
     name: Create GitHub Release
     needs: [setup_and_build, details]
     runs-on: ubuntu-latest
+    environment:
+      name: github-release-approval
+      url: https://github.com/${{ env.OWNER }}/${{ env.PACKAGE_NAME }}/releases/tag/${{ needs.details.outputs.tag_name }}
     permissions:
       contents: write
+      packages: write
+      id-token: write
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
           fetch-depth: 0
 
@@ -141,13 +151,22 @@ jobs:
         with:
           name: dist
           path: dist/
-
-      - name: Create GitHub Release
-        id: create_release
-        env:
-          GH_TOKEN: ${{ github.token }}
+          
+      - name: Display release information for review
         run: |
-          gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
+          echo "准备创建 GitHub Release: ${{ needs.details.outputs.tag_name }}"
+          echo "请在 GitHub 中批准此步骤以继续发布流程。"
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
+          tag_name: ${{ needs.details.outputs.tag_name }}
+          name: Release ${{ needs.details.outputs.tag_name }}
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ needs.details.outputs.suffix != '' }}
 
   bump_homebrew_formula:
     name: Update Homebrew Formula
@@ -159,9 +178,10 @@ jobs:
       - name: Dispatch Repository Dispatch event
         uses: peter-evans/repository-dispatch@v2
         with:
-          token: ${{ secrets.BREW_TAP_TOKEN }}
+          events_from_secrets: true
           repository: ${{ env.OWNER }}/${{ env.TAP_NAME }}
-          event-type: "update-formula"
+          event-type: update_formula
+          token: ${{ secrets.GITHUB_TOKEN }}
           client-payload: |-
             { 
               "formula_version": "${{ needs.details.outputs.tag_name }}", 
