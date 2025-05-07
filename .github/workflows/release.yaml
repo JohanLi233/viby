@@ -106,13 +106,26 @@ jobs:
           name: dist
           path: dist/
 
-  pypi_publish:
-    name: Upload release to PyPI
+  release_approval:
+    name: Release Approval
     needs: [setup_and_build, details]
     runs-on: ubuntu-latest
     environment:
-      name: pypi-approval
-      url: https://pypi.org/p/${{ env.PACKAGE_NAME }}
+      name: release-approval
+      url: https://github.com/${{ env.OWNER }}/${{ env.PACKAGE_NAME }}/releases
+    steps:
+      - name: Display release information for review
+        run: |
+          echo "=== 发布信息 ==="
+          echo "包名：${{ env.PACKAGE_NAME }}"
+          echo "版本：${{ needs.details.outputs.tag_name }}"
+          echo "准备发布到：PyPI, GitHub Releases 和 Homebrew"
+          echo "请在 GitHub 中批准此步骤以继续所有发布流程。"
+
+  pypi_publish:
+    name: Upload release to PyPI
+    needs: [release_approval, setup_and_build, details]
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
     steps:
@@ -122,21 +135,13 @@ jobs:
           name: dist
           path: dist/
           
-      - name: Display release information for review
-        run: |
-          echo "准备发布版本 ${{ needs.details.outputs.tag_name }} 到 PyPI"
-          echo "请在GitHub中批准此步骤以继续发布流程。"
-          
       - name: Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@v1.8.11
 
   github_release:
     name: Create GitHub Release
-    needs: [setup_and_build, details]
+    needs: [release_approval, setup_and_build, details]
     runs-on: ubuntu-latest
-    environment:
-      name: github-release-approval
-      url: https://github.com/${{ env.OWNER }}/${{ env.PACKAGE_NAME }}/releases/tag/${{ needs.details.outputs.tag_name }}
     permissions:
       contents: write
       packages: write
@@ -151,11 +156,6 @@ jobs:
         with:
           name: dist
           path: dist/
-          
-      - name: Display release information for review
-        run: |
-          echo "准备创建 GitHub Release: ${{ needs.details.outputs.tag_name }}"
-          echo "请在 GitHub 中批准此步骤以继续发布流程。"
 
       - name: Create Release
         id: create_release
@@ -172,8 +172,6 @@ jobs:
     name: Update Homebrew Formula
     needs: [details, github_release, pypi_publish]
     runs-on: ubuntu-latest
-    environment:
-      name: release
     steps:
       - name: Dispatch Repository Dispatch event
         uses: peter-evans/repository-dispatch@v2
