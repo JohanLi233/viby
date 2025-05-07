@@ -18,9 +18,9 @@
   <a href="https://github.com/JohanLi233/viby/blob/main/README.zh-CN.md">中文</a>
 </p>
 
-<!-- ## 🚀 概述
+## 🚀 概述
 
-Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解决你抛给它的任何任务。无论你需要代码帮助、Shell 命令、信息检索还是创意内容 - Viby 都能与你的需求产生共鸣，并立即提供解决方案。 -->
+Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解决你抛给它的任何任务。无论你需要代码帮助、Shell 命令、信息检索还是创意内容 - Viby 都能与你的需求产生共鸣，并立即提供解决方案。
 
 ## ✨ 特性
 
@@ -134,6 +134,11 @@ Viby支持模型上下文协议(MCP)服务器以提供扩展功能。MCP配置�
     <img src="https://api.star-history.com/svg?repos=JohanLi233/viby&type=Date" alt="Star 历史图表" style="max-width:100%;">
   </a>
 </div>
+
+## 文档
+
+关于项目设计和架构的更多详细信息，请参阅 [Viby 项目设计文档](./docs/viby_项目设计文档.md)。
+
 
 ## 🤝 贡献
 

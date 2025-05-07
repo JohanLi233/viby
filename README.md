@@ -123,6 +123,10 @@ Viby supports Model Context Protocol (MCP) servers for extended capabilities. MC
   </a>
 </div>
 
+## 📄 Documentation
+
+For more details on the project's design and architecture, please refer to the [Viby Project Design Document](./docs/viby_project_design.md).
+
 ## 🤝 Contributing
 
 Contributions are welcome! Feel free to submit a Pull Request or create an Issue.
