@@ -47,7 +47,7 @@ class ModelManager:
             tools: 可用工具列表
 
         Returns:
-            包含文本内容和工具调用的元组 (text_content, tool_calls)
+            生成器，流式返回 (text_chunks, tool_calls)
         """
         model = model_config["model"]
         base_url = model_config["base_url"].rstrip("/")
@@ -71,51 +71,33 @@ class ModelManager:
 
             # 创建流式处理
             stream = client.chat.completions.create(**params)
-
-            # 分离处理响应
-            text_content = ""
             tool_calls_data = {}
-
+            text_seen = False
             for chunk in stream:
-                if not chunk.choices:
-                    continue
-
                 delta = chunk.choices[0].delta
-
-                # 收集文本内容
                 if delta.content:
-                    text_content += delta.content
-
-                # 收集工具调用信息
+                    text_seen = True
+                    yield delta.content, None
                 if getattr(delta, "tool_calls", None):
                     for tc in delta.tool_calls:
                         idx = tc.index or 0
-                        call = tool_calls_data.setdefault(idx, {"name": "", "args": ""})
+                        entry = tool_calls_data.setdefault(idx, {"name": "", "args": ""})
                         if tc.function:
-                            if tc.function.name:
-                                call["name"] = tc.function.name
-                            if tc.function.arguments:
-                                call["args"] += tc.function.arguments
+                            entry["name"] = tc.function.name or entry["name"]
+                            entry["args"] += tc.function.arguments or ""
 
             # 如果没有内容，添加提示
-            if not text_content and not tool_calls_data:
-                text_content = get_text("GENERAL", "llm_empty_response")
+            if not text_seen:
+                empty = get_text("GENERAL", "llm_empty_response")
+                yield empty, None
 
             # 将工具调用转换为结构化格式
-            tool_calls_structured = []
-            for call in tool_calls_data.values():
-                if call["name"]:
-                    try:
-                        parameters = (
-                            json.loads(call["args"]) if call["args"].strip() else {}
-                        )
-                        tool_calls_structured.append(
-                            {"name": call["name"], "parameters": parameters}
-                        )
-                    except Exception:
-                        pass
-
-            return text_content, tool_calls_structured
+            yield None, [
+                {"name": entry["name"], "parameters": json.loads(entry["args"]) if entry["args"].strip() else {}}
+                for entry in tool_calls_data.values() if entry["name"]
+            ]
 
         except Exception as e:
-            return f"Error: {str(e)}", []
+            error_msg = f"Error: {str(e)}"
+            yield error_msg, []
+            return

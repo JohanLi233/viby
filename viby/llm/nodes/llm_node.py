@@ -15,24 +15,26 @@ class LLMNode(Node):
 
     def exec(self, prep_res):
         """执行模型调用并渲染输出，直接获取工具调用信息"""
-        manager = prep_res.get("model_manager")
-        messages = prep_res.get("messages")
-        tools = prep_res.get("tools")
-        
-        if not manager or not messages:
+        manager, messages, tools = (
+            prep_res.get("model_manager"),
+            prep_res.get("messages"),
+            prep_res.get("tools"),
+        )
+        if not (manager and messages):
             return None
-        
-        # 使用新的方法直接获取文本内容和工具调用
-        text_content, tool_calls = manager.get_response(messages, tools)
-        
-        # 渲染文本内容
-        render_markdown_stream([text_content])
-        
-        # 返回包含文本和工具调用的元组，符合节点设计模式
-        return {
-            "text_content": text_content,
-            "tool_calls": tool_calls
-        }
+
+        chunks, calls = [], []
+
+        def stream():
+            for text, tool in manager.get_response(messages, tools):
+                if tool:
+                    calls[:] = tool
+                if text:
+                    chunks.append(text)
+                    yield text
+
+        render_markdown_stream(stream())
+        return {"text_content": "".join(chunks), "tool_calls": calls}
     
     def post(self, shared, prep_res, exec_res):
         """处理模型响应，处理工具调用（如果有）"""

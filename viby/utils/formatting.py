@@ -49,93 +49,6 @@ def extract_answer(raw_text: str) -> str:
     # 最后再清理一次空白字符
     return clean_text.strip()
 
-def process_latex(text):
-    """
-    LaTeX 渲染，将常见 LaTeX 数学符号转换为终端可显示的 Unicode。
-    """
-    text = text.replace("\\left", "").replace("\\right", "")
-
-    latex_symbols = {
-        "\\Gamma": "Γ", "\\Delta": "Δ", "\\Theta": "Θ", "\\Lambda": "Λ", "\\Xi": "Ξ",
-        "\\Pi": "Π", "\\Sigma": "Σ", "\\Phi": "Φ", "\\Psi": "Ψ", "\\Omega": "Ω",
-        "\\alpha": "α", "\\beta": "β", "\\gamma": "γ", "\\delta": "δ", "\\epsilon": "ε",
-        "\\zeta": "ζ", "\\eta": "η", "\\theta": "θ", "\\iota": "ι", "\\kappa": "κ",
-        "\\lambda": "λ", "\\mu": "μ", "\\nu": "ν", "\\xi": "ξ", "\\omicron": "ο",
-        "\\pi": "π", "\\rho": "ρ", "\\sigma": "σ", "\\tau": "τ", "\\upsilon": "υ",
-        "\\phi": "φ", "\\chi": "χ", "\\psi": "ψ", "\\omega": "ω",
-        "\\infty": "∞", "\\approx": "≈", "\\neq": "≠", "\\leq": "≤", "\\geq": "≥",
-        "\\le": "≤", "\\ge": "≥", "\\pm": "±",
-        "\\times": "×", "\\cdot": "·",
-        "\\rightarrow": "→", "\\leftarrow": "←", "\\to": "→",
-        "\\Rightarrow": "⇒", "\\Leftarrow": "⇐",
-        "\\subset": "⊂", "\\supset": "⊃", "\\subseteq": "⊆", "\\supseteq": "⊇",
-        "\\in": "∈", "\\notin": "∉", "\\cup": "∪", "\\cap": "∩", "\\emptyset": "∅",
-        "\\forall": "∀", "\\exists": "∃", "\\neg": "¬", "\\land": "∧", "\\lor": "∨",
-        "\\sqrt": "√", "\\sum": "∑", "\\prod": "∏", "\\int": "∫", "\\partial": "∂", "\\nabla": "∇",
-        "\\sin": "sin", "\\cos": "cos", "\\tan": "tan",
-        "\\ldots": "…", "\\cdots": "⋯",
-        "\\langle": "⟨", "\\rangle": "⟩", "\\ket": "|", "\\bra": "⟨",
-        "\\,": "", "\\;": " ", "\\:": "", "\\!": "", "\\quad": "", "\\qquad": ""
-    }
-
-    # 先全局处理 \frac{a}{b} -> (a)/(b)
-    text = re.sub(r"\\frac\{([^{}]+)\}\{([^{}]+)\}", r"(\1)/(\2)", text)
-
-    # 超/下标映射
-    supers = {
-        '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
-        '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾',
-        'n': 'ⁿ', 'i': 'ⁱ', 'k': 'ᵏ', 'm': 'ᵐ', 'o': 'ᵒ',
-        'p': 'ᵖ', 'r': 'ʳ', 's': 'ˢ', 't': 'ᵗ', 'u': 'ᵘ',
-        'v': 'ᵛ', 'x': 'ˣ', 'y': 'ʸ', 'z': 'ᶻ'
-    }
-    subs = {
-        '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
-        '+': '₊', '-': '₋', '=': '₌', '(': '₍', ')': '₎',
-        'n': 'ₙ', 'i': 'ᵢ', 'k': 'ₖ', 'm': 'ₘ', 'o': 'ₒ',
-        'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ',
-        'v': 'ᵥ', 'x': 'ₓ'
-    }
-
-    def _to_super(s: str) -> str:
-        return "".join(supers.get(ch, ch) for ch in s)
-
-    def _to_sub(s: str) -> str:
-        return "".join(subs.get(ch, ch) for ch in s)
-
-    # 行内公式 $...$
-    def _replace_inline(match):
-        formula = match.group(1)
-        for latex in sorted(latex_symbols, key=len, reverse=True):
-            formula = formula.replace(latex, latex_symbols[latex])
-        return formula
-
-    # 块级公式 $$...$$
-    def _replace_block(match):
-        formula = match.group(1).strip()
-        for latex in sorted(latex_symbols, key=len, reverse=True):
-            formula = formula.replace(latex, latex_symbols[latex])
-        return "\n" + formula + "\n"
-
-    # 处理量子态符号 |ψ⟩、⟨ψ|
-    text = re.sub(r'\|([^>]+)\\rangle', r'|\1⟩', text)
-    text = re.sub(r'\\langle([^|]+)\|', r'⟨\1|', text)
-
-    # 应用公式替换
-    text = re.sub(r'\$\$(.*?)\$\$', _replace_block, text, flags=re.DOTALL)
-    text = re.sub(r'\$(.*?)\$', _replace_inline, text)
-
-    # 全局符号替换（处理未包裹在 $ 中的命令）
-    for latex, uni in sorted(latex_symbols.items(), key=lambda item: len(item[0]), reverse=True):
-        text = text.replace(latex, uni)
-
-    # 处理 ^{...}、_{...} 以及单字符 ^x/_x
-    text = re.sub(r'\^\{([^}]+)\}', lambda m: _to_super(m.group(1)), text)
-    text = re.sub(r'_\{([^}]+)\}', lambda m: _to_sub(m.group(1)), text)
-    text = re.sub(r'\^([A-Za-z0-9+\-=])', lambda m: _to_super(m.group(1)), text)
-    text = re.sub(r'_([A-Za-z0-9+\-=])', lambda m: _to_sub(m.group(1)), text)
-
-    return text
 
 def process_markdown_links(text):
     """
@@ -222,46 +135,43 @@ def print_markdown(content, title=None, code_type=None):
     console.print(Markdown(md_text, justify="left"))
 
 def render_markdown_stream(text_stream, return_full=True):
-    """
-    渲染 Markdown 文本流，并按段落自动分块展示。
-    
-    Args:
-        text_stream: 文本流迭代器
-        return_full: 是否返回完整响应文本
-        
-    Returns:
-        完整响应文本（如果 return_full=True）
-    """
     console = Console()
-    raw_response = ""
-    buf = ""
-    
+    raw, para, code = [], [], []
+    in_code = False
+
+    def flush_para():
+        if para:
+            text = ''.join(para)
+            console.print(Markdown(process_markdown_links(text), justify="left"))
+            para.clear()
+
+    def flush_code():
+        if code:
+            console.print(Markdown(''.join(code), justify="left"))
+            code.clear()
+
     for chunk in text_stream:
         if return_full:
-            raw_response += chunk
-            
-        # Ensure <think> tags occupy their own lines
-        formatted_chunk = chunk.replace("<think>", "\n<think>\n").replace("</think>", "\n</think>\n")
-        buf += formatted_chunk
-        
-        # 渲染完整段落
-        while "\n\n" in buf:
-            part, buf = buf.split("\n\n", 1)
-            escaped = part.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
-            # 处理 LaTeX 公式
-            escaped = process_latex(escaped)
-            # 处理 Markdown 链接，使其显示原始 URL
-            escaped = process_markdown_links(escaped)
-            console.print(Markdown(escaped, justify="left"))
-            
-    # 渲染剩余内容
-    if buf.strip():
-        escaped = buf.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
-        # 处理 LaTeX 公式
-        escaped = process_latex(escaped)
-        # 处理 Markdown 链接，使其显示原始 URL
-        escaped = process_markdown_links(escaped)
-        console.print(Markdown(escaped, justify="left"))
+            raw.append(chunk)
+        chunk = chunk.replace("<think>", "\n<think>\n").replace("</think>", "\n</think>\n")
+        for line in chunk.splitlines(keepends=True):
+            line = line.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
+            if line.lstrip().startswith("```"):
+                flush_para() if not in_code else None
+                in_code = not in_code
+                code.append(line)
+                if not in_code:
+                    flush_code()
+                continue
+            if in_code:
+                code.append(line)
+            else:
+                if not line.strip():
+                    flush_para()
+                else:
+                    para.append(line)
 
+    # flush remaining
+    (flush_code() if in_code else flush_para())
     if return_full:
-        return raw_response
+        return ''.join(raw)
