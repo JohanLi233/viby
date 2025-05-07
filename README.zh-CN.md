@@ -126,3 +126,15 @@ yb --config
 ### MCP服务器配置
 
 Viby支持模型上下文协议(MCP)服务器以提供扩展功能。MCP配置存储在 `~/.config/viby/mcp_servers.json` 文件中。
+
+## ⭐ Star 历史
+
+<div align="center">
+  <a href="https://star-history.com/#JohanLi233/viby&Date">
+    <img src="https://api.star-history.com/svg?repos=JohanLi233/viby&type=Date" alt="Star 历史图表" style="max-width:100%;">
+  </a>
+</div>
+
+## 🤝 贡献
+
+欢迎贡献！请随时提交 Pull Request 或创建 Issue。

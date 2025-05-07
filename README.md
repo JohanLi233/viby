@@ -114,3 +114,15 @@ This allows you to configure:
 ### MCP Server Configuration
 
 Viby supports Model Context Protocol (MCP) servers for extended capabilities. MCP configurations are stored in `~/.config/viby/mcp_servers.json`.
+
+## ⭐ Star History
+
+<div align="center">
+  <a href="https://star-history.com/#JohanLi233/viby&Date">
+    <img src="https://api.star-history.com/svg?repos=JohanLi233/viby&type=Date" alt="Star History Chart" style="max-width:100%;">
+  </a>
+</div>
+
+## 🤝 Contributing
+
+Contributions are welcome! Feel free to submit a Pull Request or create an Issue.
