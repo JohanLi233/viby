@@ -11,7 +11,6 @@ on:
 env:
   PACKAGE_NAME: "viby"
   OWNER: "JohanLi233"
-  TAP_NAME: "homebrew-viby"
 
 jobs:
   details:
@@ -119,7 +118,7 @@ jobs:
           echo "=== 发布信息 ==="
           echo "包名：${{ env.PACKAGE_NAME }}"
           echo "版本：${{ needs.details.outputs.tag_name }}"
-          echo "准备发布到：PyPI, GitHub Releases 和 Homebrew"
+          echo "准备发布到：PyPI 和 GitHub Releases"
           echo "请在 GitHub 中批准此步骤以继续所有发布流程。"
 
   pypi_publish:
@@ -170,24 +169,3 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: ${{ needs.details.outputs.suffix != '' }}
-
-  bump_homebrew_formula:
-    name: Update Homebrew Formula
-    needs: [details, github_release, pypi_publish]
-    runs-on: ubuntu-latest
-    environment:
-      name: release
-    steps:
-      - name: Dispatch Repository Dispatch event
-        uses: peter-evans/repository-dispatch@v2
-        with:
-          events_from_secrets: true
-          repository: ${{ env.OWNER }}/${{ env.TAP_NAME }}
-          event-type: update_formula
-          token: ${{ secrets.GITHUB_TOKEN }}
-          client-payload: |-
-            { 
-              "formula_version": "${{ needs.details.outputs.tag_name }}", 
-              "formula_url": "https://github.com/${{ env.OWNER }}/${{ env.PACKAGE_NAME }}/releases/download/${{ needs.details.outputs.tag_name }}/${{ env.PACKAGE_NAME }}-${{ needs.details.outputs.tag_name }}.tar.gz", 
-              "formula_name": "${{ env.PACKAGE_NAME }}"
-            }
