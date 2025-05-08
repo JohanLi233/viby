@@ -68,15 +68,15 @@ API 超时时间(秒) [300]:
   2. 否
 [1]: 1
 
-MCP配置文件夹：/Users/JohanLi233/.config/viby
+MCP配置文件夹：/Users/JohanLi233/.config/yb
 
 ───────────────────────────────────────────────────────────────────────────────────────
-配置已保存至: /Users/JohanLi233/.config/viby/config.yaml
+配置已保存至: /Users/JohanLi233/.config/yb/config.yaml
 
 按 Enter 键继续...
 usage: yb [-h] [-v] [--chat] [--shell] [--config] [--think] [--fast] [prompt]
 
-viby - 一个与大语言模型交互的多功能命令行工具
+yb - 一个与大语言模型交互的多功能命令行工具
 
 positional arguments:
   prompt         要发送给模型的提示内容
@@ -97,6 +97,42 @@ options:
 
 ```
 
+## 流式输出渲染配置 (Stream Output Rendering Configuration)
+
+Viby 现在支持自定义流式输出渲染，提供更流畅的用户体验。您可以通过配置向导调整这些选项：
+
+```bash
+yb --config
+```
+
+在配置向导中，您可以设置以下渲染选项：
+
+1. **打字机效果**：启用后，文本会以打字机效果逐字显示
+2. **平滑滚动**：提供更平滑的滚动效果
+3. **光标配置**：自定义光标显示和闪烁
+4. **动画效果**：启用加载动画和过渡效果
+5. **高级渲染设置**：调整节流时间和缓冲区大小，优化性能
+
+这些设置保存在 `~/.config/yb/config.yaml` 中的 `render_config` 部分。高级用户可以直接编辑此文件，但建议使用配置向导以避免语法错误。
+
+示例渲染配置：
+
+```yaml
+render_config:
+  typing_effect: true
+  typing_speed: 0.01
+  smooth_scroll: true
+  show_cursor: true
+  cursor_char: ▌
+  cursor_blink: true
+  enable_animations: true
+  throttle_ms: 50
+  buffer_size: 10
+  code_block_instant: true
+```
+
+调整以上参数可以获得最适合您终端环境的渲染效果。
+
 ## 2. 基本使用示例
 
 ### 2.1 单次问答
@@ -104,7 +140,7 @@ options:
 最基本的用法是直接询问 Viby 问题：
 
 ```bash
-viby "什么是Python装饰器？请给出示例"
+yb "什么是Python装饰器？请给出示例"
 ```
 
 输出示例：
@@ -218,7 +254,7 @@ yb  --chat
 
 ```
 
-### 2.3 Shell 命令生成
+### 2.4 Shell 命令生成
 
 生成并执行 Shell 命令：
 
@@ -235,7 +271,7 @@ mkdir -p project/{src,docs,tests} && cd project && git init
 是否执行此命令? [r]运行, [e]编辑, [y]复制, [c]对话, [q]放弃 (默认: 运行): 
 ```
 
-### 2.4 Shell命令魔法集成
+### 2.5 Shell命令魔法集成
 
 您可以在 Viby 命令中使用 `$(...)` 语法执行任何 shell 命令，并将其输出作为上下文传递给 AI。这个强大的功能允许您结合 shell 的灵活性和 AI 的智能：
 
@@ -260,8 +296,8 @@ yb "$(ls) 当前目录下都有哪些文件？"
 文件夹：
  • dist/
  • docs/
- • viby/
- • viby.egg-info/
+ • yb/
+ • yb.egg-info/
 ```
 
 **获取当前路径：**

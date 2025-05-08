@@ -12,10 +12,11 @@ class ChatCommand:
     流程：用户输入 -> 模型响应 -> 继续对话
     每个节点负责各自的功能，遵循关注点分离原则。
     """
-    def __init__(self, model_manager: ModelManager):
+    def __init__(self, model_manager: ModelManager, config=None):
         """初始化并创建对话流程"""
-        # 保存模型管理器
+        # 保存模型管理器和配置
         self.model_manager = model_manager
+        self.config = config
 
         # 创建节点
         self.input_node = ChatInputNode()
@@ -41,6 +42,7 @@ class ChatCommand:
         # 准备共享状态
         shared = {
             "model_manager": self.model_manager,
+            "config": self.config,  # 传递配置
         }
         
         # 执行流程

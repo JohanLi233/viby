@@ -1,5 +1,5 @@
 from pocketflow import Node
-from viby.utils.formatting import render_markdown_stream
+from viby.utils.renderer import render_markdown_stream_optimized, create_renderer, RenderConfig
 from viby.locale import get_text
 import threading
 import sys
@@ -28,6 +28,7 @@ class LLMNode(Node):
             "tools": shared.get("tools"),
             "interrupt_event": interrupt_event,
             "listener_thread": listener_thread,
+            "config": shared.get("config"),  # 获取配置
         }
 
     def exec(self, prep_res):
@@ -37,6 +38,7 @@ class LLMNode(Node):
         tools = prep_res.get("tools")
         interrupt_event = prep_res.get("interrupt_event")
         listener_thread = prep_res.get("listener_thread")
+        config = prep_res.get("config")  # 获取配置
 
         if not manager or not messages:
             return None
@@ -56,7 +58,26 @@ class LLMNode(Node):
                     chunks.append(text)
                     yield text
 
-        render_markdown_stream(_stream_response())
+        # 使用优化的渲染器
+        if config and hasattr(config, 'render_config'):
+            # 使用配置的渲染设置
+            render_config = RenderConfig(
+                typing_effect=config.render_config.typing_effect,
+                typing_speed=config.render_config.typing_speed,
+                smooth_scroll=config.render_config.smooth_scroll,
+                throttle_ms=config.render_config.throttle_ms,
+                buffer_size=config.render_config.buffer_size,
+                show_cursor=config.render_config.show_cursor,
+                cursor_char=config.render_config.cursor_char,
+                cursor_blink=config.render_config.cursor_blink,
+                enable_animations=config.render_config.enable_animations,
+                code_block_instant=config.render_config.code_block_instant,
+                theme=config.render_config.theme
+            )
+            render_markdown_stream_optimized(_stream_response(), render_config)
+        else:
+            # 使用默认设置
+            render_markdown_stream_optimized(_stream_response())
 
         return {
             "text_content": "".join(chunks),

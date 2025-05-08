@@ -25,10 +25,11 @@ class ShellCommand:
     - ExecuteShellCommandNode: 处理用户交互和命令执行
     """
     
-    def __init__(self, model_manager: ModelManager):
+    def __init__(self, model_manager: ModelManager, config=None):
         """初始化 Shell 命令流程"""
-        # 保存模型管理器
+        # 保存模型管理器和配置
         self.model_manager = model_manager
+        self.config = config
         
         # 创建节点
         self.prompt_node = PromptNode()
@@ -47,6 +48,7 @@ class ShellCommand:
         # Shell 命令执行流程：来自 LLM 的 continue 事件
         self.llm_node - "continue" >> self.execute_command_node
         self.execute_command_node - "call_llm" >> self.llm_node
+        self.execute_command_node - "interrupt" >> DummyNode()
         self.execute_command_node >> DummyNode()
         
         self.flow = Flow(start=self.prompt_node)
@@ -58,7 +60,8 @@ class ShellCommand:
         shared = {
             "model_manager": self.model_manager,
             "user_input": user_prompt,
-            "command_type": "shell"
+            "command_type": "shell",
+            "config": self.config  # 传递配置
         }
         
         # 执行流程
