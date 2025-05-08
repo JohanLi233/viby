@@ -724,7 +724,7 @@ wheels = [
 
 [[package]]
 name = "viby"
-version = "0.0.9"
+version = "0.1.1"
 source = { virtual = "." }
 dependencies = [
     { name = "fastmcp" },

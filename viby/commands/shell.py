@@ -14,30 +14,29 @@ from viby.llm.nodes.execute_shell_command_node import ExecuteShellCommandNode
 class ShellCommand:
     """
     处理 shell 命令生成和执行的命令类
-    
+
     使用 pocketflow 框架实现了以下流程：
     用户输入 -> 生成 shell 命令 -> 用户交互(执行/编辑/复制/放弃)
-    
+
     每个节点负责其特定的功能：
     - PromptNode: 处理用户输入和命令调用
     - LLMNode: 处理 LLM 相关逻辑
     - ExecuteToolNode: 处理 MCP 工具调用
     - ExecuteShellCommandNode: 处理用户交互和命令执行
     """
-    
+
     def __init__(self, model_manager: ModelManager, config=None):
         """初始化 Shell 命令流程"""
         # 保存模型管理器和配置
         self.model_manager = model_manager
         self.config = config
-        
+
         # 创建节点
         self.prompt_node = PromptNode()
         self.llm_node = LLMNode()
         self.execute_command_node = ExecuteShellCommandNode()
         self.execute_tool_node = ExecuteToolNode()
 
-        
         # 启动 LLM 调用
         self.prompt_node - "call_llm" >> self.llm_node
 
@@ -50,9 +49,9 @@ class ShellCommand:
         self.execute_command_node - "call_llm" >> self.llm_node
         self.execute_command_node - "interrupt" >> DummyNode()
         self.execute_command_node >> DummyNode()
-        
+
         self.flow = Flow(start=self.prompt_node)
-    
+
     def execute(self, user_prompt: str) -> int:
         """
         执行 shell 命令生成和交互流程
@@ -61,13 +60,13 @@ class ShellCommand:
             "model_manager": self.model_manager,
             "user_input": user_prompt,
             "command_type": "shell",
-            "config": self.config  # 传递配置
+            "config": self.config,  # 传递配置
         }
-        
+
         # 执行流程
         self.flow.run(shared)
-        
+
         if "shell_result" in shared:
             return shared["shell_result"].get("code", 0)
-        
+
         return 0

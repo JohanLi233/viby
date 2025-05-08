@@ -11,6 +11,7 @@ from viby.mcp.config import get_server_config
 
 class StdioConfig(TypedDict):
     """标准输入输出连接配置"""
+
     transport: Literal["stdio"]
     command: str
     args: List[str]
@@ -20,6 +21,7 @@ class StdioConfig(TypedDict):
 
 class SSEConfig(TypedDict):
     """SSE连接配置"""
+
     transport: Literal["sse"]
     url: str
     headers: Optional[Dict[str, Any]]
@@ -27,6 +29,7 @@ class SSEConfig(TypedDict):
 
 class WebsocketConfig(TypedDict):
     """Websocket连接配置"""
+
     transport: Literal["websocket"]
     url: str
 
@@ -72,11 +75,11 @@ class MCPClient:
 
         client = cls(config)
         await client.initialize()
-        
+
         if server_name in client.clients:
             _connection_pool[server_name] = client.clients[server_name]
             return client.clients[server_name]
-        
+
         return None
 
     async def initialize(self):
@@ -86,7 +89,7 @@ class MCPClient:
 
         for server_name, config in self.config.items():
             transport = config.get("transport", "stdio")
-            
+
             try:
                 if transport == "stdio":
                     env = config.get("env", {})
@@ -97,7 +100,7 @@ class MCPClient:
                                 "transport": "stdio",
                                 "command": config["command"],
                                 "args": config["args"],
-                                "env": env
+                                "env": env,
                             }
                         }
                     }
@@ -106,12 +109,12 @@ class MCPClient:
                     client = Client(config["url"])
                 else:
                     raise ValueError(f"不支持的传输类型: {transport}")
-                
+
                 await self.exit_stack.enter_async_context(client)
                 self.clients[server_name] = client
             except Exception as e:
                 print(f"初始化服务器 {server_name} 失败: {str(e)}")
-                
+
         self._initialized = True
 
     async def close(self):
@@ -129,11 +132,11 @@ class MCPClient:
     def _convert_tools_to_standard_format(self, tools_response):
         """将MCP工具响应转换为符合OpenAI标准的工具格式"""
         standard_tools = []
-        
+
         for tool in tools_response:
             function_obj = {
                 "name": getattr(tool, "name", str(tool)),
-                "description": getattr(tool, "description", "")
+                "description": getattr(tool, "description", ""),
             }
 
             if hasattr(tool, "parameters"):
@@ -142,9 +145,9 @@ class MCPClient:
                 function_obj["parameters"] = tool.inputSchema
 
             standard_tools.append({"type": "function", "function": function_obj})
-            
+
         return standard_tools
-    
+
     async def list_tools(self, server_name: Optional[str] = None) -> Dict[str, Any]:
         """列出指定服务器或所有服务器的工具"""
         if not self._initialized:
@@ -172,7 +175,7 @@ class MCPClient:
             await self.initialize()
         if server_name not in self.clients:
             raise ValueError(f"服务器 {server_name} 不存在")
-            
+
         return await self.clients[server_name].call_tool(tool_name, arguments)
 
     async def get_prompt(
@@ -185,9 +188,13 @@ class MCPClient:
         if not self._initialized:
             await self.initialize()
 
-        result = await self.clients[server_name].get_prompt(prompt_name, arguments or {})
-        return [{"role": m.role, "content": getattr(m.content, "text", m.content)} 
-                for m in result.messages]
+        result = await self.clients[server_name].get_prompt(
+            prompt_name, arguments or {}
+        )
+        return [
+            {"role": m.role, "content": getattr(m.content, "text", m.content)}
+            for m in result.messages
+        ]
 
     async def get_resource(
         self, server_name: str, resource_uri: str
@@ -197,11 +204,15 @@ class MCPClient:
             await self.initialize()
 
         result = await self.clients[server_name].read_resource(resource_uri)
-        return [{
-            "type": "text" if hasattr(c, "text") else "blob",
-            "mime_type": c.mimeType,
-            "content": getattr(c, "text", c.blob),
-        } for c in result.contents if hasattr(c, "text") or hasattr(c, "blob")]
+        return [
+            {
+                "type": "text" if hasattr(c, "text") else "blob",
+                "mime_type": c.mimeType,
+                "content": getattr(c, "text", c.blob),
+            }
+            for c in result.contents
+            if hasattr(c, "text") or hasattr(c, "blob")
+        ]
 
     async def __aenter__(self):
         """异步上下文管理器入口"""
@@ -266,10 +277,12 @@ def call_tool(
             except Exception as e:
                 return {
                     "is_error": True,
-                    "content": [{
-                        "type": "text",
-                        "text": f"服务器 {server_name} 调用失败: {str(e)}",
-                    }],
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f"服务器 {server_name} 调用失败: {str(e)}",
+                        }
+                    ],
                 }
 
     return _run_sync(_runner())

@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/JohanLi233/viby/blob/main/README.md">English</a> | 
+  <a href="https://github.com/JohanLi233/viby/blob/main/README.md">English</a> |
   <a href="https://github.com/JohanLi233/viby/blob/main/README.zh-CN.md">中文</a>
 </p>
 
@@ -135,6 +135,7 @@ yb --config
 ```
 
 This allows you to configure:
+
 - API endpoint and key
 - Model
 - Temperature and token settings

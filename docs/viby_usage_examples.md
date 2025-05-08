@@ -68,15 +68,15 @@ Enable MCP tools
   2. No
 [1]: 1
 
-MCP configuration folder: /Users/JohanLi233/.config/yb
+MCP configuration folder: /Users/JohanLi233/.config/viby
 
 ───────────────────────────────────────────────────────────────────────────────────────
-Configuration saved to: /Users/JohanLi233/.config/yb/config.yaml
+Configuration saved to: /Users/JohanLi233/.config/viby/config.yaml
 
 Press Enter to continue...
 usage: yb [-h] [-v] [--chat] [--shell] [--config] [--think] [--fast] [prompt]
 
-yb - A versatile CLI tool for interacting with large language models
+viby - A versatile CLI tool for interacting with large language models
 
 positional arguments:
   prompt         Prompt content to send to the model
@@ -295,8 +295,8 @@ Files:
 Folders:
  • dist/
  • docs/
- • yb/
- • yb.egg-info/
+ • viby/
+ • viby.egg-info/
 ```
 
 **Get current path:**

@@ -11,6 +11,7 @@ from viby.config.app_config import ModelProfileConfig, RenderConfig
 
 PASS_SENTINEL = "_viby_internal_pass_"
 
+
 def print_header(title):
     """打印配置向导标题"""
     print()
@@ -20,37 +21,39 @@ def print_header(title):
     print()
 
 
-def get_input(prompt, default=None, validator=None, choices=None, allow_pass_keyword=False):
+def get_input(
+    prompt, default=None, validator=None, choices=None, allow_pass_keyword=False
+):
     """获取用户输入，支持默认值和验证"""
     base_prompt_text = prompt
     if allow_pass_keyword:
         pass_hint = get_text("CONFIG_WIZARD", "PASS_PROMPT_HINT")
         base_prompt_text = f"{prompt} {pass_hint}"
-            
+
     if default is not None:
         prompt_text = f"{base_prompt_text} [{default}]: "
     else:
         prompt_text = f"{base_prompt_text}: "
-    
+
     while True:
         user_input = input(prompt_text).strip()
 
         if allow_pass_keyword and user_input.lower() == "pass":
             return PASS_SENTINEL
-        
+
         # 用户未输入，使用默认值
         if not user_input and default is not None:
             return default
-        
+
         # 如果有选项限制，验证输入
         if choices and user_input not in choices:
             print(f"输入错误！请从以下选项中选择: {', '.join(choices)}")
             continue
-        
+
         # 如果有验证函数，验证输入
         if validator and not validator(user_input):
             continue
-            
+
         return user_input
 
 
@@ -59,18 +62,20 @@ def number_choice(choices, prompt):
     print(prompt)
     for i, choice in enumerate(choices, 1):
         print(f"  {i}. {choice}")
-    
+
     while True:
         try:
             choice = input("[1]: ").strip()
             if not choice:
                 return choices[0]  # 默认第一个选项
-            
+
             choice_num = int(choice)
             if 1 <= choice_num <= len(choices):
                 return choices[choice_num - 1]
             else:
-                print(get_text("CONFIG_WIZARD", "number_range_error").format(len(choices)))
+                print(
+                    get_text("CONFIG_WIZARD", "number_range_error").format(len(choices))
+                )
         except ValueError:
             print(get_text("CONFIG_WIZARD", "invalid_number"))
 
@@ -87,7 +92,7 @@ def run_config_wizard(config):
     """配置向导主函数"""
     # 初始化文本管理器，加载初始语言文本
     init_text_manager(config)
-    
+
     # 检查当前终端是否支持中文
     is_chinese_supported = True
     try:
@@ -96,10 +101,10 @@ def run_config_wizard(config):
         sys.stdout.flush()
     except UnicodeEncodeError:
         is_chinese_supported = False
-    
+
     # 清屏
-    os.system('cls' if os.name == 'nt' else 'clear')
-    
+    os.system("cls" if os.name == "nt" else "clear")
+
     # 初始化语言界面文字
     if is_chinese_supported:
         language_choices = ["English", "中文"]
@@ -109,9 +114,9 @@ def run_config_wizard(config):
         language_choices = ["English", "Chinese"]
         title = "Viby Configuration Wizard"
         language_prompt = "Please select interface language:"
-    
+
     print_header(title)
-    
+
     # 语言选择
     language = number_choice(language_choices, language_prompt)
     if language in ["中文", "Chinese"]:
@@ -120,58 +125,90 @@ def run_config_wizard(config):
         config.language = "en-US"
     init_text_manager(config)
     print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
-        
+
     temp_prompt = get_text("CONFIG_WIZARD", "temperature_prompt")
     max_tokens_prompt = get_text("CONFIG_WIZARD", "max_tokens_prompt")
     api_timeout_prompt = get_text("CONFIG_WIZARD", "api_timeout_prompt")
     save_prompt = get_text("CONFIG_WIZARD", "config_saved")
     continue_prompt = get_text("CONFIG_WIZARD", "continue_prompt")
-    
+
     print()
     print_separator()
 
-    # --- 全局API设置 --- 
-    default_api_url_prompt = get_text("CONFIG_WIZARD", "default_api_url_prompt") if callable(get_text) else "默认API基地址"
-    config.default_api_base_url = get_input(default_api_url_prompt, config.default_api_base_url or "http://localhost:11434", validator=validate_url)
-    
-    default_api_key_prompt = get_text("CONFIG_WIZARD", "default_api_key_prompt") if callable(get_text) else "默认API密钥（可选）"
-    config.default_api_key = get_input(default_api_key_prompt, config.default_api_key or "", allow_pass_keyword=True)
-    if not config.default_api_key or config.default_api_key == PASS_SENTINEL: 
+    # --- 全局API设置 ---
+    default_api_url_prompt = (
+        get_text("CONFIG_WIZARD", "default_api_url_prompt")
+        if callable(get_text)
+        else "默认API基地址"
+    )
+    config.default_api_base_url = get_input(
+        default_api_url_prompt,
+        config.default_api_base_url or "http://localhost:11434",
+        validator=validate_url,
+    )
+
+    default_api_key_prompt = (
+        get_text("CONFIG_WIZARD", "default_api_key_prompt")
+        if callable(get_text)
+        else "默认API密钥（可选）"
+    )
+    config.default_api_key = get_input(
+        default_api_key_prompt, config.default_api_key or "", allow_pass_keyword=True
+    )
+    if not config.default_api_key or config.default_api_key == PASS_SENTINEL:
         config.default_api_key = None
 
     print_separator()
 
     # --- 默认模型配置（必填） ---
     print_header(get_text("CONFIG_WIZARD", "default_model_header"))
-    
+
     # 确保default_model是ModelProfileConfig实例并且有一个名称。
     # 这应该是由app_config.py的初始化保证的，但作为一个安全措施：
     if not isinstance(config.default_model, ModelProfileConfig):
-        config.default_model = ModelProfileConfig(name="qwen3:30b") 
+        config.default_model = ModelProfileConfig(name="qwen3:30b")
     elif not config.default_model.name:
         config.default_model.name = "qwen3:30b"
 
-    default_model_name_prompt_text = get_text("CONFIG_WIZARD", "default_model_name_prompt")
+    default_model_name_prompt_text = get_text(
+        "CONFIG_WIZARD", "default_model_name_prompt"
+    )
     # 直接获取模型名称输入，使用现有名称作为默认值。
-    config.default_model.name = get_input(default_model_name_prompt_text, config.default_model.name)
+    config.default_model.name = get_input(
+        default_model_name_prompt_text, config.default_model.name
+    )
 
     # 格式化提示字符串以包含实际模型名称
-    formatted_default_model_url_prompt = get_text("CONFIG_WIZARD", "model_specific_url_prompt").format(model_name=config.default_model.name)
+    formatted_default_model_url_prompt = get_text(
+        "CONFIG_WIZARD", "model_specific_url_prompt"
+    ).format(model_name=config.default_model.name)
     user_provided_default_model_url = get_input(
-        formatted_default_model_url_prompt, 
-        config.default_model.api_base_url or "", 
-        validator=lambda x: not x or validate_url(x), 
-        allow_pass_keyword=True
+        formatted_default_model_url_prompt,
+        config.default_model.api_base_url or "",
+        validator=lambda x: not x or validate_url(x),
+        allow_pass_keyword=True,
     )
-    if not user_provided_default_model_url or user_provided_default_model_url == PASS_SENTINEL:
+    if (
+        not user_provided_default_model_url
+        or user_provided_default_model_url == PASS_SENTINEL
+    ):
         config.default_model.api_base_url = None  # 存储None以使用全局
     else:
         config.default_model.api_base_url = user_provided_default_model_url
-        
+
     # 格式化提示字符串以包含实际模型名称
-    formatted_default_model_key_prompt = get_text("CONFIG_WIZARD", "model_specific_key_prompt").format(model_name=config.default_model.name)
-    config.default_model.api_key = get_input(formatted_default_model_key_prompt, config.default_model.api_key or "", allow_pass_keyword=True)
-    if not config.default_model.api_key or config.default_model.api_key == PASS_SENTINEL:
+    formatted_default_model_key_prompt = get_text(
+        "CONFIG_WIZARD", "model_specific_key_prompt"
+    ).format(model_name=config.default_model.name)
+    config.default_model.api_key = get_input(
+        formatted_default_model_key_prompt,
+        config.default_model.api_key or "",
+        allow_pass_keyword=True,
+    )
+    if (
+        not config.default_model.api_key
+        or config.default_model.api_key == PASS_SENTINEL
+    ):
         config.default_model.api_key = None  # 存储None如果为空
 
     print_separator()
@@ -180,34 +217,50 @@ def run_config_wizard(config):
     print_header(get_text("CONFIG_WIZARD", "think_model_header"))
     think_model_name_prompt = get_text("CONFIG_WIZARD", "think_model_name_prompt")
     current_think_model_name = config.think_model.name if config.think_model else ""
-    
-    think_model_name_input = get_input(think_model_name_prompt, current_think_model_name, allow_pass_keyword=True)
+
+    think_model_name_input = get_input(
+        think_model_name_prompt, current_think_model_name, allow_pass_keyword=True
+    )
 
     if think_model_name_input and think_model_name_input != PASS_SENTINEL:
         if not config.think_model or config.think_model.name != think_model_name_input:
             config.think_model = ModelProfileConfig(name=think_model_name_input)
         # 如果名称没有改变并且配置文件存在，我们只需在下面确认/更新URL/密钥
-        
+
         # 格式化提示字符串以包含实际模型名称
-        formatted_think_model_url_prompt = get_text("CONFIG_WIZARD", "model_specific_url_prompt").format(model_name=config.think_model.name)
+        formatted_think_model_url_prompt = get_text(
+            "CONFIG_WIZARD", "model_specific_url_prompt"
+        ).format(model_name=config.think_model.name)
         user_provided_think_model_url = get_input(
-            formatted_think_model_url_prompt, 
-            config.think_model.api_base_url or "", 
+            formatted_think_model_url_prompt,
+            config.think_model.api_base_url or "",
             validator=lambda x: not x or validate_url(x),
-            allow_pass_keyword=True
+            allow_pass_keyword=True,
         )
-        if not user_provided_think_model_url or user_provided_think_model_url == PASS_SENTINEL:
+        if (
+            not user_provided_think_model_url
+            or user_provided_think_model_url == PASS_SENTINEL
+        ):
             config.think_model.api_base_url = None
         else:
             config.think_model.api_base_url = user_provided_think_model_url
 
         # 格式化提示字符串以包含实际模型名称
-        formatted_think_model_key_prompt = get_text("CONFIG_WIZARD", "model_specific_key_prompt").format(model_name=config.think_model.name)
-        config.think_model.api_key = get_input(formatted_think_model_key_prompt, config.think_model.api_key or "", allow_pass_keyword=True)
-        if not config.think_model.api_key or config.think_model.api_key == PASS_SENTINEL:
+        formatted_think_model_key_prompt = get_text(
+            "CONFIG_WIZARD", "model_specific_key_prompt"
+        ).format(model_name=config.think_model.name)
+        config.think_model.api_key = get_input(
+            formatted_think_model_key_prompt,
+            config.think_model.api_key or "",
+            allow_pass_keyword=True,
+        )
+        if (
+            not config.think_model.api_key
+            or config.think_model.api_key == PASS_SENTINEL
+        ):
             config.think_model.api_key = None
-    elif config.think_model: # 用户输入"pass"或空白名称
-        config.think_model = None 
+    elif config.think_model:  # 用户输入"pass"或空白名称
+        config.think_model = None
 
     print_separator()
 
@@ -216,54 +269,73 @@ def run_config_wizard(config):
     fast_model_name_prompt = get_text("CONFIG_WIZARD", "fast_model_name_prompt")
     current_fast_model_name = config.fast_model.name if config.fast_model else ""
 
-    fast_model_name_input = get_input(fast_model_name_prompt, current_fast_model_name, allow_pass_keyword=True)
+    fast_model_name_input = get_input(
+        fast_model_name_prompt, current_fast_model_name, allow_pass_keyword=True
+    )
 
     if fast_model_name_input and fast_model_name_input != PASS_SENTINEL:
         if not config.fast_model or config.fast_model.name != fast_model_name_input:
             config.fast_model = ModelProfileConfig(name=fast_model_name_input)
-        
+
         # 格式化提示字符串以包含实际模型名称
-        formatted_fast_model_url_prompt = get_text("CONFIG_WIZARD", "model_specific_url_prompt").format(model_name=config.fast_model.name)
+        formatted_fast_model_url_prompt = get_text(
+            "CONFIG_WIZARD", "model_specific_url_prompt"
+        ).format(model_name=config.fast_model.name)
         user_provided_fast_model_url = get_input(
-            formatted_fast_model_url_prompt, 
-            config.fast_model.api_base_url or "", 
+            formatted_fast_model_url_prompt,
+            config.fast_model.api_base_url or "",
             validator=lambda x: not x or validate_url(x),
-            allow_pass_keyword=True
+            allow_pass_keyword=True,
         )
-        if not user_provided_fast_model_url or user_provided_fast_model_url == PASS_SENTINEL:
+        if (
+            not user_provided_fast_model_url
+            or user_provided_fast_model_url == PASS_SENTINEL
+        ):
             config.fast_model.api_base_url = None
         else:
             config.fast_model.api_base_url = user_provided_fast_model_url
-        
+
         # 格式化提示字符串以包含实际模型名称
-        formatted_fast_model_key_prompt = get_text("CONFIG_WIZARD", "model_specific_key_prompt").format(model_name=config.fast_model.name)
-        config.fast_model.api_key = get_input(formatted_fast_model_key_prompt, config.fast_model.api_key or "", allow_pass_keyword=True)
+        formatted_fast_model_key_prompt = get_text(
+            "CONFIG_WIZARD", "model_specific_key_prompt"
+        ).format(model_name=config.fast_model.name)
+        config.fast_model.api_key = get_input(
+            formatted_fast_model_key_prompt,
+            config.fast_model.api_key or "",
+            allow_pass_keyword=True,
+        )
         if not config.fast_model.api_key or config.fast_model.api_key == PASS_SENTINEL:
             config.fast_model.api_key = None
-    elif config.fast_model: # 用户输入"pass"或空白名称
-        config.fast_model = None 
+    elif config.fast_model:  # 用户输入"pass"或空白名称
+        config.fast_model = None
 
     print_separator()
 
     # --- 渲染配置设置 ---
     print_header(get_text("RENDER_WIZARD", "render_config_header"))
-    
+
     # 确保存在一个渲染配置
-    if not hasattr(config, 'render_config') or not config.render_config:
+    if not hasattr(config, "render_config") or not config.render_config:
         config.render_config = RenderConfig()
-    
+
     # 打字机效果
     typing_effect_prompt = get_text("RENDER_WIZARD", "typing_effect_prompt")
-    typing_effect_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
-    typing_effect_index = 0 if config.render_config.typing_effect else 1
+    typing_effect_choices = [
+        get_text("CONFIG_WIZARD", "yes"),
+        get_text("CONFIG_WIZARD", "no"),
+    ]
     typing_effect_choice = number_choice(typing_effect_choices, typing_effect_prompt)
-    config.render_config.typing_effect = (typing_effect_choice == get_text("CONFIG_WIZARD", "yes"))
-    
+    config.render_config.typing_effect = typing_effect_choice == get_text(
+        "CONFIG_WIZARD", "yes"
+    )
+
     # 如果启用了打字机效果，配置速度
     if config.render_config.typing_effect:
         typing_speed_prompt = get_text("RENDER_WIZARD", "typing_speed_prompt")
         while True:
-            typing_speed = get_input(typing_speed_prompt, str(config.render_config.typing_speed))
+            typing_speed = get_input(
+                typing_speed_prompt, str(config.render_config.typing_speed)
+            )
             try:
                 speed_value = float(typing_speed)
                 if 0.001 <= speed_value <= 0.1:
@@ -272,43 +344,59 @@ def run_config_wizard(config):
                 print(get_text("RENDER_WIZARD", "typing_speed_range_error"))
             except ValueError:
                 print(get_text("RENDER_WIZARD", "invalid_decimal"))
-    
+
     # 平滑滚动
     smooth_scroll_prompt = get_text("RENDER_WIZARD", "smooth_scroll_prompt")
-    smooth_scroll_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
-    smooth_scroll_index = 0 if config.render_config.smooth_scroll else 1
+    smooth_scroll_choices = [
+        get_text("CONFIG_WIZARD", "yes"),
+        get_text("CONFIG_WIZARD", "no"),
+    ]
     smooth_scroll_choice = number_choice(smooth_scroll_choices, smooth_scroll_prompt)
-    config.render_config.smooth_scroll = (smooth_scroll_choice == get_text("CONFIG_WIZARD", "yes"))
-    
+    config.render_config.smooth_scroll = smooth_scroll_choice == get_text(
+        "CONFIG_WIZARD", "yes"
+    )
+
     # 光标设置
     cursor_prompt = get_text("RENDER_WIZARD", "cursor_prompt")
     cursor_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
-    cursor_index = 0 if config.render_config.show_cursor else 1
     cursor_choice = number_choice(cursor_choices, cursor_prompt)
-    config.render_config.show_cursor = (cursor_choice == get_text("CONFIG_WIZARD", "yes"))
-    
+    config.render_config.show_cursor = cursor_choice == get_text("CONFIG_WIZARD", "yes")
+
     if config.render_config.show_cursor:
         cursor_char_prompt = get_text("RENDER_WIZARD", "cursor_char_prompt")
-        config.render_config.cursor_char = get_input(cursor_char_prompt, config.render_config.cursor_char)
-        
+        config.render_config.cursor_char = get_input(
+            cursor_char_prompt, config.render_config.cursor_char
+        )
+
         cursor_blink_prompt = get_text("RENDER_WIZARD", "cursor_blink_prompt")
-        cursor_blink_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
-        cursor_blink_index = 0 if config.render_config.cursor_blink else 1
+        cursor_blink_choices = [
+            get_text("CONFIG_WIZARD", "yes"),
+            get_text("CONFIG_WIZARD", "no"),
+        ]
         cursor_blink_choice = number_choice(cursor_blink_choices, cursor_blink_prompt)
-        config.render_config.cursor_blink = (cursor_blink_choice == get_text("CONFIG_WIZARD", "yes"))
-    
+        config.render_config.cursor_blink = cursor_blink_choice == get_text(
+            "CONFIG_WIZARD", "yes"
+        )
+
     # 动画效果
     animation_prompt = get_text("RENDER_WIZARD", "animation_prompt")
-    animation_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
-    animation_index = 0 if config.render_config.enable_animations else 1
+    animation_choices = [
+        get_text("CONFIG_WIZARD", "yes"),
+        get_text("CONFIG_WIZARD", "no"),
+    ]
     animation_choice = number_choice(animation_choices, animation_prompt)
-    config.render_config.enable_animations = (animation_choice == get_text("CONFIG_WIZARD", "yes"))
-    
+    config.render_config.enable_animations = animation_choice == get_text(
+        "CONFIG_WIZARD", "yes"
+    )
+
     # 高级设置：缓冲区和节流
     advanced_settings_prompt = get_text("RENDER_WIZARD", "advanced_settings_prompt")
-    advanced_settings_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
+    advanced_settings_choices = [
+        get_text("CONFIG_WIZARD", "yes"),
+        get_text("CONFIG_WIZARD", "no"),
+    ]
     advanced_choice = number_choice(advanced_settings_choices, advanced_settings_prompt)
-    
+
     if advanced_choice == get_text("CONFIG_WIZARD", "yes"):
         throttle_prompt = get_text("RENDER_WIZARD", "throttle_prompt")
         while True:
@@ -321,7 +409,7 @@ def run_config_wizard(config):
                 print(get_text("RENDER_WIZARD", "throttle_range_error"))
             except ValueError:
                 print(get_text("RENDER_WIZARD", "invalid_integer"))
-                
+
         buffer_prompt = get_text("RENDER_WIZARD", "buffer_prompt")
         while True:
             buffer = get_input(buffer_prompt, str(config.render_config.buffer_size))
@@ -333,12 +421,16 @@ def run_config_wizard(config):
                 print(get_text("RENDER_WIZARD", "buffer_range_error"))
             except ValueError:
                 print(get_text("RENDER_WIZARD", "invalid_integer"))
-                
+
         code_instant_prompt = get_text("RENDER_WIZARD", "code_instant_prompt")
-        code_instant_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
-        code_instant_index = 0 if config.render_config.code_block_instant else 1
+        code_instant_choices = [
+            get_text("CONFIG_WIZARD", "yes"),
+            get_text("CONFIG_WIZARD", "no"),
+        ]
         code_instant_choice = number_choice(code_instant_choices, code_instant_prompt)
-        config.render_config.code_block_instant = (code_instant_choice == get_text("CONFIG_WIZARD", "yes"))
+        config.render_config.code_block_instant = code_instant_choice == get_text(
+            "CONFIG_WIZARD", "yes"
+        )
 
     print_separator()
 
@@ -353,7 +445,7 @@ def run_config_wizard(config):
             print(get_text("CONFIG_WIZARD", "temperature_range"))
         except ValueError:
             print(get_text("CONFIG_WIZARD", "invalid_decimal"))
-    
+
     # 最大令牌数
     while True:
         max_tokens = get_input(max_tokens_prompt, str(config.max_tokens))
@@ -365,8 +457,7 @@ def run_config_wizard(config):
             print(get_text("CONFIG_WIZARD", "tokens_positive"))
         except ValueError:
             print(get_text("CONFIG_WIZARD", "invalid_integer"))
-    
-    
+
     # API超时
     while True:
         timeout = get_input(api_timeout_prompt, str(config.api_timeout))
@@ -378,20 +469,26 @@ def run_config_wizard(config):
             print(get_text("CONFIG_WIZARD", "timeout_positive"))
         except ValueError:
             print(get_text("CONFIG_WIZARD", "invalid_integer"))
-    
+
     # MCP工具设置
     enable_mcp_prompt = get_text("CONFIG_WIZARD", "enable_mcp_prompt")
-    enable_mcp_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
+    enable_mcp_choices = [
+        get_text("CONFIG_WIZARD", "yes"),
+        get_text("CONFIG_WIZARD", "no"),
+    ]
     enable_mcp = number_choice(enable_mcp_choices, enable_mcp_prompt)
-    config.enable_mcp = (enable_mcp == get_text("CONFIG_WIZARD", "yes"))
-    
+    config.enable_mcp = enable_mcp == get_text("CONFIG_WIZARD", "yes")
+
     # 如果启用了MCP，显示配置文件夹信息
     if config.enable_mcp:
-        print("\n" + get_text("CONFIG_WIZARD", "mcp_config_info").format(config.config_dir))
-    
+        print(
+            "\n"
+            + get_text("CONFIG_WIZARD", "mcp_config_info").format(config.config_dir)
+        )
+
     # 保存配置
     config.save_config()
-    
+
     print()
     print_separator()
     print(f"{save_prompt}: {config.config_path}")

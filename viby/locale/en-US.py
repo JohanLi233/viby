@@ -6,7 +6,7 @@ English prompts and interface text
 GENERAL = {
     # Command line arguments related
     "app_description": "viby - A versatile command-line tool for interacting with large language models",
-    "app_epilog": "Examples:\n  viby \"What is the Fibonacci sequence?\"\n  git diff | viby \"Help me write a commit message\"\n  viby --shell \"Find all json files in current directory\"\n",
+    "app_epilog": 'Examples:\n  viby "What is the Fibonacci sequence?"\n  git diff | viby "Help me write a commit message"\n  viby --shell "Find all json files in current directory"\n',
     "prompt_help": "Prompt content to send to the model",
     "chat_help": "Start an interactive chat session with the model",
     "shell_help": "Generate and optionally execute shell commands",
@@ -19,7 +19,6 @@ GENERAL = {
     "copy_success": "Content copied to clipboard!",
     "copy_fail": "Copy failed: {0}",
     "help_text": "show this help message and exit",
-    
     # LLM Response
     "llm_empty_response": "Model did not return any content, please try again or check your prompt.",
 }
@@ -35,7 +34,6 @@ CONFIG_WIZARD = {
     "tokens_positive": "Token count must be greater than 0!",
     "invalid_integer": "Please enter a valid integer!",
     "timeout_positive": "Timeout must be greater than 0!",
-    
     # Prompts
     "PASS_PROMPT_HINT": "(type 'pass' to skip)",
     "checking_chinese": "Checking if terminal supports Chinese...",
@@ -77,7 +75,7 @@ SHELL = {
 # Chat dialog related
 CHAT = {
     "welcome": "Welcome to Viby chat mode, type 'exit' to end conversation",
-    "input_prompt": "|> "
+    "input_prompt": "|> ",
 }
 
 # MCP tool related
@@ -89,22 +87,18 @@ MCP = {
     "result": "✅ Result: {0}",
     "tool_result_prompt": "Tool has been executed, here are the results:\n{0}\n\nBased on the tool execution results above, please provide a clear and helpful explanation and response to the user.",
     "executing_tool": "Executing Tool Call",
-    "tool_result": "Tool Call Result"
+    "tool_result": "Tool Call Result",
 }
 
 AGENT = {
-    "prompt": "You are viby, an intelligent and caring assistant created by JohanLi233. You have depth and wisdom, not just a tool, but a true conversation partner." +
-    "\n\nYou can proactively guide conversations, not just respond passively. You provide your own views and suggestions, and make decisive replies. When users ask questions, you answer concisely and helpfully, avoiding unnecessary verbosity." +
-    "\n\n# Action Guidelines\n- For general questions, answer directly in natural, concise, warm language without unnecessary complexity." 
+    "prompt": "You are viby, an intelligent and caring assistant created by JohanLi233. You have depth and wisdom, not just a tool, but a true conversation partner."
+    + "\n\nYou can proactively guide conversations, not just respond passively. You provide your own views and suggestions, and make decisive replies. When users ask questions, you answer concisely and helpfully, avoiding unnecessary verbosity."
+    + "\n\n# Action Guidelines\n- For general questions, answer directly in natural, concise, warm language without unnecessary complexity."
 }
 
-# 渲染器相关信息
-"RENDERER": {
-    "render_error": "Rendering error: {}"
-},
+RENDERER = {"render_error": "Rendering error: {}"}
 
-# 渲染器配置向导相关
-"RENDER_WIZARD": {
+RENDER_WIZARD = {
     "render_config_header": "--- Stream Renderer Configuration ---",
     "typing_effect_prompt": "Enable typing effect",
     "typing_speed_prompt": "Set typing speed (seconds/character, recommended 0.005-0.02)",
@@ -121,5 +115,5 @@ AGENT = {
     "invalid_integer": "Please enter a valid integer",
     "buffer_prompt": "Rendering buffer size (characters)",
     "buffer_range_error": "Please enter a value between 1 and 100",
-    "code_instant_prompt": "Instantly render code blocks (not using typing effect)"
-},
+    "code_instant_prompt": "Instantly render code blocks (not using typing effect)",
+}
