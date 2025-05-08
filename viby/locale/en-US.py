@@ -102,3 +102,24 @@ AGENT = {
 "RENDERER": {
     "render_error": "Rendering error: {}"
 },
+
+# 渲染器配置向导相关
+"RENDER_WIZARD": {
+    "render_config_header": "--- Stream Renderer Configuration ---",
+    "typing_effect_prompt": "Enable typing effect",
+    "typing_speed_prompt": "Set typing speed (seconds/character, recommended 0.005-0.02)",
+    "typing_speed_range_error": "Please enter a value between 0.001 and 0.1",
+    "invalid_decimal": "Please enter a valid decimal",
+    "smooth_scroll_prompt": "Enable smooth scrolling",
+    "cursor_prompt": "Show cursor",
+    "cursor_char_prompt": "Set cursor character",
+    "cursor_blink_prompt": "Enable cursor blinking",
+    "animation_prompt": "Enable loading animations",
+    "advanced_settings_prompt": "Configure advanced rendering settings",
+    "throttle_prompt": "Rendering throttle time (milliseconds)",
+    "throttle_range_error": "Please enter a value between 10 and 500",
+    "invalid_integer": "Please enter a valid integer",
+    "buffer_prompt": "Rendering buffer size (characters)",
+    "buffer_range_error": "Please enter a value between 1 and 100",
+    "code_instant_prompt": "Instantly render code blocks (not using typing effect)"
+},
