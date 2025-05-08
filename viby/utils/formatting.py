@@ -31,7 +31,7 @@ def print_separator(char="─"):
     """
     根据终端宽度打印一整行分隔线。
     Args:
-        char: 分隔线字符，默认为“─”
+        char: 分隔线字符，默认为"─"
     """
     import shutil
     width = shutil.get_terminal_size().columns
@@ -133,45 +133,3 @@ def print_markdown(content, title=None, code_type=None):
     console = Console()
     md_text = format_markdown(content, title, code_type)
     console.print(Markdown(md_text, justify="left"))
-
-def render_markdown_stream(text_stream, return_full=True):
-    console = Console()
-    raw, para, code = [], [], []
-    in_code = False
-
-    def flush_para():
-        if para:
-            text = ''.join(para)
-            console.print(Markdown(process_markdown_links(text), justify="left"))
-            para.clear()
-
-    def flush_code():
-        if code:
-            console.print(Markdown(''.join(code), justify="left"))
-            code.clear()
-
-    for chunk in text_stream:
-        if return_full:
-            raw.append(chunk)
-        chunk = chunk.replace("<think>", "\n<think>\n").replace("</think>", "\n</think>\n")
-        for line in chunk.splitlines(keepends=True):
-            line = line.replace("<think>", "`<think>`").replace("</think>", "`</think>`")
-            if line.lstrip().startswith("```"):
-                flush_para() if not in_code else None
-                in_code = not in_code
-                code.append(line)
-                if not in_code:
-                    flush_code()
-                continue
-            if in_code:
-                code.append(line)
-            else:
-                if not line.strip():
-                    flush_para()
-                else:
-                    para.append(line)
-
-    # flush remaining
-    (flush_code() if in_code else flush_para())
-    if return_full:
-        return ''.join(raw)

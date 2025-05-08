@@ -97,3 +97,8 @@ AGENT = {
     "\n\nYou can proactively guide conversations, not just respond passively. You provide your own views and suggestions, and make decisive replies. When users ask questions, you answer concisely and helpfully, avoiding unnecessary verbosity." +
     "\n\n# Action Guidelines\n- For general questions, answer directly in natural, concise, warm language without unnecessary complexity." 
 }
+
+# 渲染器相关信息
+"RENDERER": {
+    "render_error": "Rendering error: {}"
+},
