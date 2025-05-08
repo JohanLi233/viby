@@ -199,6 +199,19 @@ Assistant> Task persistence can be implemented in several ways depending on your
 5. Mobile-specific storage:
    - iOS: Core Data, UserDefaults
    - Android: Room, SharedPreferences
+```
+
+### 2.3 Interrupting Model Responses
+
+When using Viby, if the model is generating a lengthy response, you can press the `Enter` key at any time to interrupt the current response:
+
+- In single Q&A mode, interrupting will end the current session
+- In interactive chat mode, interrupting will return you to the input prompt where you can continue with a new question
+
+This feature is particularly useful when:
+- The model's response is becoming too verbose
+- The answer is diverging from your expected direction
+- You've already received the information you needed and don't want to wait for the complete response
 
 |> exit
 
