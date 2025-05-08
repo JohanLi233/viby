@@ -40,7 +40,7 @@ def main():
         
         # 如果是聊天模式，即使没有提示内容也可以继续
         if args.chat:
-            chat_command = ChatCommand(model_manager)
+            chat_command = ChatCommand(model_manager, config)
             return chat_command.execute()
         
         if not has_input:
@@ -49,15 +49,15 @@ def main():
             
         if args.shell:
             # shell 命令生成与执行模式
-            shell_command = ShellCommand(model_manager)
+            shell_command = ShellCommand(model_manager, config)
             return shell_command.execute(user_input)
         else:
-            ask_command = AskCommand(model_manager)
+            ask_command = AskCommand(model_manager, config)
             return ask_command.execute(user_input)
-            
-    except KeyboardInterrupt:
-        print(f"\n{get_text('GENERAL', 'operation_cancelled')}")
-        return 130
     except Exception as e:
-        logger.error(f"{str(e)}")
+        logger.exception(f"Error: {e}")
         return 1
+
+
+if __name__ == "__main__":
+    exit(main())

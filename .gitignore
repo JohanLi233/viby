@@ -471,3 +471,71 @@ $RECYCLE.BIN/
 
 # windsurf rules
 .windsurfrules
+
+# Added by Claude Task Master
+# Logs
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+# Task files
+tasks.json
+tasks/
+
+# Task Master temporary files
+.taskmasterconfig
+tasks/*.txt
+scripts/task-complexity-report.json
+scripts/prd.txt
+
+# Local development
+.env.local
+.env.development.local
+
+# windsurf rules
+.windsurfrules
+
+# Added by Claude Task Master
+# Logs
+logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dev-debug.log
+# Dependency directories
+node_modules/
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+# Task files
+tasks.json
+tasks/ # Task Master temporary files
+.taskmasterconfig
+tasks/*.txt
+scripts/task-complexity-report.json
+scripts/prd.txt
+.roomodes
+.env.example
+.cursor
+.roo
+scripts

@@ -68,15 +68,15 @@ Enable MCP tools
   2. No
 [1]: 1
 
-MCP configuration folder: /Users/JohanLi233/.config/viby
+MCP configuration folder: /Users/JohanLi233/.config/yb
 
 ───────────────────────────────────────────────────────────────────────────────────────
-Configuration saved to: /Users/JohanLi233/.config/viby/config.yaml
+Configuration saved to: /Users/JohanLi233/.config/yb/config.yaml
 
 Press Enter to continue...
 usage: yb [-h] [-v] [--chat] [--shell] [--config] [--think] [--fast] [prompt]
 
-viby - A versatile CLI tool for interacting with large language models
+yb - A versatile CLI tool for interacting with large language models
 
 positional arguments:
   prompt         Prompt content to send to the model
@@ -96,6 +96,42 @@ Examples:
   yb --shell "Find all json files in current directory"
 
 ```
+
+## Stream Output Rendering Configuration
+
+Viby now supports customized stream output rendering for a smoother user experience. You can adjust these options through the configuration wizard:
+
+```bash
+yb --config
+```
+
+In the configuration wizard, you can set the following rendering options:
+
+1. **Typing effect**: When enabled, text will be displayed character by character with a typing effect
+2. **Smooth scrolling**: Provides a smoother scrolling experience
+3. **Cursor configuration**: Customize cursor display and blinking
+4. **Animation effects**: Enable loading animations and transition effects
+5. **Advanced rendering settings**: Adjust throttling time and buffer size to optimize performance
+
+These settings are saved in the `render_config` section of `~/.config/viby/config.yaml`. Advanced users can edit this file directly, but using the configuration wizard is recommended to avoid syntax errors.
+
+Example rendering configuration:
+
+```yaml
+render_config:
+  typing_effect: true
+  typing_speed: 0.01
+  smooth_scroll: true
+  show_cursor: true
+  cursor_char: ▌
+  cursor_blink: true
+  enable_animations: true
+  throttle_ms: 50
+  buffer_size: 10
+  code_block_instant: true
+```
+
+Adjusting these parameters allows you to get the rendering effect that best suits your terminal environment.
 
 ## 2. Basic Usage Examples
 
@@ -217,7 +253,7 @@ This feature is particularly useful when:
 
 ```
 
-### 2.3 Shell Command Generation
+### 2.4 Shell Command Generation
 
 Generate and execute Shell commands:
 
@@ -234,7 +270,7 @@ mkdir -p project/{src,docs,tests} && cd project && git init
 Execute this command? [r]un, [e]dit, [y]ank, [c]hat, [q]uit (default: run): 
 ```
 
-### 2.4 Shell Command Magic Integration
+### 2.5 Shell Command Magic Integration
 
 You can use the `$(...)` syntax in Viby commands to execute any shell command and pass its output as context to the AI. This powerful feature allows you to combine the flexibility of shell with the intelligence of AI:
 
@@ -259,8 +295,8 @@ Files:
 Folders:
  • dist/
  • docs/
- • viby/
- • viby.egg-info/
+ • yb/
+ • yb.egg-info/
 ```
 
 **Get current path:**
