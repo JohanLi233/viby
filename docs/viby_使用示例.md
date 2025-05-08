@@ -68,15 +68,15 @@ API 超时时间(秒) [300]:
   2. 否
 [1]: 1
 
-MCP配置文件夹：/Users/JohanLi233/.config/yb
+MCP配置文件夹：/Users/JohanLi233/.config/viby
 
 ───────────────────────────────────────────────────────────────────────────────────────
-配置已保存至: /Users/JohanLi233/.config/yb/config.yaml
+配置已保存至: /Users/JohanLi233/.config/viby/config.yaml
 
 按 Enter 键继续...
 usage: yb [-h] [-v] [--chat] [--shell] [--config] [--think] [--fast] [prompt]
 
-yb - 一个与大语言模型交互的多功能命令行工具
+viby - 一个与大语言模型交互的多功能命令行工具
 
 positional arguments:
   prompt         要发送给模型的提示内容
@@ -113,7 +113,7 @@ yb --config
 4. **动画效果**：启用加载动画和过渡效果
 5. **高级渲染设置**：调整节流时间和缓冲区大小，优化性能
 
-这些设置保存在 `~/.config/yb/config.yaml` 中的 `render_config` 部分。高级用户可以直接编辑此文件，但建议使用配置向导以避免语法错误。
+这些设置保存在 `~/.config/viby/config.yaml` 中的 `render_config` 部分。高级用户可以直接编辑此文件，但建议使用配置向导以避免语法错误。
 
 示例渲染配置：
 
@@ -296,8 +296,8 @@ yb "$(ls) 当前目录下都有哪些文件？"
 文件夹：
  • dist/
  • docs/
- • yb/
- • yb.egg-info/
+ • viby/
+ • viby.egg-info/
 ```
 
 **获取当前路径：**

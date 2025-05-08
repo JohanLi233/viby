@@ -33,7 +33,7 @@ class ModelManager:
             model_type_to_use = "fast"
         elif self.use_think_model:
             model_type_to_use = "think"
-        
+
         # model_type_to_use will be "fast", "think", or "default".
         # get_model_config will correctly select the profile or fall back
         # to the default_model if "fast" or "think" are requested but not
@@ -85,7 +85,9 @@ class ModelManager:
                 if getattr(delta, "tool_calls", None):
                     for tc in delta.tool_calls:
                         idx = tc.index or 0
-                        entry = tool_calls_data.setdefault(idx, {"name": "", "args": ""})
+                        entry = tool_calls_data.setdefault(
+                            idx, {"name": "", "args": ""}
+                        )
                         if tc.function:
                             entry["name"] = tc.function.name or entry["name"]
                             entry["args"] += tc.function.arguments or ""
@@ -96,10 +98,19 @@ class ModelManager:
                 yield empty, None
 
             # 将工具调用转换为结构化格式
-            yield None, [
-                {"name": entry["name"], "parameters": json.loads(entry["args"]) if entry["args"].strip() else {}}
-                for entry in tool_calls_data.values() if entry["name"]
-            ]
+            yield (
+                None,
+                [
+                    {
+                        "name": entry["name"],
+                        "parameters": json.loads(entry["args"])
+                        if entry["args"].strip()
+                        else {},
+                    }
+                    for entry in tool_calls_data.values()
+                    if entry["name"]
+                ],
+            )
 
         except Exception as e:
             error_msg = f"Error: {str(e)}"

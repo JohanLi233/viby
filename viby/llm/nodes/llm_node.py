@@ -1,9 +1,13 @@
 from pocketflow import Node
-from viby.utils.renderer import render_markdown_stream_optimized, create_renderer, RenderConfig
+from viby.utils.renderer import (
+    render_markdown_stream_optimized,
+    RenderConfig,
+)
 from viby.locale import get_text
 import threading
 import sys
 import select
+
 
 class LLMNode(Node):
     """通用的模型回复节点，负责调用LLM获取回复并处理工具调用"""
@@ -19,7 +23,9 @@ class LLMNode(Node):
                     event.set()
                     break
 
-        listener_thread = threading.Thread(target=_listen_for_enter, args=(interrupt_event,), daemon=True)
+        listener_thread = threading.Thread(
+            target=_listen_for_enter, args=(interrupt_event,), daemon=True
+        )
         listener_thread.start()
 
         return {
@@ -59,7 +65,7 @@ class LLMNode(Node):
                     yield text
 
         # 使用优化的渲染器
-        if config and hasattr(config, 'render_config'):
+        if config and hasattr(config, "render_config"):
             # 使用配置的渲染设置
             render_config = RenderConfig(
                 typing_effect=config.render_config.typing_effect,
@@ -72,7 +78,7 @@ class LLMNode(Node):
                 cursor_blink=config.render_config.cursor_blink,
                 enable_animations=config.render_config.enable_animations,
                 code_block_instant=config.render_config.code_block_instant,
-                theme=config.render_config.theme
+                theme=config.render_config.theme,
             )
             render_markdown_stream_optimized(_stream_response(), render_config)
         else:
@@ -84,7 +90,7 @@ class LLMNode(Node):
             "tool_calls": tool_calls,
             "interrupt_event": interrupt_event,
             "listener_thread": listener_thread,
-            "was_interrupted": was_interrupted
+            "was_interrupted": was_interrupted,
         }
 
     def post(self, shared, prep_res, exec_res):
@@ -102,7 +108,7 @@ class LLMNode(Node):
 
         shared["response"] = text_content
         shared["messages"].append({"role": "assistant", "content": text_content})
-        
+
         if tool_calls:
             return self._handle_tool_call(shared, tool_calls[0])
         if was_interrupted:
@@ -115,15 +121,20 @@ class LLMNode(Node):
             tool_name = tool_call["name"]
             parameters = tool_call["parameters"]
             selected_server = next(
-                (t.get("server_name") for t in shared.get("tools", [])
-                 if t.get("function", {}).get("name") == tool_name),
-                None
+                (
+                    t.get("server_name")
+                    for t in shared.get("tools", [])
+                    if t.get("function", {}).get("name") == tool_name
+                ),
+                None,
             )
-            shared.update({
-                "tool_name": tool_name,
-                "parameters": parameters,
-                "selected_server": selected_server
-            })
+            shared.update(
+                {
+                    "tool_name": tool_name,
+                    "parameters": parameters,
+                    "selected_server": selected_server,
+                }
+            )
             return "execute_tool"
         except Exception as e:
             print(get_text("MCP", "parsing_error", e))
