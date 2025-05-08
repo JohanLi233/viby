@@ -20,6 +20,7 @@ class AskCommand:
         self.prompt_node - "call_llm" >> self.llm_node
         self.llm_node - "execute_tool" >> self.execute_tool_node
         self.llm_node - "continue" >> DummyNode()
+        self.llm_node - "interrupt" >> DummyNode()
         self.execute_tool_node - "call_llm" >> self.llm_node
         self.flow = Flow(start=self.prompt_node)
             

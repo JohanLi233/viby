@@ -33,6 +33,7 @@ class ChatCommand:
         self.input_node - "call_llm" >> self.llm_node
         self.llm_node - "execute_tool" >> self.execute_tool_node
         self.llm_node - "continue" >> self.input_node
+        self.llm_node - "interrupt" >> self.input_node
         self.execute_tool_node - "call_llm" >> self.llm_node
         self.input_node - "exit" >> DummyNode()
     
