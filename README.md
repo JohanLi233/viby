@@ -98,6 +98,20 @@ yb --think "Analyze this complex algorithm and suggest optimizations"
 yb --fast "Translate 'Hello, World!' to French"
 ```
 
+### Shell Command Magic Integration
+
+```sh
+# List directory contents
+yb "$(ls) What files are in the current directory?"
+# -> The current directory contains: file1.txt, file2.py, directory1/...
+
+# Analyze Git status
+yb "$(git status) Which files should I commit first?"
+
+# View code files
+yb "$(cat main.py) How can I improve this code?"
+```
+
 ### Automatically Use MCP Tools When Needed
 
 ```sh

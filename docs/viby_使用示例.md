@@ -235,6 +235,64 @@ mkdir -p project/{src,docs,tests} && cd project && git init
 是否执行此命令? [r]运行, [e]编辑, [y]复制, [c]对话, [q]放弃 (默认: 运行): 
 ```
 
+### 2.4 Shell命令魔法集成
+
+您可以在 Viby 命令中使用 `$(...)` 语法执行任何 shell 命令，并将其输出作为上下文传递给 AI。这个强大的功能允许您结合 shell 的灵活性和 AI 的智能：
+
+**列出目录内容：**
+
+```bash
+yb "$(ls) 当前目录下都有哪些文件？"
+```
+
+输出示例：
+
+```
+当前目录下的文件和文件夹包括：
+文件：
+ • CODE_OF_CONDUCT.md
+ • config.example.yaml
+ • LICENSE
+ • pyproject.toml
+ • README.md
+ • README.zh-CN.md
+ • uv.lock
+文件夹：
+ • dist/
+ • docs/
+ • viby/
+ • viby.egg-info/
+```
+
+**获取当前路径：**
+
+```bash
+yb "$(pwd) 这个路径下的文件结构是什么样的？"
+```
+
+**分析Git状态：**
+
+```bash
+yb "$(git status) 我应该先提交哪些文件？"
+```
+
+**查看系统信息：**
+
+```bash
+yb "$(uname -a) 这是什么操作系统？"
+```
+
+**分析代码文件：**
+
+```bash
+yb "$(cat main.py) 这段代码有哪些可能的改进点？"
+```
+
+这种方式特别适合于：
+- 快速获取并分析系统信息
+- 结合多个命令的输出进行复杂分析
+- 让 AI 基于实时系统状态提供建议
+
 ## 3. 高级功能示例
 
 ### 3.1 使用思考模型

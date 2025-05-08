@@ -234,6 +234,64 @@ mkdir -p project/{src,docs,tests} && cd project && git init
 Execute this command? [r]un, [e]dit, [y]ank, [c]hat, [q]uit (default: run): 
 ```
 
+### 2.4 Shell Command Magic Integration
+
+You can use the `$(...)` syntax in Viby commands to execute any shell command and pass its output as context to the AI. This powerful feature allows you to combine the flexibility of shell with the intelligence of AI:
+
+**List directory contents:**
+
+```bash
+yb "$(ls) What files are in the current directory?"
+```
+
+Example output:
+
+```
+The current directory contains the following files and folders:
+Files:
+ • CODE_OF_CONDUCT.md
+ • config.example.yaml
+ • LICENSE
+ • pyproject.toml
+ • README.md
+ • README.zh-CN.md
+ • uv.lock
+Folders:
+ • dist/
+ • docs/
+ • viby/
+ • viby.egg-info/
+```
+
+**Get current path:**
+
+```bash
+yb "$(pwd) What is the file structure in this path?"
+```
+
+**Analyze Git status:**
+
+```bash
+yb "$(git status) Which files should I commit first?"
+```
+
+**View system information:**
+
+```bash
+yb "$(uname -a) What operating system is this?"
+```
+
+**Analyze code files:**
+
+```bash
+yb "$(cat main.py) What improvements could be made to this code?"
+```
+
+This approach is particularly useful for:
+- Quickly retrieving and analyzing system information
+- Combining outputs from multiple commands for complex analysis
+- Getting AI recommendations based on real-time system state
+
 ## 3. Advanced Usage Examples
 
 ### 3.1 Using the Think Model
