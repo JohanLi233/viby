@@ -56,7 +56,7 @@ class ModelManager:
 
         try:
             client = openai.OpenAI(
-                api_key=api_key or "EMPTY", base_url=f"{base_url}/v1"
+                api_key=api_key or "EMPTY", base_url=f"{base_url}"
             )
 
             # 准备请求参数

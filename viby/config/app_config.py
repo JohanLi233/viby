@@ -15,6 +15,7 @@ class ModelProfileConfig:
     name: str = ""
     api_base_url: Optional[str] = None
     api_key: Optional[str] = None
+    max_tokens: Optional[int] = None
 
 
 class Config:
@@ -240,10 +241,13 @@ class Config:
         resolved_base_url = profile_to_use.api_base_url or self.default_api_base_url
         resolved_api_key = profile_to_use.api_key or self.default_api_key
 
+        # 优先使用模型特定的 max_tokens 设置，如果没有则使用全局设置
+        resolved_max_tokens = profile_to_use.max_tokens if profile_to_use.max_tokens is not None else self.max_tokens
+        
         return {
             "model": profile_to_use.name,
             "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
+            "max_tokens": resolved_max_tokens,
             "base_url": resolved_base_url,
             "api_key": resolved_api_key,
             "api_timeout": self.api_timeout,

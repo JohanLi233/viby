@@ -49,6 +49,8 @@ CONFIG_WIZARD = {
     "think_model_name_prompt": "Think 模型名称 (可选, 留空跳过)",
     "fast_model_header": "--- Fast 模型配置 (可选) ---",
     "fast_model_name_prompt": "Fast 模型名称 (可选, 留空跳过)",
+    "model_max_tokens_prompt": "为{model_name}模型设置最大令牌数 (20480)",
+    "global_max_tokens_prompt": "设置默认全局最大令牌数 (20480)",
     "temperature_prompt": "温度参数 (0.0-1.0)",
     "max_tokens_prompt": "最大令牌数",
     "api_timeout_prompt": "API 超时时间(秒)",

@@ -127,7 +127,6 @@ def run_config_wizard(config):
     print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
 
     temp_prompt = get_text("CONFIG_WIZARD", "temperature_prompt")
-    max_tokens_prompt = get_text("CONFIG_WIZARD", "max_tokens_prompt")
     api_timeout_prompt = get_text("CONFIG_WIZARD", "api_timeout_prompt")
     save_prompt = get_text("CONFIG_WIZARD", "config_saved")
     continue_prompt = get_text("CONFIG_WIZARD", "continue_prompt")
@@ -210,6 +209,24 @@ def run_config_wizard(config):
         or config.default_model.api_key == PASS_SENTINEL
     ):
         config.default_model.api_key = None  # 存储None如果为空
+        
+    # 默认模型特定的最大令牌数
+    default_model_max_tokens_prompt = get_text(
+        "CONFIG_WIZARD", "model_max_tokens_prompt"
+    ).format(model_name=config.default_model.name)
+    while True:
+        max_tokens = get_input(
+            default_model_max_tokens_prompt, 
+            str(config.default_model.max_tokens or config.max_tokens)
+        )
+        try:
+            tokens_value = int(max_tokens)
+            if tokens_value > 0:
+                config.default_model.max_tokens = tokens_value
+                break
+            print(get_text("CONFIG_WIZARD", "tokens_positive", "请输入正整数"))
+        except ValueError:
+            print(get_text("CONFIG_WIZARD", "invalid_integer", "请输入有效的整数"))
 
     print_separator()
 
@@ -259,6 +276,24 @@ def run_config_wizard(config):
             or config.think_model.api_key == PASS_SENTINEL
         ):
             config.think_model.api_key = None
+            
+        # 思考模型特定的最大令牌数
+        think_model_max_tokens_prompt = get_text(
+            "CONFIG_WIZARD", "model_max_tokens_prompt"
+        ).format(model_name=config.think_model.name)
+        while True:
+            max_tokens = get_input(
+                think_model_max_tokens_prompt, 
+                str(config.think_model.max_tokens or config.max_tokens)
+            )
+            try:
+                tokens_value = int(max_tokens)
+                if tokens_value > 0:
+                    config.think_model.max_tokens = tokens_value
+                    break
+                print(get_text("CONFIG_WIZARD", "tokens_positive", "请输入正整数"))
+            except ValueError:
+                print(get_text("CONFIG_WIZARD", "invalid_integer", "请输入有效的整数"))
     elif config.think_model:  # 用户输入"pass"或空白名称
         config.think_model = None
 
@@ -306,11 +341,29 @@ def run_config_wizard(config):
         )
         if not config.fast_model.api_key or config.fast_model.api_key == PASS_SENTINEL:
             config.fast_model.api_key = None
+            
+        # 快速模型特定的最大令牌数
+        fast_model_max_tokens_prompt = get_text(
+            "CONFIG_WIZARD", "model_max_tokens_prompt"
+        ).format(model_name=config.fast_model.name)
+        while True:
+            max_tokens = get_input(
+                fast_model_max_tokens_prompt, 
+                str(config.fast_model.max_tokens or config.max_tokens)
+            )
+            try:
+                tokens_value = int(max_tokens)
+                if tokens_value > 0:
+                    config.fast_model.max_tokens = tokens_value
+                    break
+                print(get_text("CONFIG_WIZARD", "tokens_positive", "请输入正整数"))
+            except ValueError:
+                print(get_text("CONFIG_WIZARD", "invalid_integer", "请输入有效的整数"))
+
     elif config.fast_model:  # 用户输入为空或输入"pass"，表示要跳过此模型配置
         config.fast_model = None
 
     print_separator()
-
     # 温度设置
     while True:
         temp = get_input(temp_prompt, str(config.temperature))
@@ -323,9 +376,10 @@ def run_config_wizard(config):
         except ValueError:
             print(get_text("CONFIG_WIZARD", "invalid_decimal"))
 
-    # 最大令牌数
+    # 全局最大令牌数
+    global_max_tokens_prompt = get_text("CONFIG_WIZARD", "global_max_tokens_prompt", "设置默认全局最大令牌数")
     while True:
-        max_tokens = get_input(max_tokens_prompt, str(config.max_tokens))
+        max_tokens = get_input(global_max_tokens_prompt, str(config.max_tokens))
         try:
             tokens_value = int(max_tokens)
             if tokens_value > 0:

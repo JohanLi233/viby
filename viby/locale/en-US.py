@@ -49,6 +49,8 @@ CONFIG_WIZARD = {
     "think_model_name_prompt": "Think Model Name (optional, leave blank to skip)",
     "fast_model_header": "--- Fast Model Configuration (Optional) ---",
     "fast_model_name_prompt": "Fast Model Name (optional, leave blank to skip)",
+    "model_max_tokens_prompt": "Set maximum tokens for {model_name} model (20480)",
+    "global_max_tokens_prompt": "Set default global maximum tokens (20480)",
     "temperature_prompt": "Temperature (0.0-1.0)",
     "max_tokens_prompt": "Maximum tokens",
     "api_timeout_prompt": "API timeout (seconds)",
