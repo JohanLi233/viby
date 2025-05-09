@@ -14,6 +14,7 @@ GENERAL = {
     "think_help": "Use the think model for deeper analysis (if configured)",
     "fast_help": "Use the fast model for quicker responses (if configured)",
     "version_help": "Show program's version number and exit",
+    "language_help": "Set the interface language (en-US or zh-CN)",
     # Interface text
     "operation_cancelled": "Operation cancelled.",
     "copy_success": "Content copied to clipboard!",

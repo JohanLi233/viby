@@ -7,6 +7,8 @@ from viby.locale import get_text
 import threading
 import sys
 import select
+import platform
+import os
 
 
 class LLMNode(Node):
@@ -15,17 +17,56 @@ class LLMNode(Node):
     def prep(self, shared):
         """准备模型调用所需的参数"""
         interrupt_event = threading.Event()
+        listener_thread = None
 
-        def _listen_for_enter(event):
+        def _listen_for_enter_tty(event):
+            try:
+                # 在类 Unix 系统上尝试直接打开终端设备
+                if platform.system() != "Windows":
+                    with open('/dev/tty', 'r') as tty:
+                        while not event.is_set():
+                            if select.select([tty], [], [], 0.1)[0]:
+                                tty.readline()
+                                event.set()
+                                break
+                else:
+                    # Windows 平台上使用 msvcrt 模块监听键盘输入
+                    try:
+                        import msvcrt
+                        while not event.is_set():
+                            if msvcrt.kbhit():  # 检查是否有键盘输入
+                                char = msvcrt.getch()  # 读取一个字符
+                                if char in (b'\r', b'\n', b' '):  # 回车、换行或空格
+                                    event.set()
+                                    break
+                            # 短暂休眠，减少 CPU 使用
+                            import time
+                            time.sleep(0.1)
+                    except ImportError:
+                        pass  # 如果 msvcrt 不可用，则不监听
+            except (OSError, IOError):
+                # 如果无法打开终端设备，直接返回，不阻塞线程
+                pass
+
+        def _listen_for_enter_stdin(event):
             while not event.is_set():
                 if select.select([sys.stdin], [], [], 0.1)[0]:
                     sys.stdin.readline()
                     event.set()
                     break
 
-        listener_thread = threading.Thread(
-            target=_listen_for_enter, args=(interrupt_event,), daemon=True
-        )
+        # 如果 stdin 是终端，使用标准的监听方法
+        if sys.stdin.isatty():
+            listener_thread = threading.Thread(
+                target=_listen_for_enter_stdin, args=(interrupt_event,), daemon=True
+            )
+        else:
+            # 在管道模式下，尝试直接监听终端设备
+            listener_thread = threading.Thread(
+                target=_listen_for_enter_tty, args=(interrupt_event,), daemon=True
+            )
+        
+        # 启动监听线程
         listener_thread.start()
 
         return {
@@ -101,7 +142,8 @@ class LLMNode(Node):
         listener_thread = exec_res.get("listener_thread")
         was_interrupted = exec_res.get("was_interrupted", False)
 
-        if listener_thread:
+        # 只有当监听线程存在时才尝试清理
+        if listener_thread and listener_thread.is_alive():
             if interrupt_event:
                 interrupt_event.set()
             listener_thread.join(timeout=0.2)

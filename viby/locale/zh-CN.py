@@ -14,6 +14,7 @@ GENERAL = {
     "think_help": "使用思考模型进行更深入的分析（如果已配置）",
     "fast_help": "使用快速模型进行更快的响应（如果已配置）",
     "version_help": "显示程序版本号并退出",
+    "language_help": "设置界面语言（en-US或zh-CN）",
     # 界面文本
     "operation_cancelled": "操作已取消。",
     "copy_success": "内容已复制到剪贴板！",
