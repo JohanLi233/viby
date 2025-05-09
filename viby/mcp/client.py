@@ -1,12 +1,143 @@
 # viby/mcp/client.py
 import asyncio
 import os
+import threading
+import atexit
+import time
 from contextlib import AsyncExitStack
 from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
 from fastmcp import Client
 from viby.mcp.config import get_server_config
+
+
+# --- Global Async Event Loop Manager ---
+_async_loop_thread: Optional[threading.Thread] = None
+_persistent_loop: Optional[asyncio.AbstractEventLoop] = None
+_global_mcp_client_singleton: Optional['MCPClient'] = None # Forward declaration
+_loop_startup_lock = threading.Lock() # Lock for initializing the loop and client
+
+def _start_persistent_loop():
+    global _persistent_loop
+    try:
+        _persistent_loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(_persistent_loop)
+        # print(f"Persistent event loop {_persistent_loop} started in thread {threading.get_ident()}.")
+        _persistent_loop.run_forever()
+    except Exception as e:
+        print(f"Exception in persistent event loop thread: {e}")
+    finally:
+        if _persistent_loop and _persistent_loop.is_running():
+            _persistent_loop.close()
+        # print(f"Persistent event loop {_persistent_loop} has been closed in thread {threading.get_ident()}.")
+        _persistent_loop = None
+
+
+def get_persistent_loop() -> asyncio.AbstractEventLoop:
+    global _async_loop_thread, _persistent_loop
+    if _persistent_loop is None or not _persistent_loop.is_running():
+        with _loop_startup_lock: # Ensure only one thread initializes the loop
+            if _persistent_loop is None or not _persistent_loop.is_running():
+                if _async_loop_thread and _async_loop_thread.is_alive():
+                    # This case should ideally not happen if cleanup is proper
+                    # print("Warning: Previous async loop thread was alive but loop was not running. Recreating.")
+                    pass
+
+                _async_loop_thread = threading.Thread(target=_start_persistent_loop, name="MCPAsyncLoopThread", daemon=True)
+                _async_loop_thread.start()
+                
+                # Wait for the loop to be actually set and running
+                # Add a timeout to prevent indefinite blocking
+                timeout_seconds = 10
+                start_time = time.monotonic()
+                while (_persistent_loop is None or not _persistent_loop.is_running()) and (time.monotonic() - start_time < timeout_seconds) :
+                    time.sleep(0.05)
+                
+                if _persistent_loop is None or not _persistent_loop.is_running():
+                    raise RuntimeError("Failed to start the persistent event loop within timeout.")
+                # print(f"Persistent event loop successfully started: {_persistent_loop}")
+    return _persistent_loop
+
+def _run_coroutine_in_persistent_loop(coro):
+    loop = get_persistent_loop()
+    if threading.current_thread() == _async_loop_thread:
+        # This scenario (calling from within the loop's own thread using run_coroutine_threadsafe)
+        # might lead to deadlocks if the coroutine awaits something that needs the loop to process other tasks.
+        # It's generally safer if sync wrappers are called from other threads.
+        # If this is needed, direct awaiting or create_task might be better.
+        # print("Warning: _run_coroutine_in_persistent_loop called from the loop's own thread.")
+        # Fallback for same-thread execution (less safe, potential for deadlock)
+        # This path is complex; ideally, sync functions are not called from the loop thread.
+        # For now, let's assume this won't happen or the caller knows what they're doing.
+        # If it must be supported, consider loop.create_task and careful synchronization.
+        # This simplified path might block the loop if coro is long.
+        # return asyncio.run_coroutine_threadsafe(coro, loop).result() # This will deadlock if called from loop thread
+
+        # A simple way if already in the loop (but still not ideal for generic sync wrapper)
+        # This is not what run_coroutine_threadsafe is for.
+        # Let's stick to the primary use case: called from an external thread.
+        raise RuntimeError("_run_coroutine_in_persistent_loop should not be called from the loop's own thread.")
+
+    future = asyncio.run_coroutine_threadsafe(coro, loop)
+    try:
+        return future.result(timeout=60)  # Add a reasonable timeout
+    except asyncio.TimeoutError:
+        # print(f"Timeout waiting for coroutine {coro} to complete in persistent loop.")
+        # Optionally, try to cancel the future
+        future.cancel()
+        raise
+    except Exception as e:
+        # print(f"Exception from coroutine {coro} in persistent loop: {e}")
+        raise
+
+def _shutdown_persistent_loop():
+    global _persistent_loop, _global_mcp_client_singleton, _async_loop_thread
+    
+    if not _persistent_loop or not _persistent_loop.is_running():
+        # print("Persistent event loop not running or not initialized at shutdown.")
+        if _async_loop_thread and _async_loop_thread.is_alive():
+            # print("Async loop thread is alive but loop is not running. Attempting to join.")
+            _async_loop_thread.join(timeout=5)
+        return
+
+    # print("atexit: Attempting to shutdown persistent event loop and MCP client...")
+    
+    if _global_mcp_client_singleton:
+        try:
+            # Schedule the close operation in the loop
+            # print("atexit: Scheduling MCPClient close.")
+            future = asyncio.run_coroutine_threadsafe(_global_mcp_client_singleton.close(), _persistent_loop)
+            future.result(timeout=15) # Wait for close to complete
+            # print("atexit: Global MCPClient closed in persistent loop.")
+        except Exception as e:
+            # print(f"atexit: Error closing global MCPClient in persistent loop: {e}")
+            pass
+        finally:
+            _global_mcp_client_singleton = None
+
+    if _persistent_loop.is_running():
+        # print("atexit: Stopping persistent event loop.")
+        _persistent_loop.call_soon_threadsafe(_persistent_loop.stop)
+    
+    if _async_loop_thread and _async_loop_thread.is_alive() and threading.current_thread() != _async_loop_thread:
+        # print("atexit: Waiting for async loop thread to join.")
+        _async_loop_thread.join(timeout=10)
+        if _async_loop_thread.is_alive():
+            # print("atexit: Async loop thread did not join in time.")
+            pass
+    
+    # print("atexit: Shutdown process complete.")
+    _persistent_loop = None # Mark as None after it's stopped and thread joined.
+    _async_loop_thread = None
+
+# Register cleanup at program exit, but only if not in a worker thread that might not own atexit
+if threading.current_thread() is threading.main_thread():
+    atexit.register(_shutdown_persistent_loop)
+else:
+    # print("Warning: Not in main thread, atexit cleanup for MCPClient might not be registered reliably.")
+    pass
+# --- End Global Async Event Loop Manager ---
 
 
 class StdioConfig(TypedDict):
@@ -37,112 +168,86 @@ class WebsocketConfig(TypedDict):
 ConnectionConfig = Union[StdioConfig, SSEConfig, WebsocketConfig]
 
 
-# 全局连接池，用于保存已初始化的客户端连接
-_connection_pool = {}
-
-
 class MCPClient:
     """MCP 客户端，提供与 MCP 服务器的连接管理和工具调用"""
 
-    def __init__(self, config: Optional[Dict[str, ConnectionConfig]] = None):
+    def __init__(self, default_config: Optional[Dict[str, ConnectionConfig]] = None):
         """
         初始化 MCP 客户端
 
         Args:
-            config: 服务器配置字典，格式为 {"server_name": server_config, ...}
+            default_config: 服务器配置字典，格式为 {"server_name": server_config, ...}
         """
-        self.config = config or {}
+        self.default_config = default_config if default_config is not None else {}
         self.exit_stack = AsyncExitStack()
-        self.clients: Dict[str, Client] = {}
-        self._initialized = False
+        self.active_clients: Dict[str, Client] = {}
+        self._initialized_overall = False
+        self._lock = asyncio.Lock() # Lock for initializing specific server clients
 
-    @classmethod
-    async def get_connection(
-        cls, server_name: str, config: Optional[Dict[str, ConnectionConfig]] = None
-    ):
-        """
-        从连接池获取指定服务器的连接，如果不存在则创建
+    async def initialize_singleton(self):
+        if not self._initialized_overall:
+            self._initialized_overall = True
 
-        Args:
-            server_name: 服务器名称
-            config: 服务器配置字典
+    async def _ensure_server_client_initialized(self, server_name: str):
+        async with self._lock: # Protect access to self.active_clients and shared config
+            if server_name not in self.active_clients:
+                config_to_use = self.default_config.get(server_name)
+                if not config_to_use:
+                    print(f"Config for {server_name} not in initial default. Fetching dynamically.")
+                    dynamic_configs = get_server_config(server_name) # Fetches {"server_name": conf} or {}
+                    config_to_use = dynamic_configs.get(server_name)
 
-        Returns:
-            Client 实例
-        """
-        if server_name in _connection_pool and _connection_pool[server_name]:
-            return _connection_pool[server_name]
+                if not config_to_use:
+                    raise ValueError(f"Configuration for server {server_name} not found.")
 
-        client = cls(config)
-        await client.initialize()
+                transport = config_to_use.get("transport", "stdio")
+                fastmcp_client_instance: Optional[Client] = None
 
-        if server_name in client.clients:
-            _connection_pool[server_name] = client.clients[server_name]
-            return client.clients[server_name]
-
-        return None
-
-    async def initialize(self):
-        """初始化所有配置的服务器连接"""
-        if self._initialized:
-            return
-
-        for server_name, config in self.config.items():
-            transport = config.get("transport", "stdio")
-
-            try:
-                if transport == "stdio":
-                    env = config.get("env", {})
-                    env.setdefault("PATH", os.environ.get("PATH", ""))
-                    client_arg = {
-                        "mcpServers": {
-                            server_name: {
-                                "transport": "stdio",
-                                "command": config["command"],
-                                "args": config["args"],
-                                "env": env,
+                try:
+                    if transport == "stdio":
+                        env = config_to_use.get("env", {})
+                        env.setdefault("PATH", os.environ.get("PATH", ""))
+                        client_arg = {
+                            "mcpServers": {
+                                server_name: {
+                                    "transport": "stdio",
+                                    "command": config_to_use["command"],
+                                    "args": config_to_use["args"],
+                                    "env": env,
+                                    "cwd": config_to_use.get("cwd")
+                                }
                             }
                         }
-                    }
-                    client = Client(client_arg)
-                elif transport in ["sse", "websocket"]:
-                    client = Client(config["url"])
-                else:
-                    raise ValueError(f"不支持的传输类型: {transport}")
+                        fastmcp_client_instance = Client(client_arg)
+                    elif transport in ["sse", "websocket"]:
+                        fastmcp_client_instance = Client(config_to_use["url"])
+                    else:
+                        raise ValueError(f"Unsupported transport type: {transport}")
 
-                await self.exit_stack.enter_async_context(client)
-                self.clients[server_name] = client
-            except Exception as e:
-                print(f"初始化服务器 {server_name} 失败: {str(e)}")
-
-        self._initialized = True
-
-    async def close(self):
-        """关闭所有服务器连接"""
-        await self.exit_stack.aclose()
-        self.clients = {}
-        self._initialized = False
+                    await self.exit_stack.enter_async_context(fastmcp_client_instance)
+                    self.active_clients[server_name] = fastmcp_client_instance
+                except Exception as e:
+                    print(f"Failed to initialize server {server_name}: {str(e)}")
+                    raise
 
     async def list_servers(self) -> List[str]:
         """列出所有可用的服务器名称"""
-        if not self._initialized:
-            await self.initialize()
-        return list(self.clients.keys())
+        return list(self.default_config.keys())
 
     def _convert_tools_to_standard_format(self, tools_response):
         """将MCP工具响应转换为符合OpenAI标准的工具格式"""
         standard_tools = []
 
-        for tool in tools_response:
+        for tool_obj in tools_response:
             function_obj = {
-                "name": getattr(tool, "name", str(tool)),
-                "description": getattr(tool, "description", ""),
+                "name": getattr(tool_obj, "name", str(tool_obj)),
+                "description": getattr(tool_obj, "description", ""),
             }
 
-            if hasattr(tool, "parameters"):
-                function_obj["parameters"] = tool.parameters
-            elif hasattr(tool, "inputSchema"):
-                function_obj["parameters"] = tool.inputSchema
+            if hasattr(tool_obj, "parameters"):
+                function_obj["parameters"] = tool_obj.parameters
+            elif hasattr(tool_obj, "inputSchema"):
+                function_obj["parameters"] = tool_obj.inputSchema
 
             standard_tools.append({"type": "function", "function": function_obj})
 
@@ -150,33 +255,41 @@ class MCPClient:
 
     async def list_tools(self, server_name: Optional[str] = None) -> Dict[str, Any]:
         """列出指定服务器或所有服务器的工具"""
-        if not self._initialized:
-            await self.initialize()
-
         result = {}
+        servers_to_query = []
 
         if server_name:
-            if server_name not in self.clients:
-                raise ValueError(f"服务器 {server_name} 不存在")
-            tools_response = await self.clients[server_name].list_tools()
-            result[server_name] = self._convert_tools_to_standard_format(tools_response)
+            await self._ensure_server_client_initialized(server_name)
+            if server_name not in self.active_clients:
+                 raise ValueError(f"Server {server_name} client not available after init attempt.")
+            servers_to_query.append(server_name)
         else:
-            for name, client in self.clients.items():
-                tools_response = await client.list_tools()
-                result[name] = self._convert_tools_to_standard_format(tools_response)
-
+            for s_name in self.default_config.keys():
+                try:
+                    await self._ensure_server_client_initialized(s_name)
+                    if s_name in self.active_clients:
+                        servers_to_query.append(s_name)
+                    else:
+                        print(f"Skipping server {s_name} for list_tools as it's not active after init attempt.")
+                except Exception as e:
+                    print(f"Skipping server {s_name} for list_tools due to init error: {e}")
+        
+        for s_name_to_query in servers_to_query:
+            if s_name_to_query in self.active_clients:
+                raw_tools = await self.active_clients[s_name_to_query].list_tools()
+                result[s_name_to_query] = self._convert_tools_to_standard_format(raw_tools)
+            else:
+                print(f"Warning: Server {s_name_to_query} was in servers_to_query but not in active_clients.")
         return result
 
     async def call_tool(
         self, server_name: str, tool_name: str, arguments: Dict[str, Any]
     ) -> Dict[str, Any]:
         """调用指定服务器的工具并返回统一格式{name, content}"""
-        if not self._initialized:
-            await self.initialize()
-        if server_name not in self.clients:
-            raise ValueError(f"服务器 {server_name} 不存在")
-
-        return await self.clients[server_name].call_tool(tool_name, arguments)
+        await self._ensure_server_client_initialized(server_name)
+        if server_name not in self.active_clients:
+            raise ValueError(f"Server {server_name} is not active. Cannot call tool.")
+        return await self.active_clients[server_name].call_tool(tool_name, arguments)
 
     async def get_prompt(
         self,
@@ -185,76 +298,80 @@ class MCPClient:
         arguments: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
         """获取指定服务器的提示模板"""
-        if not self._initialized:
-            await self.initialize()
-
-        result = await self.clients[server_name].get_prompt(
-            prompt_name, arguments or {}
-        )
+        await self._ensure_server_client_initialized(server_name)
+        if server_name not in self.active_clients:
+            raise ValueError(f"Server {server_name} is not active. Cannot get prompt.")
+        
+        mcp_client = self.active_clients[server_name]
+        prompt_result = await mcp_client.get_prompt(prompt_name, arguments or {})
         return [
             {"role": m.role, "content": getattr(m.content, "text", m.content)}
-            for m in result.messages
+            for m in prompt_result.messages
         ]
 
     async def get_resource(
         self, server_name: str, resource_uri: str
     ) -> List[Dict[str, Any]]:
         """获取指定服务器的资源"""
-        if not self._initialized:
-            await self.initialize()
-
-        result = await self.clients[server_name].read_resource(resource_uri)
+        await self._ensure_server_client_initialized(server_name)
+        if server_name not in self.active_clients:
+            raise ValueError(f"Server {server_name} is not active. Cannot get resource.")
+        
+        mcp_client = self.active_clients[server_name]
+        resource_result = await mcp_client.read_resource(resource_uri)
         return [
             {
                 "type": "text" if hasattr(c, "text") else "blob",
                 "mime_type": c.mimeType,
                 "content": getattr(c, "text", c.blob),
             }
-            for c in result.contents
+            for c in resource_result.contents
             if hasattr(c, "text") or hasattr(c, "blob")
         ]
 
-    async def __aenter__(self):
-        """异步上下文管理器入口"""
-        await self.initialize()
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """异步上下文管理器出口"""
-        await self.close()
+    async def close(self):
+        """关闭所有服务器连接"""
+        async with self._lock: # Ensure no new clients are added during close
+            await self.exit_stack.aclose()
+            self.active_clients = {}
+            self._initialized_overall = False
 
 
-def _run_sync(awaitable):
-    """在新的事件循环中运行 awaitable 并返回结果"""
-    return asyncio.run(awaitable)
+async def _get_or_create_global_mcp_client_async() -> MCPClient:
+    global _global_mcp_client_singleton
+    if _global_mcp_client_singleton is None:
+        all_server_configs = get_server_config()
+        if not isinstance(all_server_configs, dict):
+            print(f"Warning: get_server_config() returned type {type(all_server_configs)}, expected dict. Using empty config.")
+            all_server_configs = {}
+            
+        _global_mcp_client_singleton = MCPClient(default_config=all_server_configs)
+        await _global_mcp_client_singleton.initialize_singleton()
+    return _global_mcp_client_singleton
 
 
-def list_servers(config: Optional[Dict[str, Any]] = None) -> List[str]:
+def list_servers() -> List[str]:
     """同步获取所有服务器名称"""
-    config = config or get_server_config()
-    if not config:
+    async def _coro():
+        client = await _get_or_create_global_mcp_client_async()
+        return await client.list_servers()
+    try:
+        return _run_coroutine_in_persistent_loop(_coro())
+    except Exception as e:
+        print(f"Error in list_servers: {e}")
         return []
 
-    async def _runner():
-        async with MCPClient(config) as client:
-            return await client.list_servers()
 
-    return _run_sync(_runner())
-
-
-def list_tools(
-    server_name: Optional[str] = None, config: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+def list_tools(server_name: Optional[str] = None) -> Dict[str, Any]:
     """同步获取工具列表"""
-    config = config or get_server_config(server_name)
-    if not config:
+    async def _coro():
+        client = await _get_or_create_global_mcp_client_async()
+        return await client.list_tools(server_name)
+    try:
+        return _run_coroutine_in_persistent_loop(_coro())
+    except Exception as e:
+        print(f"Error in list_tools for '{server_name}': {e}")
         return {}
-
-    async def _runner():
-        async with MCPClient(config) as client:
-            return await client.list_tools(server_name)
-
-    return _run_sync(_runner())
 
 
 def call_tool(
@@ -263,26 +380,14 @@ def call_tool(
     arguments: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """同步调用工具，必须指定服务器"""
-    server_config = get_server_config(server_name)
-    if not server_config:
+    async def _coro():
+        client = await _get_or_create_global_mcp_client_async()
+        return await client.call_tool(server_name, tool_name, arguments or {})
+    try:
+        return _run_coroutine_in_persistent_loop(_coro())
+    except Exception as e:
+        print(f"Error in call_tool '{tool_name}' on '{server_name}': {e}")
         return {
             "is_error": True,
-            "content": [{"type": "text", "text": f"服务器 {server_name} 配置不存在"}],
+            "content": [{"type": "text", "text": f"Failed to call tool: {str(e)}"}],
         }
-
-    async def _runner():
-        async with MCPClient(server_config) as client:
-            try:
-                return await client.call_tool(server_name, tool_name, arguments or {})
-            except Exception as e:
-                return {
-                    "is_error": True,
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": f"服务器 {server_name} 调用失败: {str(e)}",
-                        }
-                    ],
-                }
-
-    return _run_sync(_runner())
