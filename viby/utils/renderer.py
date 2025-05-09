@@ -19,12 +19,12 @@ class MarkdownStreamRenderer:
         self.content = {"text": "", "para": [], "code": []}
 
         # 默认配置
-        self.typing_effect = False
-        self.typing_speed = 0.01
+        self.typing_effect = True
+        self.typing_speed = 0.001
         self.smooth_scroll = True
-        self.throttle_ms = 50
+        self.throttle_ms = 0
         self.buffer_size = 10
-        self.show_cursor = True
+        self.show_cursor = False
         self.cursor_char = "▌"
         self.cursor_blink = True
         self.enable_animations = True

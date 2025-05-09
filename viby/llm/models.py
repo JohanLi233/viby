@@ -70,15 +70,36 @@ class ModelManager:
 
             # 创建流式处理
             stream = client.chat.completions.create(**params)
-            text_seen = False
+            saw_any = False
+            in_think = False
+            
             for chunk in stream:
                 delta = chunk.choices[0].delta
-                if delta.content:
-                    text_seen = True
-                    yield delta.content
+                reasoning = getattr(delta, 'reasoning', None)
+                content = delta.content
 
-            # 如果没有内容，添加提示
-            if not text_seen:
+                # 思考内容
+                if reasoning:
+                    if not in_think:
+                        yield "<think>"
+                        in_think = True
+                    saw_any = True
+                    yield reasoning
+
+                # 普通内容
+                if content:
+                    if in_think:
+                        yield "</think>"
+                        in_think = False
+                    saw_any = True
+                    yield content
+
+            # 流结束后如果仍在思考模式，闭合标签
+            if in_think:
+                yield "</think>"
+
+            # 如果没有任何输出，添加提示
+            if not saw_any:
                 empty = get_text("GENERAL", "llm_empty_response")
                 yield empty
 
