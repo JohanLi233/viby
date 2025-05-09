@@ -15,6 +15,7 @@ GENERAL = {
     "fast_help": "Use the fast model for quicker responses (if configured)",
     "version_help": "Show program's version number and exit",
     "language_help": "Set the interface language (en-US or zh-CN)",
+    "tokens_help": "Display token usage information",
     # Interface text
     "operation_cancelled": "Operation cancelled.",
     "copy_success": "Content copied to clipboard!",
@@ -22,6 +23,13 @@ GENERAL = {
     "help_text": "show this help message and exit",
     # LLM Response
     "llm_empty_response": "Model did not return any content, please try again or check your prompt.",
+    # Token usage related
+    "token_usage_title": "Token Usage Statistics:",
+    "token_usage_prompt": "Input Tokens: {0}",
+    "token_usage_completion": "Output Tokens: {0}",
+    "token_usage_total": "Total Tokens: {0}",
+    "token_usage_duration": "Response Time: {0}",
+    "token_usage_not_available": "Token usage information not available",
 }
 
 # Configuration wizard related

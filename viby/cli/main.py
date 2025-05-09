@@ -8,7 +8,7 @@ import sys
 import platform
 import locale
 import signal
-from typing import Optional, Type, Dict, Any
+from typing import Optional, Dict, Any
 import importlib
 
 from viby.cli.arguments import parse_arguments, process_input, get_parser
@@ -18,11 +18,10 @@ from viby.locale import init_text_manager, get_text
 
 # 性能监控工具导入
 from viby.utils.performance import (
-    import_tracker, 
-    memory_tracker, 
-    enable_debugging, 
+    import_tracker,
+    memory_tracker,
+    enable_debugging,
     is_debugging_enabled,
-    get_performance_stats
 )
 
 # 创建日志记录器
@@ -49,7 +48,7 @@ def get_command_class(command_name: str) -> Any:
     # 动态导入命令模块
     module_name = f"viby.commands.{command_name.lower()}"
     class_name = f"{command_name.capitalize()}Command"
-    
+
     try:
         module = importlib.import_module(module_name)
         command_class = getattr(module, class_name)
@@ -65,6 +64,7 @@ def lazy_load_wizard() -> None:
     """懒加载配置向导模块"""
     try:
         from viby.config.wizard import run_config_wizard
+
         return run_config_wizard
     except ImportError as e:
         logger.error(f"导入配置向导模块失败: {e}")
@@ -130,12 +130,12 @@ def check_environment() -> Optional[str]:
 def main() -> int:
     """viby CLI 的主入口，返回退出码"""
     global logger
-    
+
     # 检查是否启用性能调试
     if "--debug-performance" in sys.argv:
         enable_debugging()
         sys.argv.remove("--debug-performance")
-    
+
     try:
         # 设置平台特定配置
         setup_platform_specific()
@@ -182,8 +182,9 @@ def main() -> int:
         if args.shell or args.chat or has_input:
             # 只有在需要时才导入模型管理器
             from viby.llm.models import ModelManager
+
             model_manager = ModelManager(config, args)
-        
+
             # 优先处理特定模式，如 --shell
             if args.shell:
                 if not has_input:
@@ -191,50 +192,54 @@ def main() -> int:
                     return 1
                 ShellCommand = get_command_class("shell")
                 shell_command = ShellCommand(model_manager)
-                
+
                 # 如果启用性能调试，打印报告
                 if is_debugging_enabled():
                     import_tracker.print_report("Shell命令初始化报告")
                     memory_tracker.print_report("Shell命令初始化内存报告")
-                
+
                 return shell_command.execute(user_input)
 
             # 如果是聊天模式 (显式指定 --chat 或默认进入的交互模式)
             if args.chat:
                 ChatCommand = get_command_class("chat")
                 chat_command = ChatCommand(model_manager)
-                
+
                 # 如果启用性能调试，打印报告
                 if is_debugging_enabled():
                     import_tracker.print_report("Chat命令初始化报告")
                     memory_tracker.print_report("Chat命令初始化内存报告")
-                
+
                 return chat_command.execute()
-                
+
             # 如果有输入但不是聊天或shell模式，则认为是 ask 命令
             if has_input:
                 AskCommand = get_command_class("ask")
                 ask_command = AskCommand(model_manager)
-                
+
                 # 如果启用性能调试，打印报告
                 if is_debugging_enabled():
                     import_tracker.print_report("Ask命令初始化报告")
                     memory_tracker.print_report("Ask命令初始化内存报告")
-                
+
                 return ask_command.execute(user_input)
-        
+
         # 如果没有输入且没有指定其他模式，显示帮助
         # 或者以上条件都不满足（例如，只提供了无效的参数组合），显示帮助
         get_parser().print_help()
-        
+
         # 如果启用性能调试，打印帮助性能报告
         if is_debugging_enabled():
             import_tracker.print_report("帮助命令报告")
             memory_tracker.print_report("帮助命令内存报告")
-        
+
         return 0
 
     except KeyboardInterrupt:
+        print(f"\n{get_text('GENERAL', 'operation_cancelled')}")
+        return 130
+    except EOFError:
+        # 处理Ctrl+D（EOF），将其视为退出命令
         print(f"\n{get_text('GENERAL', 'operation_cancelled')}")
         return 130
     except Exception as e:
