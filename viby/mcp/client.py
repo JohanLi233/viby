@@ -24,14 +24,12 @@ def _start_persistent_loop():
     try:
         _persistent_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(_persistent_loop)
-        # print(f"Persistent event loop {_persistent_loop} started in thread {threading.get_ident()}.")
         _persistent_loop.run_forever()
     except Exception as e:
         print(f"Exception in persistent event loop thread: {e}")
     finally:
         if _persistent_loop and _persistent_loop.is_running():
             _persistent_loop.close()
-        # print(f"Persistent event loop {_persistent_loop} has been closed in thread {threading.get_ident()}.")
         _persistent_loop = None
 
 
@@ -41,8 +39,6 @@ def get_persistent_loop() -> asyncio.AbstractEventLoop:
         with _loop_startup_lock:  # Ensure only one thread initializes the loop
             if _persistent_loop is None or not _persistent_loop.is_running():
                 if _async_loop_thread and _async_loop_thread.is_alive():
-                    # This case should ideally not happen if cleanup is proper
-                    # print("Warning: Previous async loop thread was alive but loop was not running. Recreating.")
                     pass
 
                 _async_loop_thread = threading.Thread(
@@ -65,28 +61,13 @@ def get_persistent_loop() -> asyncio.AbstractEventLoop:
                     raise RuntimeError(
                         "Failed to start the persistent event loop within timeout."
                     )
-                # print(f"Persistent event loop successfully started: {_persistent_loop}")
     return _persistent_loop
 
 
 def _run_coroutine_in_persistent_loop(coro):
     loop = get_persistent_loop()
     if threading.current_thread() == _async_loop_thread:
-        # This scenario (calling from within the loop's own thread using run_coroutine_threadsafe)
-        # might lead to deadlocks if the coroutine awaits something that needs the loop to process other tasks.
-        # It's generally safer if sync wrappers are called from other threads.
-        # If this is needed, direct awaiting or create_task might be better.
-        # print("Warning: _run_coroutine_in_persistent_loop called from the loop's own thread.")
-        # Fallback for same-thread execution (less safe, potential for deadlock)
-        # This path is complex; ideally, sync functions are not called from the loop thread.
-        # For now, let's assume this won't happen or the caller knows what they're doing.
-        # If it must be supported, consider loop.create_task and careful synchronization.
-        # This simplified path might block the loop if coro is long.
-        # return asyncio.run_coroutine_threadsafe(coro, loop).result() # This will deadlock if called from loop thread
-
-        # A simple way if already in the loop (but still not ideal for generic sync wrapper)
-        # This is not what run_coroutine_threadsafe is for.
-        # Let's stick to the primary use case: called from an external thread.
+        # 不允许从事件循环自己的线程调用，这会导致死锁
         raise RuntimeError(
             "_run_coroutine_in_persistent_loop should not be called from the loop's own thread."
         )
@@ -95,12 +76,10 @@ def _run_coroutine_in_persistent_loop(coro):
     try:
         return future.result(timeout=60)  # Add a reasonable timeout
     except asyncio.TimeoutError:
-        # print(f"Timeout waiting for coroutine {coro} to complete in persistent loop.")
-        # Optionally, try to cancel the future
+        # 超时后取消任务
         future.cancel()
         raise
     except Exception:
-        # print(f"Exception from coroutine {coro} in persistent loop: {e}")
         raise
 
 
@@ -108,31 +87,22 @@ def _shutdown_persistent_loop():
     global _persistent_loop, _global_mcp_client_singleton, _async_loop_thread
 
     if not _persistent_loop or not _persistent_loop.is_running():
-        # print("Persistent event loop not running or not initialized at shutdown.")
         if _async_loop_thread and _async_loop_thread.is_alive():
-            # print("Async loop thread is alive but loop is not running. Attempting to join.")
             _async_loop_thread.join(timeout=5)
         return
 
-    # print("atexit: Attempting to shutdown persistent event loop and MCP client...")
-
     if _global_mcp_client_singleton:
         try:
-            # Schedule the close operation in the loop
-            # print("atexit: Scheduling MCPClient close.")
             future = asyncio.run_coroutine_threadsafe(
                 _global_mcp_client_singleton.close(), _persistent_loop
             )
             future.result(timeout=15)  # Wait for close to complete
-            # print("atexit: Global MCPClient closed in persistent loop.")
         except Exception:
-            # print(f"atexit: Error closing global MCPClient in persistent loop: {e}")
             pass
         finally:
             _global_mcp_client_singleton = None
 
     if _persistent_loop.is_running():
-        # print("atexit: Stopping persistent event loop.")
         _persistent_loop.call_soon_threadsafe(_persistent_loop.stop)
 
     if (
@@ -140,13 +110,9 @@ def _shutdown_persistent_loop():
         and _async_loop_thread.is_alive()
         and threading.current_thread() != _async_loop_thread
     ):
-        # print("atexit: Waiting for async loop thread to join.")
         _async_loop_thread.join(timeout=10)
-        if _async_loop_thread.is_alive():
-            # print("atexit: Async loop thread did not join in time.")
-            pass
 
-    # print("atexit: Shutdown process complete.")
+
     _persistent_loop = None  # Mark as None after it's stopped and thread joined.
     _async_loop_thread = None
 
@@ -155,7 +121,6 @@ def _shutdown_persistent_loop():
 if threading.current_thread() is threading.main_thread():
     atexit.register(_shutdown_persistent_loop)
 else:
-    # print("Warning: Not in main thread, atexit cleanup for MCPClient might not be registered reliably.")
     pass
 # --- End Global Async Event Loop Manager ---
 

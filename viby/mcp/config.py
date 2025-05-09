@@ -4,10 +4,30 @@ MCP 配置模块 - 管理 MCP 服务器配置
 
 import os
 import json
+import platform
+from pathlib import Path
 from typing import Any, Dict, Optional
 
+# 根据操作系统确定配置目录
+def get_config_dir() -> Path:
+    """
+    根据操作系统获取适当的配置目录路径
+    
+    Returns:
+        配置目录路径
+    """
+    system = platform.system()
+    
+    if system == "Windows":
+        # Windows: %APPDATA%\viby
+        return Path(os.environ.get("APPDATA", "~/.config")) / "viby"
+    else:
+        # Linux/Unix: ~/.config/viby
+        return Path.home() / ".config" / "viby"
+
 # 配置文件路径
-CONFIG_FILE = os.path.join(os.path.expanduser("~/.config/viby"), "mcp_servers.json")
+CONFIG_DIR = get_config_dir()
+CONFIG_FILE = str(CONFIG_DIR / "mcp_servers.json")
 
 # 默认MCP服务器配置
 DEFAULT_SERVERS = {
@@ -26,7 +46,7 @@ def load_config(config_file: Optional[str] = None) -> Dict[str, Any]:
     加载 MCP 服务器配置
 
     Args:
-        config_file: 配置文件路径，默认为 ~/.config/viby/mcp_servers.json
+        config_file: 配置文件路径，默认为系统相关的配置路径
 
     Returns:
         服务器配置字典
@@ -78,7 +98,7 @@ def save_config(config: Dict[str, Any], config_file: Optional[str] = None) -> No
 
     Args:
         config: 服务器配置字典
-        config_file: 配置文件路径，默认为 ~/.config/viby/mcp_servers.json
+        config_file: 配置文件路径，默认为系统相关的配置路径
     """
     file_path = config_file or CONFIG_FILE
     os.makedirs(os.path.dirname(file_path), exist_ok=True)

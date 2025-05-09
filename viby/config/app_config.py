@@ -17,23 +17,6 @@ class ModelProfileConfig:
     api_key: Optional[str] = None
 
 
-@dataclass
-class RenderConfig:
-    """渲染配置数据类"""
-
-    typing_effect: bool = False
-    typing_speed: float = 0.01
-    smooth_scroll: bool = True
-    throttle_ms: int = 50
-    buffer_size: int = 10
-    show_cursor: bool = True
-    cursor_char: str = "▌"
-    cursor_blink: bool = True
-    enable_animations: bool = True
-    code_block_instant: bool = True
-    theme: Optional[Dict[str, Any]] = None
-
-
 class Config:
     """viby 应用的配置管理器"""
 
@@ -50,9 +33,6 @@ class Config:
         self.fast_model: Optional[ModelProfileConfig] = ModelProfileConfig(
             name=""
         )  # Initialize with empty name
-
-        # 渲染配置
-        self.render_config: RenderConfig = RenderConfig()
 
         # Other general settings
         self.temperature: float = 0.7
@@ -85,8 +65,6 @@ class Config:
             # Windows上使用 %APPDATA%\viby
             base_dir = Path(os.environ.get("APPDATA", str(Path.home())))
             return base_dir / "viby"
-        elif system == "Darwin":
-            return Path.home() / ".config" / "viby"
         else:
             return Path.home() / ".config" / "viby"
 
@@ -176,11 +154,6 @@ class Config:
                     elif not fast_model_data:
                         self.fast_model = None
 
-                    # 加载渲染配置
-                    render_config_data = config_data.get("render_config")
-                    if render_config_data and isinstance(render_config_data, dict):
-                        self.render_config = RenderConfig(**render_config_data)
-
                     self.temperature = float(
                         config_data.get("temperature", self.temperature)
                     )
@@ -224,9 +197,6 @@ class Config:
             else None,
             "fast_model": self._to_dict(self.fast_model)
             if self.fast_model and self.fast_model.name
-            else None,
-            "render_config": self._to_dict(self.render_config)
-            if self.render_config
             else None,
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
@@ -278,7 +248,3 @@ class Config:
             "api_key": resolved_api_key,
             "api_timeout": self.api_timeout,
         }
-
-    def get_render_config_dict(self) -> Dict[str, Any]:
-        """获取渲染配置的字典形式"""
-        return self._to_dict(self.render_config)

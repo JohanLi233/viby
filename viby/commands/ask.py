@@ -33,7 +33,6 @@ class AskCommand:
             "model_manager": self.model_manager,
             "user_input": user_input,
             "messages": [],
-            "config": self.config,  # 传递配置
         }
 
         self.flow.run(shared)

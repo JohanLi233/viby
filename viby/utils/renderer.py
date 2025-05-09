@@ -1,103 +1,34 @@
-"""
-优化的流式渲染器模块，提供更流畅的终端输出体验。
-
-提供以下功能：
-1. 输出缓冲和节流，减少闪烁
-2. 打字机效果
-3. 平滑动画
-4. 自定义样式
-5. 性能监控
-"""
-
 import time
 from typing import Iterator, Optional, Dict, Any
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.live import Live
-from rich.style import Style
 from rich.spinner import Spinner
 from viby.utils.formatting import process_markdown_links
 from viby.locale import get_text
 
-
-# 导入配置中的RenderConfig，但也提供一个本地版本用于兼容和单独使用
-try:
-    from viby.config.app_config import RenderConfig
-except ImportError:
-    # 当从app_config导入失败时使用本地定义的版本
-    class RenderConfig:
-        """渲染配置类，控制渲染器的行为"""
-
-        def __init__(
-            self,
-            typing_effect: bool = False,
-            typing_speed: float = 0.01,
-            smooth_scroll: bool = True,
-            throttle_ms: int = 50,
-            buffer_size: int = 10,
-            show_cursor: bool = True,
-            cursor_char: str = "▌",
-            cursor_blink: bool = True,
-            enable_animations: bool = True,
-            code_block_instant: bool = True,
-            theme: Dict[str, Any] = None,
-        ):
-            """
-            初始化渲染配置
-
-            Args:
-                typing_effect: 是否启用打字机效果
-                typing_speed: 打字机效果的字符间延迟（秒）
-                smooth_scroll: 是否启用平滑滚动
-                throttle_ms: 渲染节流时间（毫秒）
-                buffer_size: 缓冲区大小（字符数），决定多少字符作为一个批次处理
-                show_cursor: 是否显示光标
-                cursor_char: 光标字符
-                cursor_blink: 光标是否闪烁
-                enable_animations: 是否启用动画效果
-                code_block_instant: 代码块是否立即渲染（不使用打字机效果）
-                theme: 自定义主题设置
-            """
-            self.typing_effect = typing_effect
-            self.typing_speed = typing_speed
-            self.smooth_scroll = smooth_scroll
-            self.throttle_ms = throttle_ms
-            self.buffer_size = buffer_size
-            self.show_cursor = show_cursor
-            self.cursor_char = cursor_char
-            self.cursor_blink = cursor_blink
-            self.enable_animations = enable_animations
-            self.code_block_instant = code_block_instant
-
-            # 默认主题
-            self._default_theme = {
-                "paragraph_style": Style(),
-                "code_style": Style(color="bright_blue"),
-                "heading_style": Style(bold=True),
-            }
-
-            # 合并自定义主题
-            self.theme = self._default_theme.copy()
-            if theme:
-                self.theme.update(theme)
-
-
 class MarkdownStreamRenderer:
     """优化的Markdown流式渲染器"""
 
-    def __init__(self, config: Optional[RenderConfig] = None):
-        """
-        初始化渲染器
-
-        Args:
-            config: 渲染配置，为None则使用默认配置
-        """
-        self.config = config or RenderConfig()
+    def __init__(self):
+        """初始化渲染器"""
         self.console = Console()
         self.buffer = []
         self.last_render_time = 0
         self.in_code_block = False
         self.content = {"text": "", "para": [], "code": []}
+
+        # 默认配置
+        self.typing_effect = False
+        self.typing_speed = 0.01
+        self.smooth_scroll = True
+        self.throttle_ms = 50
+        self.buffer_size = 10
+        self.show_cursor = True
+        self.cursor_char = "▌"
+        self.cursor_blink = True
+        self.enable_animations = True
+        self.code_block_instant = True
 
         # 性能监控
         self.render_count = 0
@@ -115,8 +46,8 @@ class MarkdownStreamRenderer:
 
         # 如果已经过了节流时间或缓冲区满了，就应该渲染
         if (
-            time_passed >= self.config.throttle_ms
-            or len(self.buffer) >= self.config.buffer_size
+            time_passed >= self.throttle_ms
+            or len(self.buffer) >= self.buffer_size
         ):
             self.last_render_time = now
             return True
@@ -173,7 +104,7 @@ class MarkdownStreamRenderer:
         processed_text = process_markdown_links(text)
 
         # 使用打字机效果或直接渲染
-        if self.config.typing_effect:
+        if self.typing_effect:
             self._render_with_typing_effect(processed_text, False)
         else:
             self.console.print(Markdown(processed_text, justify="left"))
@@ -188,7 +119,7 @@ class MarkdownStreamRenderer:
         code_text = "".join(self.content["code"])
 
         # 代码块可以选择是否使用打字机效果
-        if self.config.typing_effect and not self.config.code_block_instant:
+        if self.typing_effect and not self.code_block_instant:
             self._render_with_typing_effect(code_text, True)
         else:
             self.console.print(Markdown(code_text, justify="left"))
@@ -216,18 +147,16 @@ class MarkdownStreamRenderer:
 
                 # 刷新显示
                 if i % 3 == 0 or i == len(text):  # 为提高性能，每3个字符刷新一次
-                    cursor = self.config.cursor_char if self.config.show_cursor else ""
+                    cursor = self.cursor_char if self.show_cursor else ""
                     live.update(
                         Markdown(rendered_text + cursor, justify="left"), refresh=True
                     )
 
                 # 控制速度
-                if not is_code or not self.config.code_block_instant:
-                    time.sleep(self.config.typing_speed)
+                if not is_code or not self.code_block_instant:
+                    time.sleep(self.typing_speed)
 
-    def render_stream(
-        self, text_stream: Iterator[str], return_full: bool = True
-    ) -> Optional[str]:
+    def render_stream(self, text_stream: Iterator[str], return_full: bool = True) -> Optional[str]:
         """
         渲染流式文本内容
 
@@ -241,7 +170,7 @@ class MarkdownStreamRenderer:
         self.start_time = time.time()
 
         # 显示加载指示器
-        if self.config.enable_animations:
+        if self.enable_animations:
             spinner = Spinner("dots")
             with Live(spinner, auto_refresh=True, transient=True) as live:
                 live.update(spinner)
@@ -280,32 +209,13 @@ class MarkdownStreamRenderer:
             return self.content["text"]
         return None
 
-    def get_performance_stats(self) -> Dict[str, Any]:
-        """
-        获取性能统计信息
-
-        Returns:
-            包含性能统计的字典
-        """
-        total_time = self.end_time - self.start_time
-
-        return {
-            "total_time": total_time,
-            "render_count": self.render_count,
-            "avg_render_time": self.total_render_time / max(1, self.render_count),
-            "total_render_time": self.total_render_time,
-            "rendering_efficiency": 1
-            - (self.total_render_time / max(0.001, total_time)),
-        }
-
 
 # 默认渲染器实例，方便直接使用
 default_renderer = MarkdownStreamRenderer()
 
 
-def render_markdown_stream_optimized(
+def render_markdown_stream(
     text_stream: Iterator[str],
-    config: Optional[RenderConfig] = None,
     return_full: bool = True,
 ) -> Optional[str]:
     """
@@ -313,60 +223,9 @@ def render_markdown_stream_optimized(
 
     Args:
         text_stream: 文本流迭代器
-        config: 渲染配置，为None则使用默认配置
         return_full: 是否返回完整内容
 
     Returns:
         完整内容（如果return_full为True）
     """
-    renderer = MarkdownStreamRenderer(config or RenderConfig())
-    return renderer.render_stream(text_stream, return_full)
-
-
-# 便于直接导入的工厂函数
-def create_renderer(
-    typing_effect: bool = False,
-    typing_speed: float = 0.01,
-    smooth_scroll: bool = True,
-    throttle_ms: int = 50,
-    buffer_size: int = 10,
-    show_cursor: bool = True,
-    cursor_char: str = "▌",
-    cursor_blink: bool = True,
-    enable_animations: bool = True,
-    code_block_instant: bool = True,
-    theme: Dict[str, Any] = None,
-) -> MarkdownStreamRenderer:
-    """
-    创建自定义配置的渲染器
-
-    Args:
-        typing_effect: 是否启用打字机效果
-        typing_speed: 打字机效果的字符间延迟（秒）
-        smooth_scroll: 是否启用平滑滚动
-        throttle_ms: 渲染节流时间（毫秒）
-        buffer_size: 缓冲区大小（字符数）
-        show_cursor: 是否显示光标
-        cursor_char: 光标字符
-        cursor_blink: 光标是否闪烁
-        enable_animations: 是否启用动画效果
-        code_block_instant: 代码块是否立即渲染
-        theme: 自定义主题设置
-
-    Returns:
-        配置好的渲染器实例
-    """
-    config = RenderConfig(
-        typing_effect=typing_effect,
-        typing_speed=typing_speed,
-        smooth_scroll=smooth_scroll,
-        throttle_ms=throttle_ms,
-        buffer_size=buffer_size,
-        show_cursor=show_cursor,
-        cursor_char=cursor_char,
-        cursor_blink=cursor_blink,
-        enable_animations=enable_animations,
-        code_block_instant=code_block_instant,
-        theme=theme,
-    )
-    return MarkdownStreamRenderer(config)
+    return default_renderer.render_stream(text_stream, return_full)

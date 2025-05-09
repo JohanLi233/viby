@@ -7,7 +7,7 @@ import sys
 import shutil
 from viby.locale import get_text, init_text_manager
 from viby.utils.formatting import print_separator
-from viby.config.app_config import ModelProfileConfig, RenderConfig
+from viby.config.app_config import ModelProfileConfig
 
 PASS_SENTINEL = "_viby_internal_pass_"
 
@@ -308,129 +308,6 @@ def run_config_wizard(config):
             config.fast_model.api_key = None
     elif config.fast_model:  # 用户输入为空或输入"pass"，表示要跳过此模型配置
         config.fast_model = None
-
-    print_separator()
-
-    # --- 渲染配置设置 ---
-    print_header(get_text("RENDER_WIZARD", "render_config_header"))
-
-    # 确保存在一个渲染配置
-    if not hasattr(config, "render_config") or not config.render_config:
-        config.render_config = RenderConfig()
-
-    # 打字机效果
-    typing_effect_prompt = get_text("RENDER_WIZARD", "typing_effect_prompt")
-    typing_effect_choices = [
-        get_text("CONFIG_WIZARD", "yes"),
-        get_text("CONFIG_WIZARD", "no"),
-    ]
-    typing_effect_choice = number_choice(typing_effect_choices, typing_effect_prompt)
-    config.render_config.typing_effect = typing_effect_choice == get_text(
-        "CONFIG_WIZARD", "yes"
-    )
-
-    # 如果启用了打字机效果，配置速度
-    if config.render_config.typing_effect:
-        typing_speed_prompt = get_text("RENDER_WIZARD", "typing_speed_prompt")
-        while True:
-            typing_speed = get_input(
-                typing_speed_prompt, str(config.render_config.typing_speed)
-            )
-            try:
-                speed_value = float(typing_speed)
-                if 0.001 <= speed_value <= 0.1:
-                    config.render_config.typing_speed = speed_value
-                    break
-                print(get_text("RENDER_WIZARD", "typing_speed_range_error"))
-            except ValueError:
-                print(get_text("RENDER_WIZARD", "invalid_decimal"))
-
-    # 平滑滚动
-    smooth_scroll_prompt = get_text("RENDER_WIZARD", "smooth_scroll_prompt")
-    smooth_scroll_choices = [
-        get_text("CONFIG_WIZARD", "yes"),
-        get_text("CONFIG_WIZARD", "no"),
-    ]
-    smooth_scroll_choice = number_choice(smooth_scroll_choices, smooth_scroll_prompt)
-    config.render_config.smooth_scroll = smooth_scroll_choice == get_text(
-        "CONFIG_WIZARD", "yes"
-    )
-
-    # 光标设置
-    cursor_prompt = get_text("RENDER_WIZARD", "cursor_prompt")
-    cursor_choices = [get_text("CONFIG_WIZARD", "yes"), get_text("CONFIG_WIZARD", "no")]
-    cursor_choice = number_choice(cursor_choices, cursor_prompt)
-    config.render_config.show_cursor = cursor_choice == get_text("CONFIG_WIZARD", "yes")
-
-    if config.render_config.show_cursor:
-        cursor_char_prompt = get_text("RENDER_WIZARD", "cursor_char_prompt")
-        config.render_config.cursor_char = get_input(
-            cursor_char_prompt, config.render_config.cursor_char
-        )
-
-        cursor_blink_prompt = get_text("RENDER_WIZARD", "cursor_blink_prompt")
-        cursor_blink_choices = [
-            get_text("CONFIG_WIZARD", "yes"),
-            get_text("CONFIG_WIZARD", "no"),
-        ]
-        cursor_blink_choice = number_choice(cursor_blink_choices, cursor_blink_prompt)
-        config.render_config.cursor_blink = cursor_blink_choice == get_text(
-            "CONFIG_WIZARD", "yes"
-        )
-
-    # 动画效果
-    animation_prompt = get_text("RENDER_WIZARD", "animation_prompt")
-    animation_choices = [
-        get_text("CONFIG_WIZARD", "yes"),
-        get_text("CONFIG_WIZARD", "no"),
-    ]
-    animation_choice = number_choice(animation_choices, animation_prompt)
-    config.render_config.enable_animations = animation_choice == get_text(
-        "CONFIG_WIZARD", "yes"
-    )
-
-    # 高级设置：缓冲区和节流
-    advanced_settings_prompt = get_text("RENDER_WIZARD", "advanced_settings_prompt")
-    advanced_settings_choices = [
-        get_text("CONFIG_WIZARD", "yes"),
-        get_text("CONFIG_WIZARD", "no"),
-    ]
-    advanced_choice = number_choice(advanced_settings_choices, advanced_settings_prompt)
-
-    if advanced_choice == get_text("CONFIG_WIZARD", "yes"):
-        throttle_prompt = get_text("RENDER_WIZARD", "throttle_prompt")
-        while True:
-            throttle = get_input(throttle_prompt, str(config.render_config.throttle_ms))
-            try:
-                throttle_value = int(throttle)
-                if 10 <= throttle_value <= 500:
-                    config.render_config.throttle_ms = throttle_value
-                    break
-                print(get_text("RENDER_WIZARD", "throttle_range_error"))
-            except ValueError:
-                print(get_text("RENDER_WIZARD", "invalid_integer"))
-
-        buffer_prompt = get_text("RENDER_WIZARD", "buffer_prompt")
-        while True:
-            buffer = get_input(buffer_prompt, str(config.render_config.buffer_size))
-            try:
-                buffer_value = int(buffer)
-                if 1 <= buffer_value <= 100:
-                    config.render_config.buffer_size = buffer_value
-                    break
-                print(get_text("RENDER_WIZARD", "buffer_range_error"))
-            except ValueError:
-                print(get_text("RENDER_WIZARD", "invalid_integer"))
-
-        code_instant_prompt = get_text("RENDER_WIZARD", "code_instant_prompt")
-        code_instant_choices = [
-            get_text("CONFIG_WIZARD", "yes"),
-            get_text("CONFIG_WIZARD", "no"),
-        ]
-        code_instant_choice = number_choice(code_instant_choices, code_instant_prompt)
-        config.render_config.code_block_instant = code_instant_choice == get_text(
-            "CONFIG_WIZARD", "yes"
-        )
 
     print_separator()
 

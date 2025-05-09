@@ -18,8 +18,6 @@ def get_logs_path() -> Path:
     if system == "Windows":
         # Windows 上使用 %APPDATA%
         base_dir = Path(os.environ.get("APPDATA", os.path.expanduser("~")))
-    elif system == "Darwin":
-        base_dir = Path.home() / ".local" / "share" / "logs"
     else:
         base_dir = Path.home() / ".local" / "share" / "logs"
 

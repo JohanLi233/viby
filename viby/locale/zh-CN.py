@@ -119,24 +119,3 @@ AGENT = {
 
 # 渲染器相关信息
 RENDERER = {"render_error": "渲染错误: {}"}
-
-# 渲染器配置向导相关
-RENDER_WIZARD = {
-    "render_config_header": "--- 流式输出渲染配置 ---",
-    "typing_effect_prompt": "是否启用打字机效果",
-    "typing_speed_prompt": "请设置打字机效果速度（秒/字符，建议0.005-0.02）",
-    "typing_speed_range_error": "请输入0.001到0.1之间的值",
-    "invalid_decimal": "请输入有效的小数",
-    "smooth_scroll_prompt": "是否启用平滑滚动",
-    "cursor_prompt": "是否显示光标",
-    "cursor_char_prompt": "请设置光标字符",
-    "cursor_blink_prompt": "是否启用光标闪烁",
-    "animation_prompt": "是否启用加载动画效果",
-    "advanced_settings_prompt": "是否配置高级渲染设置",
-    "throttle_prompt": "渲染节流时间（毫秒）",
-    "throttle_range_error": "请输入10到500之间的值",
-    "invalid_integer": "请输入有效的整数",
-    "buffer_prompt": "渲染缓冲区大小（字符数）",
-    "buffer_range_error": "请输入1到100之间的值",
-    "code_instant_prompt": "代码块是否立即渲染（不使用打字机效果）",
-}

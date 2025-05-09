@@ -84,5 +84,5 @@ class ModelManager:
 
         except Exception as e:
             error_msg = f"Error: {str(e)}"
-            yield error_ms
+            yield error_msg
             return

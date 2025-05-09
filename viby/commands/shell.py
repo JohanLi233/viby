@@ -25,11 +25,10 @@ class ShellCommand:
     - ExecuteShellCommandNode: 处理用户交互和命令执行
     """
 
-    def __init__(self, model_manager: ModelManager, config=None):
+    def __init__(self, model_manager: ModelManager):
         """初始化 Shell 命令流程"""
         # 保存模型管理器和配置
         self.model_manager = model_manager
-        self.config = config
 
         # 创建节点
         self.prompt_node = PromptNode()
@@ -60,7 +59,6 @@ class ShellCommand:
             "model_manager": self.model_manager,
             "user_input": user_prompt,
             "command_type": "shell",
-            "config": self.config,  # 传递配置
         }
 
         # 执行流程
