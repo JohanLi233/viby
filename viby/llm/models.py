@@ -2,10 +2,13 @@
 Model management for viby - handles interactions with LLM providers
 """
 
-import openai
 from typing import Dict, Any
 from viby.config.app_config import Config
 from viby.locale import get_text
+from viby.utils.lazy_import import lazy_import
+
+# 懒加载openai库，只有在实际使用时才会导入
+openai = lazy_import("openai")
 
 
 class ModelManager:
@@ -55,6 +58,7 @@ class ModelManager:
         api_key = model_config.get("api_key", "")
 
         try:
+            # 只有在实际调用LLM时才会加载OpenAI库
             client = openai.OpenAI(api_key=api_key or "EMPTY", base_url=f"{base_url}")
 
             # 准备请求参数
