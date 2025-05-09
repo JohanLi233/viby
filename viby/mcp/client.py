@@ -262,25 +262,6 @@ class MCPClient:
         """列出所有可用的服务器名称"""
         return list(self.default_config.keys())
 
-    def _convert_tools_to_standard_format(self, tools_response):
-        """将MCP工具响应转换为符合OpenAI标准的工具格式"""
-        standard_tools = []
-
-        for tool_obj in tools_response:
-            function_obj = {
-                "name": getattr(tool_obj, "name", str(tool_obj)),
-                "description": getattr(tool_obj, "description", ""),
-            }
-
-            if hasattr(tool_obj, "parameters"):
-                function_obj["parameters"] = tool_obj.parameters
-            elif hasattr(tool_obj, "inputSchema"):
-                function_obj["parameters"] = tool_obj.inputSchema
-
-            standard_tools.append({"type": "function", "function": function_obj})
-
-        return standard_tools
-
     async def list_tools(self, server_name: Optional[str] = None) -> Dict[str, Any]:
         """列出指定服务器或所有服务器的工具"""
         result = {}
@@ -311,9 +292,7 @@ class MCPClient:
         for s_name_to_query in servers_to_query:
             if s_name_to_query in self.active_clients:
                 raw_tools = await self.active_clients[s_name_to_query].list_tools()
-                result[s_name_to_query] = self._convert_tools_to_standard_format(
-                    raw_tools
-                )
+                result[s_name_to_query] = raw_tools
             else:
                 print(
                     f"Warning: Server {s_name_to_query} was in servers_to_query but not in active_clients."

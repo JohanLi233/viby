@@ -3,7 +3,6 @@ Model management for viby - handles interactions with LLM providers
 """
 
 import openai
-import json
 from typing import Dict, Any
 from viby.config.app_config import Config
 from viby.locale import get_text
@@ -16,16 +15,15 @@ class ModelManager:
         self.use_think_model = args.think if args and hasattr(args, "think") else False
         self.use_fast_model = args.fast if args and hasattr(args, "fast") else False
 
-    def get_response(self, messages, tools):
+    def get_response(self, messages):
         """
-        获取模型回复和工具调用信息
+        获取模型回复
 
         Args:
             messages: 消息历史
-            tools: 可用工具列表
 
         Returns:
-            包含文本内容和工具调用的元组 (text_content, tool_calls)
+            生成器，返回 (text_content, None) 的元组
         """
         model_type_to_use = "default"  # Default to "default"
 
@@ -39,19 +37,18 @@ class ModelManager:
         # to the default_model if "fast" or "think" are requested but not
         # properly configured (e.g., name is empty in config.yaml).
         model_config = self.config.get_model_config(model_type_to_use)
-        return self._call_llm(messages, model_config, tools)
+        return self._call_llm(messages, model_config)
 
-    def _call_llm(self, messages, model_config: Dict[str, Any], tools):
+    def _call_llm(self, messages, model_config: Dict[str, Any]):
         """
-        调用LLM并返回文本内容和工具调用的分离结果
+        调用LLM并返回文本内容
 
         Args:
             messages: 消息历史
             model_config: 模型配置
-            tools: 可用工具列表
 
         Returns:
-            生成器，流式返回 (text_chunks, tool_calls)
+            生成器，流式返回 (text_chunks, None)
         """
         model = model_config["model"]
         base_url = model_config["base_url"].rstrip("/")
@@ -69,50 +66,23 @@ class ModelManager:
                 "temperature": model_config["temperature"],
                 "max_tokens": model_config["max_tokens"],
                 "stream": True,
-                "tools": tools,
-                "tool_choice": "auto",
             }
 
             # 创建流式处理
             stream = client.chat.completions.create(**params)
-            tool_calls_data = {}
             text_seen = False
             for chunk in stream:
                 delta = chunk.choices[0].delta
                 if delta.content:
                     text_seen = True
-                    yield delta.content, None
-                if getattr(delta, "tool_calls", None):
-                    for tc in delta.tool_calls:
-                        idx = tc.index or 0
-                        entry = tool_calls_data.setdefault(
-                            idx, {"name": "", "args": ""}
-                        )
-                        if tc.function:
-                            entry["name"] = tc.function.name or entry["name"]
-                            entry["args"] += tc.function.arguments or ""
+                    yield delta.content
 
             # 如果没有内容，添加提示
             if not text_seen:
                 empty = get_text("GENERAL", "llm_empty_response")
-                yield empty, None
-
-            # 将工具调用转换为结构化格式
-            yield (
-                None,
-                [
-                    {
-                        "name": entry["name"],
-                        "parameters": json.loads(entry["args"])
-                        if entry["args"].strip()
-                        else {},
-                    }
-                    for entry in tool_calls_data.values()
-                    if entry["name"]
-                ],
-            )
+                yield empty
 
         except Exception as e:
             error_msg = f"Error: {str(e)}"
-            yield error_msg, []
+            yield error_ms
             return

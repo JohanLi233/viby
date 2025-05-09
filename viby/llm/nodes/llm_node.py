@@ -8,6 +8,8 @@ import threading
 import sys
 import select
 import platform
+import json
+import re
 
 
 class LLMNode(Node):
@@ -91,17 +93,15 @@ class LLMNode(Node):
         if not manager or not messages:
             return None
 
-        chunks, tool_calls = [], []
+        chunks = []
         was_interrupted = False
 
         def _stream_response():
             nonlocal was_interrupted
-            for text, tool in manager.get_response(messages, tools):
+            for text in manager.get_response(messages):
                 if interrupt_event and interrupt_event.is_set():
                     was_interrupted = True
                     break
-                if tool:
-                    tool_calls.extend(tool)
                 if text:
                     chunks.append(text)
                     yield text
@@ -129,7 +129,6 @@ class LLMNode(Node):
 
         return {
             "text_content": "".join(chunks),
-            "tool_calls": tool_calls,
             "interrupt_event": interrupt_event,
             "listener_thread": listener_thread,
             "was_interrupted": was_interrupted,
@@ -138,7 +137,6 @@ class LLMNode(Node):
     def post(self, shared, prep_res, exec_res):
         """处理模型响应，处理工具调用（如果有），清理监听线程"""
         text_content = exec_res.get("text_content", "")
-        tool_calls = exec_res.get("tool_calls", [])
         interrupt_event = exec_res.get("interrupt_event")
         listener_thread = exec_res.get("listener_thread")
         was_interrupted = exec_res.get("was_interrupted", False)
@@ -152,36 +150,65 @@ class LLMNode(Node):
         shared["response"] = text_content
         shared["messages"].append({"role": "assistant", "content": text_content})
 
-        if tool_calls:
-            return self._handle_tool_call(shared, tool_calls[0])
+        # 尝试解析XML格式的工具调用
+        tool_call = self._extract_xml_tool_call(text_content)
+        if tool_call:
+            return self._handle_xml_tool_call(shared, tool_call)
+            
         if was_interrupted:
             return "interrupt"
         return "continue"
 
-    def _handle_tool_call(self, shared, tool_call):
-        """处理工具调用"""
+    def _extract_xml_tool_call(self, text):
+        """从文本中提取XML格式的工具调用"""
         try:
-            tool_name = tool_call["name"]
-            parameters = tool_call["parameters"]
-            selected_server = next(
-                (
-                    t.get("server_name")
-                    for t in shared.get("tools", [])
-                    if t.get("function", {}).get("name") == tool_name
-                ),
-                None,
-            )
+            # 使用正则表达式匹配<tool_call>和</tool_call>之间的内容
+            tool_pattern = r"<tool_call>(.*?)</tool_call>"
+            tool_match = re.search(tool_pattern, text, re.DOTALL)
+            
+            if tool_match:
+                tool_content = tool_match.group(1).strip()
+                # 解析JSON内容
+                tool_data = json.loads(tool_content)
+                return tool_data
+            return None
+        except Exception as e:
+            print(get_text("MCP", "parsing_error", e))
+            return None
+
+    def _handle_xml_tool_call(self, shared, tool_data):
+        """处理XML格式的工具调用"""
+        try:
+            tool_name = tool_data.get("name", "")
+            arguments = tool_data.get("arguments", {})
+            
+            if not tool_name:
+                print(get_text("MCP", "parsing_error", "No tool name specified in XML"))
+                return "continue"
+            
+            # 查找匹配的工具
+            selected_server = None
+            for tool_wrapper in shared.get("tools", []):
+                tool = tool_wrapper.get("tool")
+                if hasattr(tool, "name") and tool.name == tool_name:
+                    selected_server = tool_wrapper.get("server_name")
+                    break
+            
+            if not selected_server:
+                print(get_text("MCP", "parsing_error", f"Tool '{tool_name}' not found"))
+                return "continue"
+                
             shared.update(
                 {
                     "tool_name": tool_name,
-                    "parameters": parameters,
+                    "parameters": arguments,
                     "selected_server": selected_server,
                 }
             )
             return "execute_tool"
         except Exception as e:
             print(get_text("MCP", "parsing_error", e))
-            return None
+            return "continue"
 
     def exec_fallback(self, prep_res, exc):
         """错误处理：提供友好的错误信息"""

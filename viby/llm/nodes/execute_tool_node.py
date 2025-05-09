@@ -54,11 +54,15 @@ class ExecuteToolNode(Node):
         # 保存响应到共享状态
         shared["response"] = exec_res
 
-        # 将工具结果添加为助手消息
-        shared["messages"].append({"role": "assistant", "content": str(exec_res)})
+        # 使用XML格式包装工具响应
+        tool_response = f"<tool_response>\n{result_content}\n</tool_response>"
+        
+        # 将工具结果添加为用户消息，使用XML格式包装
+        shared["messages"].append({"role": "user", "content": tool_response})
 
         # Add a follow-up prompt asking the LLM to interpret the tool result
         result_prompt = get_text("MCP", "tool_result_prompt", exec_res)
-        shared["messages"].append({"role": "user", "content": result_prompt})
+        # 不再需要单独的提示消息
+        # shared["messages"].append({"role": "user", "content": result_prompt})
 
         return "call_llm"

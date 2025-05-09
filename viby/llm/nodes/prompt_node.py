@@ -4,6 +4,7 @@ from viby.mcp import list_tools  # 仅使用 list_tools
 from viby.config import Config
 import os
 import platform
+import json
 
 
 class PromptNode(Node):
@@ -18,16 +19,15 @@ class PromptNode(Node):
             return result
 
         try:
-            # 使用同步接口获取工具列表，结果为 {server_name: [tool1, tool2, ...], ...}
             tools_dict = list_tools(server_name)
 
-            # 展平所有工具列表并直接在每个工具中添加服务器信息
-            result["tools"] = [
-                {**tool, "server_name": srv_name}
-                for srv_name, tools in tools_dict.items()
-                for tool in tools
-            ]
-
+            all_tools = []
+            for srv_name, tools in tools_dict.items():
+                for tool in tools:
+                    tool_dict = {"server_name": srv_name, "tool": tool}
+                    all_tools.append(tool_dict)
+            
+            result["tools"] = all_tools
             return result
         except Exception as e:
             print(get_text("MCP", "tools_error", e))
@@ -38,6 +38,12 @@ class PromptNode(Node):
         shared["tools"] = exec_res["tools"]
         user_input = shared.get("user_input", "")
 
+        tools_info = []
+        for tool_wrapper in shared["tools"]:
+            # 获取原始工具对象并直接添加到工具列表
+            tool = tool_wrapper.get("tool")
+            tools_info.append(tool)
+
         # 检查是否是 shell 命令模式
         if shared.get("command_type") == "shell":
             # 为 shell 命令构建特殊提示
@@ -47,16 +53,24 @@ class PromptNode(Node):
             shell_prompt = get_text(
                 "SHELL", "command_prompt", user_input, shell_name, os_name
             )
+            system_prompt = get_text("AGENT", "system_prompt").format(
+                tools_info=tools_info
+            )
 
             # 构建 shell 命令的消息
             shared["messages"] = [
-                {"role": "system", "content": get_text("AGENT", "prompt")},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": shell_prompt},
             ]
         else:
-            # 常规命令的消息构建
+            # 获取系统提示并格式化工具信息
+            system_prompt = get_text("AGENT", "system_prompt").format(
+                tools_info=tools_info
+            )
+            
+            # 使用格式化后的系统提示构建消息
             shared["messages"] = [
-                {"role": "system", "content": get_text("AGENT", "prompt")},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_input},
             ]
 
