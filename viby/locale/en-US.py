@@ -76,6 +76,28 @@ SHELL = {
 CHAT = {
     "welcome": "Welcome to Viby chat mode, type 'exit' to end conversation",
     "input_prompt": "|> ",
+    "help_title": "Available internal commands:",
+    "help_exit": "Exit Viby",
+    "help_help": "Show this help information",
+    "help_history": "Show recent command history",
+    "help_history_clear": "Clear command history",
+    "help_commands": "Show available top-level commands",
+    "help_status": "Show current status information",
+    "help_shortcuts": "Shortcuts:",
+    "shortcut_time": "Ctrl+T: Show current time",
+    "shortcut_help": "F1: Show this help information",
+    "shortcut_exit": "Ctrl+C: Exit program",
+    "current_time": "Current time: {0}",
+    "help_note": "You can also use standard Viby commands like ask, shell, chat",
+    "history_title": "Recent command history:",
+    "history_empty": "No command history yet.",
+    "history_cleared": "Command history cleared. Backup created at: {0}",
+    "history_not_found": "History file not found.",
+    "history_clear_error": "Error clearing history: {0}",
+    "status_title": "System status:",
+    "available_commands": "Available top-level commands:",
+    "version_info": "Viby version information:",
+    "version_number": "Version: {0}",
 }
 
 # MCP tool related

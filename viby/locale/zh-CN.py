@@ -84,6 +84,10 @@ CHAT = {
     "help_commands": "显示可用的顶级命令",
     "help_status": "显示当前状态信息",
     "help_shortcuts": "快捷键:",
+    "shortcut_time": "Ctrl+T: 显示当前时间",
+    "shortcut_help": "F1: 显示此帮助信息",
+    "shortcut_exit": "Ctrl+C: 退出程序",
+    "current_time": "当前时间: {0}",
     "help_note": "您也可以使用标准Viby命令，如ask、shell、chat",
     "history_title": "最近命令历史:",
     "history_empty": "还没有命令历史。",
@@ -92,6 +96,8 @@ CHAT = {
     "history_clear_error": "清除历史时出错: {0}",
     "status_title": "系统状态:",
     "available_commands": "可用的顶级命令:",
+    "version_info": "Viby 版本信息:",
+    "version_number": "版本: {0}",
 }
 
 # MCP工具相关
