@@ -209,15 +209,15 @@ def run_config_wizard(config):
         or config.default_model.api_key == PASS_SENTINEL
     ):
         config.default_model.api_key = None  # 存储None如果为空
-        
+
     # 默认模型特定的最大令牌数
     default_model_max_tokens_prompt = get_text(
         "CONFIG_WIZARD", "model_max_tokens_prompt"
     ).format(model_name=config.default_model.name)
     while True:
         max_tokens = get_input(
-            default_model_max_tokens_prompt, 
-            str(config.default_model.max_tokens or config.max_tokens)
+            default_model_max_tokens_prompt,
+            str(config.default_model.max_tokens or config.max_tokens),
         )
         try:
             tokens_value = int(max_tokens)
@@ -276,15 +276,15 @@ def run_config_wizard(config):
             or config.think_model.api_key == PASS_SENTINEL
         ):
             config.think_model.api_key = None
-            
+
         # 思考模型特定的最大令牌数
         think_model_max_tokens_prompt = get_text(
             "CONFIG_WIZARD", "model_max_tokens_prompt"
         ).format(model_name=config.think_model.name)
         while True:
             max_tokens = get_input(
-                think_model_max_tokens_prompt, 
-                str(config.think_model.max_tokens or config.max_tokens)
+                think_model_max_tokens_prompt,
+                str(config.think_model.max_tokens or config.max_tokens),
             )
             try:
                 tokens_value = int(max_tokens)
@@ -341,15 +341,15 @@ def run_config_wizard(config):
         )
         if not config.fast_model.api_key or config.fast_model.api_key == PASS_SENTINEL:
             config.fast_model.api_key = None
-            
+
         # 快速模型特定的最大令牌数
         fast_model_max_tokens_prompt = get_text(
             "CONFIG_WIZARD", "model_max_tokens_prompt"
         ).format(model_name=config.fast_model.name)
         while True:
             max_tokens = get_input(
-                fast_model_max_tokens_prompt, 
-                str(config.fast_model.max_tokens or config.max_tokens)
+                fast_model_max_tokens_prompt,
+                str(config.fast_model.max_tokens or config.max_tokens),
             )
             try:
                 tokens_value = int(max_tokens)
@@ -377,7 +377,9 @@ def run_config_wizard(config):
             print(get_text("CONFIG_WIZARD", "invalid_decimal"))
 
     # 全局最大令牌数
-    global_max_tokens_prompt = get_text("CONFIG_WIZARD", "global_max_tokens_prompt", "设置默认全局最大令牌数")
+    global_max_tokens_prompt = get_text(
+        "CONFIG_WIZARD", "global_max_tokens_prompt", "设置默认全局最大令牌数"
+    )
     while True:
         max_tokens = get_input(global_max_tokens_prompt, str(config.max_tokens))
         try:

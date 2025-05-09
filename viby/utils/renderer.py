@@ -1,11 +1,12 @@
 import time
-from typing import Iterator, Optional, Dict, Any
+from typing import Iterator, Optional
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.live import Live
 from rich.spinner import Spinner
 from viby.utils.formatting import process_markdown_links
 from viby.locale import get_text
+
 
 class MarkdownStreamRenderer:
     """优化的Markdown流式渲染器"""
@@ -45,10 +46,7 @@ class MarkdownStreamRenderer:
         time_passed = now - self.last_render_time
 
         # 如果已经过了节流时间或缓冲区满了，就应该渲染
-        if (
-            time_passed >= self.throttle_ms
-            or len(self.buffer) >= self.buffer_size
-        ):
+        if time_passed >= self.throttle_ms or len(self.buffer) >= self.buffer_size:
             self.last_render_time = now
             return True
         return False
@@ -156,7 +154,9 @@ class MarkdownStreamRenderer:
                 if not is_code or not self.code_block_instant:
                     time.sleep(self.typing_speed)
 
-    def render_stream(self, text_stream: Iterator[str], return_full: bool = True) -> Optional[str]:
+    def render_stream(
+        self, text_stream: Iterator[str], return_full: bool = True
+    ) -> Optional[str]:
         """
         渲染流式文本内容
 

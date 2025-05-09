@@ -48,21 +48,12 @@ class ExecuteToolNode(Node):
             print_markdown(result_content, title)
         except Exception as e:
             # 如果序列化失败，防止崩溃
-            print(f"\n{get_text('MCP', 'execution_error', str(e))}")
+            print(f"{get_text('MCP', 'execution_error', str(e))}")
             print_markdown(str(exec_res), title)
 
         # 保存响应到共享状态
         shared["response"] = exec_res
 
-        # 使用XML格式包装工具响应
-        tool_response = f"<tool_response>\n{result_content}\n</tool_response>"
-        
-        # 将工具结果添加为用户消息，使用XML格式包装
-        shared["messages"].append({"role": "user", "content": tool_response})
-
-        # Add a follow-up prompt asking the LLM to interpret the tool result
-        result_prompt = get_text("MCP", "tool_result_prompt", exec_res)
-        # 不再需要单独的提示消息
-        # shared["messages"].append({"role": "user", "content": result_prompt})
+        shared["messages"].append({"role": "tool", "content": result_content})
 
         return "call_llm"

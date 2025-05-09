@@ -8,22 +8,24 @@ import platform
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+
 # 根据操作系统确定配置目录
 def get_config_dir() -> Path:
     """
     根据操作系统获取适当的配置目录路径
-    
+
     Returns:
         配置目录路径
     """
     system = platform.system()
-    
+
     if system == "Windows":
         # Windows: %APPDATA%\viby
         return Path(os.environ.get("APPDATA", "~/.config")) / "viby"
     else:
         # Linux/Unix: ~/.config/viby
         return Path.home() / ".config" / "viby"
+
 
 # 配置文件路径
 CONFIG_DIR = get_config_dir()

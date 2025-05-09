@@ -55,9 +55,7 @@ class ModelManager:
         api_key = model_config.get("api_key", "")
 
         try:
-            client = openai.OpenAI(
-                api_key=api_key or "EMPTY", base_url=f"{base_url}"
-            )
+            client = openai.OpenAI(api_key=api_key or "EMPTY", base_url=f"{base_url}")
 
             # 准备请求参数
             params = {
@@ -72,10 +70,10 @@ class ModelManager:
             stream = client.chat.completions.create(**params)
             saw_any = False
             in_think = False
-            
+
             for chunk in stream:
                 delta = chunk.choices[0].delta
-                reasoning = getattr(delta, 'reasoning', None)
+                reasoning = getattr(delta, "reasoning", None)
                 content = delta.content
 
                 # 思考内容

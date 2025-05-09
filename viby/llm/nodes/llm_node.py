@@ -94,6 +94,7 @@ class LLMNode(Node):
                 if text:
                     chunks.append(text)
                     yield text
+
         render_markdown_stream(_stream_response())
 
         return {

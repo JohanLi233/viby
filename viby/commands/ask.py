@@ -12,10 +12,9 @@ class AskCommand:
     与 Chat 不同，该命令不维护会话状态，每次调用都是独立的交互。
     """
 
-    def __init__(self, model_manager: ModelManager, config=None):
+    def __init__(self, model_manager: ModelManager):
         """初始化单次提问命令流程"""
         self.model_manager = model_manager
-        self.config = config
         self.llm_node = LLMNode()
         self.prompt_node = PromptNode()
         self.execute_tool_node = ExecuteToolNode()

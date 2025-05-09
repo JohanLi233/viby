@@ -242,8 +242,12 @@ class Config:
         resolved_api_key = profile_to_use.api_key or self.default_api_key
 
         # 优先使用模型特定的 max_tokens 设置，如果没有则使用全局设置
-        resolved_max_tokens = profile_to_use.max_tokens if profile_to_use.max_tokens is not None else self.max_tokens
-        
+        resolved_max_tokens = (
+            profile_to_use.max_tokens
+            if profile_to_use.max_tokens is not None
+            else self.max_tokens
+        )
+
         return {
             "model": profile_to_use.name,
             "temperature": self.temperature,

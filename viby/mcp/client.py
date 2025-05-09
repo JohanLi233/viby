@@ -112,7 +112,6 @@ def _shutdown_persistent_loop():
     ):
         _async_loop_thread.join(timeout=10)
 
-
     _persistent_loop = None  # Mark as None after it's stopped and thread joined.
     _async_loop_thread = None
 

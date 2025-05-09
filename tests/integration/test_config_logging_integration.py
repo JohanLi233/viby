@@ -76,7 +76,7 @@ def test_logging_level_from_config():
     with mock.patch("logging.Logger.setLevel") as mock_set_level:
         with mock.patch(
             "viby.utils.logging.setup_logging", return_value=mock.MagicMock()
-        ) as mock_setup:
+        ):
             # 根据配置设置日志级别
             logger = viby_logging.get_logger()
 

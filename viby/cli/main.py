@@ -82,6 +82,7 @@ def check_environment() -> Optional[str]:
 
 def main() -> int:
     """viby CLI 的主入口，返回退出码"""
+    global logger
     try:
         # 设置平台特定配置
         setup_platform_specific()
@@ -132,7 +133,7 @@ def main() -> int:
         # 或者没有管道输入，也不是其他特定命令（如--version, --help已被argparse处理）
         # 并且没有提供位置参数作为 ask 命令的输入
         if args.chat:
-            chat_command = ChatCommand(model_manager, config)
+            chat_command = ChatCommand(model_manager)
             return chat_command.execute()
         # 如果没有输入且没有指定其他模式，显示帮助
         elif not has_input and not args.prompt:
@@ -141,7 +142,7 @@ def main() -> int:
 
         # 如果有输入但不是聊天或shell模式，则认为是 ask 命令
         if has_input:
-            ask_command = AskCommand(model_manager, config)
+            ask_command = AskCommand(model_manager)
             return ask_command.execute(user_input)
 
         # 如果以上条件都不满足（例如，只提供了无效的参数组合），显示帮助

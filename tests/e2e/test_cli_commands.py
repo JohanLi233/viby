@@ -23,7 +23,7 @@ def with_stdin_mocked(func):
 @with_stdin_mocked
 def test_version_command():
     """测试版本命令"""
-    with mock.patch("sys.exit") as mock_exit:
+    with mock.patch("sys.exit"):
         with mock.patch("sys.argv", ["viby", "-v"]):
             with mock.patch("importlib.metadata.version") as mock_version:
                 mock_version.return_value = "0.1.3"
@@ -45,7 +45,7 @@ def test_version_command():
 @with_stdin_mocked
 def test_help_command():
     """测试帮助命令"""
-    with mock.patch("sys.exit") as mock_exit:
+    with mock.patch("sys.exit"):
         with mock.patch("sys.argv", ["viby", "-h"]):
             # 捕获标准输出
             with mock.patch("sys.stdout", new_callable=io.StringIO) as mock_stdout:
@@ -65,7 +65,7 @@ def test_help_command():
 @with_stdin_mocked
 def test_invalid_command():
     """测试无效命令"""
-    with mock.patch("sys.exit") as mock_exit:
+    with mock.patch("sys.exit"):
         with mock.patch("sys.argv", ["viby", "invalid_command"]):
             # 直接模拟ArgumentParser的parse_args返回值
             with mock.patch("viby.cli.arguments.parse_arguments") as mock_parse_args:
@@ -91,7 +91,7 @@ def test_invalid_command():
                         mock_ask_execute.return_value = 0
 
                         # 运行main函数
-                        exit_code = main()
+                        main()
 
                         # 验证AskCommand.execute被调用，不验证输出内容
                         assert mock_ask_execute.called
