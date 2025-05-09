@@ -190,7 +190,7 @@ def main() -> int:
                     get_parser().print_help()
                     return 1
                 ShellCommand = get_command_class("shell")
-                shell_command = ShellCommand(model_manager, config)
+                shell_command = ShellCommand(model_manager)
                 
                 # 如果启用性能调试，打印报告
                 if is_debugging_enabled():
