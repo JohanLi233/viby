@@ -306,7 +306,7 @@ def run_config_wizard(config):
         )
         if not config.fast_model.api_key or config.fast_model.api_key == PASS_SENTINEL:
             config.fast_model.api_key = None
-    elif config.fast_model:  # 用户输入"pass"或空白名称
+    elif config.fast_model:  # 用户输入为空或输入"pass"，表示要跳过此模型配置
         config.fast_model = None
 
     print_separator()

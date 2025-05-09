@@ -100,6 +100,13 @@ def main() -> int:
         # 解析命令行参数
         args = parse_arguments()
 
+        # 处理语言参数
+        if args.language and args.language != config.language:
+            config.language = args.language
+            config.save_config()
+            # 重新初始化文本管理器以应用新语言
+            init_text_manager(config)
+
         # 首次运行或指定 --config 参数时启动交互式配置向导
         if config.is_first_run or args.config:
             run_config_wizard(config)
