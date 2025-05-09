@@ -15,8 +15,9 @@ from viby.mcp.config import get_server_config
 # --- Global Async Event Loop Manager ---
 _async_loop_thread: Optional[threading.Thread] = None
 _persistent_loop: Optional[asyncio.AbstractEventLoop] = None
-_global_mcp_client_singleton: Optional['MCPClient'] = None # Forward declaration
-_loop_startup_lock = threading.Lock() # Lock for initializing the loop and client
+_global_mcp_client_singleton: Optional["MCPClient"] = None  # Forward declaration
+_loop_startup_lock = threading.Lock()  # Lock for initializing the loop and client
+
 
 def _start_persistent_loop():
     global _persistent_loop
@@ -37,27 +38,36 @@ def _start_persistent_loop():
 def get_persistent_loop() -> asyncio.AbstractEventLoop:
     global _async_loop_thread, _persistent_loop
     if _persistent_loop is None or not _persistent_loop.is_running():
-        with _loop_startup_lock: # Ensure only one thread initializes the loop
+        with _loop_startup_lock:  # Ensure only one thread initializes the loop
             if _persistent_loop is None or not _persistent_loop.is_running():
                 if _async_loop_thread and _async_loop_thread.is_alive():
                     # This case should ideally not happen if cleanup is proper
                     # print("Warning: Previous async loop thread was alive but loop was not running. Recreating.")
                     pass
 
-                _async_loop_thread = threading.Thread(target=_start_persistent_loop, name="MCPAsyncLoopThread", daemon=True)
+                _async_loop_thread = threading.Thread(
+                    target=_start_persistent_loop,
+                    name="MCPAsyncLoopThread",
+                    daemon=True,
+                )
                 _async_loop_thread.start()
-                
+
                 # Wait for the loop to be actually set and running
                 # Add a timeout to prevent indefinite blocking
                 timeout_seconds = 10
                 start_time = time.monotonic()
-                while (_persistent_loop is None or not _persistent_loop.is_running()) and (time.monotonic() - start_time < timeout_seconds) :
+                while (
+                    _persistent_loop is None or not _persistent_loop.is_running()
+                ) and (time.monotonic() - start_time < timeout_seconds):
                     time.sleep(0.05)
-                
+
                 if _persistent_loop is None or not _persistent_loop.is_running():
-                    raise RuntimeError("Failed to start the persistent event loop within timeout.")
+                    raise RuntimeError(
+                        "Failed to start the persistent event loop within timeout."
+                    )
                 # print(f"Persistent event loop successfully started: {_persistent_loop}")
     return _persistent_loop
+
 
 def _run_coroutine_in_persistent_loop(coro):
     loop = get_persistent_loop()
@@ -77,7 +87,9 @@ def _run_coroutine_in_persistent_loop(coro):
         # A simple way if already in the loop (but still not ideal for generic sync wrapper)
         # This is not what run_coroutine_threadsafe is for.
         # Let's stick to the primary use case: called from an external thread.
-        raise RuntimeError("_run_coroutine_in_persistent_loop should not be called from the loop's own thread.")
+        raise RuntimeError(
+            "_run_coroutine_in_persistent_loop should not be called from the loop's own thread."
+        )
 
     future = asyncio.run_coroutine_threadsafe(coro, loop)
     try:
@@ -87,13 +99,14 @@ def _run_coroutine_in_persistent_loop(coro):
         # Optionally, try to cancel the future
         future.cancel()
         raise
-    except Exception as e:
+    except Exception:
         # print(f"Exception from coroutine {coro} in persistent loop: {e}")
         raise
 
+
 def _shutdown_persistent_loop():
     global _persistent_loop, _global_mcp_client_singleton, _async_loop_thread
-    
+
     if not _persistent_loop or not _persistent_loop.is_running():
         # print("Persistent event loop not running or not initialized at shutdown.")
         if _async_loop_thread and _async_loop_thread.is_alive():
@@ -102,15 +115,17 @@ def _shutdown_persistent_loop():
         return
 
     # print("atexit: Attempting to shutdown persistent event loop and MCP client...")
-    
+
     if _global_mcp_client_singleton:
         try:
             # Schedule the close operation in the loop
             # print("atexit: Scheduling MCPClient close.")
-            future = asyncio.run_coroutine_threadsafe(_global_mcp_client_singleton.close(), _persistent_loop)
-            future.result(timeout=15) # Wait for close to complete
+            future = asyncio.run_coroutine_threadsafe(
+                _global_mcp_client_singleton.close(), _persistent_loop
+            )
+            future.result(timeout=15)  # Wait for close to complete
             # print("atexit: Global MCPClient closed in persistent loop.")
-        except Exception as e:
+        except Exception:
             # print(f"atexit: Error closing global MCPClient in persistent loop: {e}")
             pass
         finally:
@@ -119,17 +134,22 @@ def _shutdown_persistent_loop():
     if _persistent_loop.is_running():
         # print("atexit: Stopping persistent event loop.")
         _persistent_loop.call_soon_threadsafe(_persistent_loop.stop)
-    
-    if _async_loop_thread and _async_loop_thread.is_alive() and threading.current_thread() != _async_loop_thread:
+
+    if (
+        _async_loop_thread
+        and _async_loop_thread.is_alive()
+        and threading.current_thread() != _async_loop_thread
+    ):
         # print("atexit: Waiting for async loop thread to join.")
         _async_loop_thread.join(timeout=10)
         if _async_loop_thread.is_alive():
             # print("atexit: Async loop thread did not join in time.")
             pass
-    
+
     # print("atexit: Shutdown process complete.")
-    _persistent_loop = None # Mark as None after it's stopped and thread joined.
+    _persistent_loop = None  # Mark as None after it's stopped and thread joined.
     _async_loop_thread = None
+
 
 # Register cleanup at program exit, but only if not in a worker thread that might not own atexit
 if threading.current_thread() is threading.main_thread():
@@ -182,23 +202,31 @@ class MCPClient:
         self.exit_stack = AsyncExitStack()
         self.active_clients: Dict[str, Client] = {}
         self._initialized_overall = False
-        self._lock = asyncio.Lock() # Lock for initializing specific server clients
+        self._lock = asyncio.Lock()  # Lock for initializing specific server clients
 
     async def initialize_singleton(self):
         if not self._initialized_overall:
             self._initialized_overall = True
 
     async def _ensure_server_client_initialized(self, server_name: str):
-        async with self._lock: # Protect access to self.active_clients and shared config
+        async with (
+            self._lock
+        ):  # Protect access to self.active_clients and shared config
             if server_name not in self.active_clients:
                 config_to_use = self.default_config.get(server_name)
                 if not config_to_use:
-                    print(f"Config for {server_name} not in initial default. Fetching dynamically.")
-                    dynamic_configs = get_server_config(server_name) # Fetches {"server_name": conf} or {}
+                    print(
+                        f"Config for {server_name} not in initial default. Fetching dynamically."
+                    )
+                    dynamic_configs = get_server_config(
+                        server_name
+                    )  # Fetches {"server_name": conf} or {}
                     config_to_use = dynamic_configs.get(server_name)
 
                 if not config_to_use:
-                    raise ValueError(f"Configuration for server {server_name} not found.")
+                    raise ValueError(
+                        f"Configuration for server {server_name} not found."
+                    )
 
                 transport = config_to_use.get("transport", "stdio")
                 fastmcp_client_instance: Optional[Client] = None
@@ -214,7 +242,7 @@ class MCPClient:
                                     "command": config_to_use["command"],
                                     "args": config_to_use["args"],
                                     "env": env,
-                                    "cwd": config_to_use.get("cwd")
+                                    "cwd": config_to_use.get("cwd"),
                                 }
                             }
                         }
@@ -261,7 +289,9 @@ class MCPClient:
         if server_name:
             await self._ensure_server_client_initialized(server_name)
             if server_name not in self.active_clients:
-                 raise ValueError(f"Server {server_name} client not available after init attempt.")
+                raise ValueError(
+                    f"Server {server_name} client not available after init attempt."
+                )
             servers_to_query.append(server_name)
         else:
             for s_name in self.default_config.keys():
@@ -270,16 +300,24 @@ class MCPClient:
                     if s_name in self.active_clients:
                         servers_to_query.append(s_name)
                     else:
-                        print(f"Skipping server {s_name} for list_tools as it's not active after init attempt.")
+                        print(
+                            f"Skipping server {s_name} for list_tools as it's not active after init attempt."
+                        )
                 except Exception as e:
-                    print(f"Skipping server {s_name} for list_tools due to init error: {e}")
-        
+                    print(
+                        f"Skipping server {s_name} for list_tools due to init error: {e}"
+                    )
+
         for s_name_to_query in servers_to_query:
             if s_name_to_query in self.active_clients:
                 raw_tools = await self.active_clients[s_name_to_query].list_tools()
-                result[s_name_to_query] = self._convert_tools_to_standard_format(raw_tools)
+                result[s_name_to_query] = self._convert_tools_to_standard_format(
+                    raw_tools
+                )
             else:
-                print(f"Warning: Server {s_name_to_query} was in servers_to_query but not in active_clients.")
+                print(
+                    f"Warning: Server {s_name_to_query} was in servers_to_query but not in active_clients."
+                )
         return result
 
     async def call_tool(
@@ -301,7 +339,7 @@ class MCPClient:
         await self._ensure_server_client_initialized(server_name)
         if server_name not in self.active_clients:
             raise ValueError(f"Server {server_name} is not active. Cannot get prompt.")
-        
+
         mcp_client = self.active_clients[server_name]
         prompt_result = await mcp_client.get_prompt(prompt_name, arguments or {})
         return [
@@ -315,8 +353,10 @@ class MCPClient:
         """获取指定服务器的资源"""
         await self._ensure_server_client_initialized(server_name)
         if server_name not in self.active_clients:
-            raise ValueError(f"Server {server_name} is not active. Cannot get resource.")
-        
+            raise ValueError(
+                f"Server {server_name} is not active. Cannot get resource."
+            )
+
         mcp_client = self.active_clients[server_name]
         resource_result = await mcp_client.read_resource(resource_uri)
         return [
@@ -331,7 +371,7 @@ class MCPClient:
 
     async def close(self):
         """关闭所有服务器连接"""
-        async with self._lock: # Ensure no new clients are added during close
+        async with self._lock:  # Ensure no new clients are added during close
             await self.exit_stack.aclose()
             self.active_clients = {}
             self._initialized_overall = False
@@ -342,9 +382,11 @@ async def _get_or_create_global_mcp_client_async() -> MCPClient:
     if _global_mcp_client_singleton is None:
         all_server_configs = get_server_config()
         if not isinstance(all_server_configs, dict):
-            print(f"Warning: get_server_config() returned type {type(all_server_configs)}, expected dict. Using empty config.")
+            print(
+                f"Warning: get_server_config() returned type {type(all_server_configs)}, expected dict. Using empty config."
+            )
             all_server_configs = {}
-            
+
         _global_mcp_client_singleton = MCPClient(default_config=all_server_configs)
         await _global_mcp_client_singleton.initialize_singleton()
     return _global_mcp_client_singleton
@@ -352,9 +394,11 @@ async def _get_or_create_global_mcp_client_async() -> MCPClient:
 
 def list_servers() -> List[str]:
     """同步获取所有服务器名称"""
+
     async def _coro():
         client = await _get_or_create_global_mcp_client_async()
         return await client.list_servers()
+
     try:
         return _run_coroutine_in_persistent_loop(_coro())
     except Exception as e:
@@ -364,9 +408,11 @@ def list_servers() -> List[str]:
 
 def list_tools(server_name: Optional[str] = None) -> Dict[str, Any]:
     """同步获取工具列表"""
+
     async def _coro():
         client = await _get_or_create_global_mcp_client_async()
         return await client.list_tools(server_name)
+
     try:
         return _run_coroutine_in_persistent_loop(_coro())
     except Exception as e:
@@ -380,9 +426,11 @@ def call_tool(
     arguments: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """同步调用工具，必须指定服务器"""
+
     async def _coro():
         client = await _get_or_create_global_mcp_client_async()
         return await client.call_tool(server_name, tool_name, arguments or {})
+
     try:
         return _run_coroutine_in_persistent_loop(_coro())
     except Exception as e:

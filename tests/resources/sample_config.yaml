@@ -1,0 +1,27 @@
+default_api_base_url: http://localhost:1234
+default_api_key: null
+default_model:
+  name: qwen3-30b-a3b-mlx@4bit
+  api_base_url: http://localhost:1234
+think_model:
+  name: qwen3-32b-mlx
+  api_base_url: http://localhost:1234
+fast_model:
+  name: qwen3-0.6b-mlx
+render_config:
+  typing_effect: true
+  typing_speed: 0.001
+  smooth_scroll: true
+  throttle_ms: 50
+  buffer_size: 10
+  show_cursor: false
+  cursor_char: "\u258C"
+  cursor_blink: true
+  enable_animations: true
+  code_block_instant: true
+temperature: 0.7
+max_tokens: 40960
+api_timeout: 300
+language: zh-CN
+enable_mcp: true
+mcp_config_folder: null

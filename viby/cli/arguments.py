@@ -72,7 +72,9 @@ def get_parser() -> argparse.ArgumentParser:
         "--fast", "-f", action="store_true", help=get_text("GENERAL", "fast_help")
     )
     parser.add_argument(
-        "--language", "-l", choices=["en-US", "zh-CN"],
+        "--language",
+        "-l",
+        choices=["en-US", "zh-CN"],
         help=get_text("GENERAL", "language_help"),
     )
     return parser

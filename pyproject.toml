@@ -19,9 +19,50 @@ dependencies = [
     "ruff>=0.11.7",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "black>=23.1.0",
+    "isort>=5.12.0",
+    "mypy>=1.0.1",
+]
+test = [
+    "pytest>=7.3.1",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.10.0",
+    "coverage>=7.2.2",
+    "matplotlib>=3.7.0",
+    "numpy>=1.24.2",
+]
+
 [tool.setuptools.packages.find]
 include = ["viby*"]
 exclude = ["assets*"]
 
 [project.scripts]
 yb = "viby.cli.main:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+markers = [
+    "unit: 单元测试",
+    "integration: 集成测试",
+    "e2e: 端到端测试",
+    "performance: 性能测试",
+]
+
+[tool.coverage.run]
+source = ["viby"]
+omit = ["tests/*", "**/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
+]
