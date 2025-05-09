@@ -4,8 +4,6 @@
 
 import time
 import sys
-import gc
-import importlib
 import os
 from typing import Dict, List, Set, Optional, Tuple
 import tracemalloc
@@ -46,10 +44,7 @@ class ImportTracker:
             if module:
                 # 尝试获取模块文件路径
                 file_path = getattr(module, "__file__", "Unknown")
-                details.append({
-                    "name": module_name,
-                    "path": file_path
-                })
+                details.append({"name": module_name, "path": file_path})
         return details
 
     def print_report(self, title: str = "导入跟踪报告") -> None:
@@ -63,23 +58,23 @@ class ImportTracker:
         print(f"\n==== {title} ====")
         print(f"经过时间: {elapsed:.3f}秒")
         print(f"新导入的模块数量: {len(new_modules)}")
-        
+
         # 计算懒加载模块的数量
         lazy_modules = get_loaded_modules()
         print(f"懒加载的模块数量: {len(lazy_modules)}")
-        
+
         # 显示前10个模块名称
         if new_modules:
             print("\n前10个导入的模块:")
             for i, module in enumerate(sorted(new_modules)[:10]):
-                print(f"  {i+1}. {module}")
-        
+                print(f"  {i + 1}. {module}")
+
         # 显示懒加载的模块
         if lazy_modules:
             print("\n懒加载的模块:")
             for i, module in enumerate(sorted(lazy_modules)):
-                print(f"  {i+1}. {module}")
-        
+                print(f"  {i + 1}. {module}")
+
         print("=" * (len(title) + 10))
 
 
@@ -111,27 +106,27 @@ class MemoryTracker:
     def get_memory_usage(self) -> Tuple[int, int, Optional[List]]:
         """
         获取内存使用详情
-        
+
         Returns:
             Tuple[int, int, Optional[List]]: (当前使用内存, 峰值内存, 差异统计)
         """
         if not self.enabled:
             return 0, 0, None
-            
+
         current, peak = tracemalloc.get_traced_memory()
         self.peak_memory = max(self.peak_memory, peak)
-        
+
         diff_stats = None
         if self.start_snapshot:
             current_snapshot = tracemalloc.take_snapshot()
-            diff_stats = current_snapshot.compare_to(self.start_snapshot, 'lineno')
-        
+            diff_stats = current_snapshot.compare_to(self.start_snapshot, "lineno")
+
         return current, self.peak_memory, diff_stats
 
     def print_report(self, title: str = "内存使用报告", top_n: int = 5) -> None:
         """
         打印内存使用报告
-        
+
         Args:
             title: 报告标题
             top_n: 显示的差异统计数量
@@ -141,18 +136,18 @@ class MemoryTracker:
             print("内存跟踪未启用。请先调用 start() 方法。")
             print("=" * (len(title) + 10))
             return
-            
+
         current, peak, diff_stats = self.get_memory_usage()
-        
+
         print(f"\n==== {title} ====")
         print(f"当前内存使用: {current / 1024 / 1024:.2f} MB")
         print(f"峰值内存使用: {peak / 1024 / 1024:.2f} MB")
-        
+
         if diff_stats and top_n > 0:
             print(f"\n内存增长 Top {top_n}:")
             for stat in diff_stats[:top_n]:
                 print(f"  {stat}")
-        
+
         print("=" * (len(title) + 10))
 
     def stop(self) -> None:
@@ -171,7 +166,7 @@ memory_tracker = MemoryTracker()
 def get_performance_stats() -> Dict[str, any]:
     """
     获取当前的性能统计信息
-    
+
     Returns:
         Dict: 性能统计信息
     """
@@ -180,18 +175,18 @@ def get_performance_stats() -> Dict[str, any]:
             "total": len(sys.modules),
             "new": len(import_tracker.new_modules),
             "lazy_loaded": len(get_loaded_modules()),
-            "lazy_modules_list": list(get_loaded_modules())
+            "lazy_modules_list": list(get_loaded_modules()),
         },
-        "memory": {}
+        "memory": {},
     }
-    
+
     if memory_tracker.enabled:
         current, peak, _ = memory_tracker.get_memory_usage()
         stats["memory"] = {
             "current_mb": current / 1024 / 1024,
-            "peak_mb": peak / 1024 / 1024
+            "peak_mb": peak / 1024 / 1024,
         }
-    
+
     return stats
 
 
@@ -204,4 +199,4 @@ def enable_debugging() -> None:
 
 def is_debugging_enabled() -> bool:
     """检查性能调试是否已启用"""
-    return os.environ.get("VIBY_DEBUG_PERFORMANCE") == "1" 
+    return os.environ.get("VIBY_DEBUG_PERFORMANCE") == "1"

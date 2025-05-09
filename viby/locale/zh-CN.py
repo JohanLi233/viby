@@ -15,6 +15,7 @@ GENERAL = {
     "fast_help": "使用快速模型进行更快的响应（如果已配置）",
     "version_help": "显示程序版本号并退出",
     "language_help": "设置界面语言（en-US或zh-CN）",
+    "tokens_help": "显示token使用情况",
     # 界面文本
     "operation_cancelled": "操作已取消。",
     "copy_success": "内容已复制到剪贴板！",
@@ -22,6 +23,13 @@ GENERAL = {
     "help_text": "显示此帮助信息并退出",
     # LLM相关
     "llm_empty_response": "【提示】模型没有返回任何内容，请尝试重新提问或检查您的提示。",
+    # Token使用相关
+    "token_usage_title": "Token使用统计：",
+    "token_usage_prompt": "输入Tokens: {0}",
+    "token_usage_completion": "输出Tokens: {0}",
+    "token_usage_total": "总Tokens: {0}",
+    "token_usage_duration": "响应时间: {0}",
+    "token_usage_not_available": "无法获取Token使用信息",
 }
 
 # 配置向导相关

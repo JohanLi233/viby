@@ -7,14 +7,13 @@
 
 import importlib
 import sys
-import functools
 import types
-from typing import Any, Callable, Dict, Optional, Set, TypeVar, cast, List, Tuple
+from typing import Any, Callable, Set, TypeVar, cast, List
 
 # 跟踪已加载的延迟模块，用于调试和监控
 _LOADED_LAZY_MODULES: Set[str] = set()
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def lazy_import(module_name: str) -> types.ModuleType:
@@ -43,14 +42,14 @@ class LazyModule(types.ModuleType):
         if self.__actual_module is None:
             self.__actual_module = importlib.import_module(self.__name)
             _LOADED_LAZY_MODULES.add(self.__name)
-        
+
         return getattr(self.__actual_module, attr)
-    
+
     def __dir__(self) -> List[str]:
         if self.__actual_module is None:
             self.__actual_module = importlib.import_module(self.__name)
             _LOADED_LAZY_MODULES.add(self.__name)
-        
+
         return dir(self.__actual_module)
 
 
@@ -67,7 +66,7 @@ class LazyCallable:
             module = importlib.import_module(self.module_name)
             _LOADED_LAZY_MODULES.add(self.module_name)
             self._real_func = getattr(module, self.func_name)
-        
+
         return self._real_func(*args, **kwargs)
 
 
@@ -98,6 +97,7 @@ def lazy_class(module_name: str, class_name: str) -> type:
     Returns:
         一个类代理，行为类似于目标类
     """
+
     class LazyClass:
         def __new__(cls, *args, **kwargs):
             real_class = getattr(importlib.import_module(module_name), class_name)
@@ -108,7 +108,7 @@ def lazy_class(module_name: str, class_name: str) -> type:
             real_class = getattr(importlib.import_module(module_name), class_name)
             _LOADED_LAZY_MODULES.add(module_name)
             return type(f"LazySubclassOf{class_name}", (real_class,), {})
-        
+
         @classmethod
         def __class_getattr__(cls, name):
             real_class = getattr(importlib.import_module(module_name), class_name)
@@ -134,9 +134,9 @@ def inject_lazy_module(name: str) -> None:
     """
     将延迟加载的模块注入到sys.modules中，
     这样其他试图导入该模块的代码将获得懒加载版本。
-    
+
     Args:
         name: 模块名称
     """
     if name not in sys.modules:
-        sys.modules[name] = lazy_import(name) 
+        sys.modules[name] = lazy_import(name)

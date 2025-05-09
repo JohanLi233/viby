@@ -15,14 +15,14 @@ from viby.locale import get_text
 def get_version_string() -> str:
     """
     获取版本信息字符串，采用懒加载方式检测
-    
+
     Returns:
         带有格式的版本信息字符串
     """
     # 获取基本版本 - 这很轻量，不需要懒加载
     base_version = importlib.metadata.version("viby")
     version_string = f"Viby {base_version}"
-    
+
     # 仅在必要时执行开发检查
     def lazy_check_dev_mode() -> bool:
         """懒加载检查是否为开发模式"""
@@ -30,18 +30,20 @@ def get_version_string() -> str:
             # __file__ in this context is .../viby/cli/arguments.py
             # Project root should be three levels up from the directory of this file.
             current_file_path = pathlib.Path(__file__).resolve()
-            project_root_marker = current_file_path.parent.parent.parent / "pyproject.toml"
+            project_root_marker = (
+                current_file_path.parent.parent.parent / "pyproject.toml"
+            )
             return project_root_marker.is_file()
         except Exception:
             return False
-    
+
     # 快速检查环境变量，这比文件检查更快
     if os.environ.get("VIBY_DEV_MODE"):
         version_string += " (dev)"
     # 否则，如果需要更准确，检查文件结构
     elif lazy_check_dev_mode():
         version_string += " (dev)"
-        
+
     return version_string
 
 
@@ -93,14 +95,22 @@ def get_parser() -> argparse.ArgumentParser:
         choices=["en-US", "zh-CN"],
         help=get_text("GENERAL", "language_help"),
     )
-    
+
+    # 添加token使用跟踪选项
+    parser.add_argument(
+        "--tokens",
+        "-k",
+        action="store_true",
+        help=get_text("GENERAL", "tokens_help"),
+    )
+
     # 添加性能调试参数，开发者选项，不需要本地化
     parser.add_argument(
         "--debug-performance",
         action="store_true",
         help="启用性能调试模式（开发者选项）",
     )
-    
+
     return parser
 
 
