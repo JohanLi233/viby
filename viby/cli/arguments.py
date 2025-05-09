@@ -4,11 +4,45 @@ Command line argument parsing for viby
 
 import argparse
 import sys
-from typing import Tuple
+from typing import Tuple, Optional
 import importlib.metadata
 import pathlib
+import os
 
 from viby.locale import get_text
+
+
+def get_version_string() -> str:
+    """
+    获取版本信息字符串，采用懒加载方式检测
+    
+    Returns:
+        带有格式的版本信息字符串
+    """
+    # 获取基本版本 - 这很轻量，不需要懒加载
+    base_version = importlib.metadata.version("viby")
+    version_string = f"Viby {base_version}"
+    
+    # 仅在必要时执行开发检查
+    def lazy_check_dev_mode() -> bool:
+        """懒加载检查是否为开发模式"""
+        try:
+            # __file__ in this context is .../viby/cli/arguments.py
+            # Project root should be three levels up from the directory of this file.
+            current_file_path = pathlib.Path(__file__).resolve()
+            project_root_marker = current_file_path.parent.parent.parent / "pyproject.toml"
+            return project_root_marker.is_file()
+        except Exception:
+            return False
+    
+    # 快速检查环境变量，这比文件检查更快
+    if os.environ.get("VIBY_DEV_MODE"):
+        version_string += " (dev)"
+    # 否则，如果需要更准确，检查文件结构
+    elif lazy_check_dev_mode():
+        version_string += " (dev)"
+        
+    return version_string
 
 
 def get_parser() -> argparse.ArgumentParser:
@@ -29,30 +63,12 @@ def get_parser() -> argparse.ArgumentParser:
         help=get_text("GENERAL", "help_text"),
     )
 
-    # --- Version string generation ---
-    base_version = importlib.metadata.version("viby")
-    version_string = f"Viby {base_version}"
-
-    # Check if running from source (likely editable install)
-    # __file__ in this context is .../viby/cli/arguments.py
-    # Project root should be three levels up from the directory of this file.
-    try:
-        current_file_path = pathlib.Path(__file__).resolve()
-        project_root_marker = current_file_path.parent.parent.parent / "pyproject.toml"
-        if project_root_marker.is_file():
-            # If pyproject.toml exists at the expected project root relative to this file,
-            # it implies this code is running directly from the source tree (editable install).
-            version_string += " (dev)"
-    except Exception:
-        # In case __file__ is not available or path operations fail, fallback to base version string
-        pass
-    # --- End of version string generation ---
-
+    # 使用懒加载方式获取版本字符串
     parser.add_argument(
         "-v",
         "--version",
         action="version",
-        version=version_string,
+        version=get_version_string(),
         help=get_text("GENERAL", "version_help"),
     )
     parser.add_argument("prompt", nargs="?", help=get_text("GENERAL", "prompt_help"))
@@ -77,6 +93,14 @@ def get_parser() -> argparse.ArgumentParser:
         choices=["en-US", "zh-CN"],
         help=get_text("GENERAL", "language_help"),
     )
+    
+    # 添加性能调试参数，开发者选项，不需要本地化
+    parser.add_argument(
+        "--debug-performance",
+        action="store_true",
+        help="启用性能调试模式（开发者选项）",
+    )
+    
     return parser
 
 
