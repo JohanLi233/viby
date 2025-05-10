@@ -100,24 +100,24 @@ def _is_unsafe_command(command: str) -> bool:
     cmd_parts = command.strip().split()
     if not cmd_parts:
         return False
-    
+
     main_cmd = cmd_parts[0]
-    
+
     # 安全命令白名单检查
     safe_commands = ["ls", "echo", "cat", "grep", "pwd", "cd", "mkdir", "touch"]
     if main_cmd in safe_commands:
         return False
-    
+
     # 检查命令是否匹配危险模式
     if any(re.search(pattern, command) for pattern in UNSAFE_PATTERNS):
         return True
-    
+
     # 检查命令是否包含黑名单中的字符串
     # 只检查主命令和选项，避免误判文件名或echo内容
     command_prefix = " ".join(cmd_parts[:2] if len(cmd_parts) > 1 else cmd_parts)
     if any(unsafe_cmd in command_prefix for unsafe_cmd in UNSAFE_COMMANDS):
         return True
-    
+
     return False
 
 
