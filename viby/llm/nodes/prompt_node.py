@@ -3,6 +3,8 @@ from viby.locale import get_text
 from viby.mcp import list_tools
 from viby.config import Config
 from viby.tools import AVAILABLE_TOOLS
+import platform
+import os
 
 
 class PromptNode(Node):
@@ -58,9 +60,17 @@ class PromptNode(Node):
         user_input = shared.get("user_input", "")
 
         tools_info = [tool_wrapper.get("tool") for tool_wrapper in shared["tools"]]
+        
+        # 获取系统和shell信息
+        os_info = platform.system() + " " + platform.release()
+        shell_info = os.environ.get('SHELL', 'Unknown')
 
-        # 获取系统提示并格式化工具信息
-        system_prompt = get_text("AGENT", "system_prompt").format(tools_info=tools_info)
+        # 获取系统提示并格式化工具信息和系统信息
+        system_prompt = get_text("AGENT", "system_prompt").format(
+            tools_info=tools_info,
+            os_info=os_info,
+            shell_info=shell_info
+        )
 
         # 使用格式化后的系统提示构建消息
         shared["messages"] = [

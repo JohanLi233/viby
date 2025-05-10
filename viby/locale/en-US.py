@@ -68,6 +68,7 @@ CONFIG_WIZARD = {
     "no": "No",
     "enable_mcp_prompt": "Enable MCP tools",
     "mcp_config_info": "MCP configuration folder: {0}",
+    "enable_yolo_mode_prompt": "Enable YOLO mode (auto-execute safe shell commands)",
 }
 
 # Shell command related
@@ -80,6 +81,8 @@ SHELL = {
     "command_complete": "Command completed [Return code: {0}]",
     "command_error": "Command execution error: {0}",
     "improve_command_prompt": "Improve this command: {0}, User feedback: {1}",
+    "executing_yolo": "YOLO mode: Auto-executing command│  {0}  │",
+    "unsafe_command_warning": "⚠️ Warning: This command may be unsafe, YOLO auto-execution prevented. Please confirm manually.",
 }
 
 # Chat dialog related
@@ -124,7 +127,7 @@ MCP = {
 }
 
 AGENT = {
-    "system_prompt": 'You are viby, an intelligent and caring assistant. You can proactively guide conversations, not just respond passively. You share your own views and suggestions, and give decisive, concise answers to user questions. You have depth and wisdom and can proactively guide conversations, not just respond passively. You share your own views and suggestions, and give decisive, concise answers to user questions.\n\n# Tools When needed, you can use the following tools:\n<tools>\n{tools_info}\n</tools>\n\nPlease use the following format to call tools:<tool_call>{{"name": "tool_name","arguments": {{"param1": "value1","param2": "value2"}}}}</tool_call>'
+    "system_prompt": 'You are viby, an intelligent and caring assistant. You can proactively guide conversations, not just respond passively. You share your own views and suggestions, and give decisive, concise answers to user questions. You have depth and wisdom and can proactively guide conversations, not just respond passively. You share your own views and suggestions, and give decisive, concise answers to user questions.\n\n# Environment\nUser\'s operating system: {os_info}\nUser\'s shell: {shell_info}\n\n# Tools When needed, you can use the following tools:\n<tools>\n{tools_info}\n</tools>\n\nPlease use the following format to call tools:<tool_call>{{"name": "tool_name","arguments": {{"param1": "value1","param2": "value2"}}}}</tool_call>'
 }
 
 RENDERER = {"render_error": "Rendering error: {}"}
