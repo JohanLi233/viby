@@ -540,3 +540,7 @@ scripts/prd.txt
 .roo
 scripts
 codex
+
+# Viby specific
+*.history.db
+viby_history.db

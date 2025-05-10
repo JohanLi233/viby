@@ -6,6 +6,7 @@ from typing import Dict, Any, List
 from viby.config.app_config import Config
 from viby.locale import get_text
 from viby.utils.lazy_import import lazy_import
+from viby.utils.history import HistoryManager
 import time
 
 # 懒加载openai库，只有在实际使用时才会导入
@@ -99,6 +100,10 @@ class ModelManager:
         # 新增：跟踪token使用情况
         self.track_tokens = args.tokens if args and hasattr(args, "tokens") else False
         self.token_tracker = TokenTracker() if self.track_tokens else None
+        # 历史管理器
+        self.history_manager = HistoryManager()
+        # 当前用户输入（用于历史记录）
+        self.current_user_input = None
 
     def get_response(self, messages):
         """
@@ -128,7 +133,65 @@ class ModelManager:
             self.token_tracker.reset()
             self.token_tracker.model_name = model_config["model"]
 
-        return self._call_llm(messages, model_config)
+        # 提取用户输入用于历史记录
+        if messages and len(messages) > 0:
+            last_user_message = next(
+                (m for m in reversed(messages) if m.get("role") == "user"), None
+            )
+            if last_user_message:
+                self.current_user_input = last_user_message.get("content", "")
+
+        # 调用LLM并返回生成器
+        response_generator = self._call_llm(messages, model_config)
+
+        # 创建包装生成器来记录历史
+        return self._response_with_history(response_generator)
+
+    def _response_with_history(self, generator):
+        """
+        包装响应生成器以记录历史记录
+
+        Args:
+            generator: 原始响应生成器
+
+        Returns:
+            包装的生成器
+        """
+        # 收集完整响应用于保存到历史记录
+        full_response = ""
+
+        # 遍历并收集响应
+        for chunk in generator:
+            full_response += chunk
+            yield chunk
+
+        # 保存到历史记录（如果有用户输入）
+        if self.current_user_input:
+            # 检查是否已有该用户输入的记录
+            existing_records = self.history_manager.get_history(limit=5)
+            record = next(
+                (
+                    r
+                    for r in existing_records
+                    if r.get("content") == self.current_user_input
+                ),
+                None,
+            )
+            if record:
+                # 更新已有记录的response字段，追加本次响应
+                prev_response = record.get("response") or ""
+                combined_response = prev_response + full_response
+                # 更新历史记录
+                self.history_manager.update_interaction(
+                    record.get("id"), combined_response
+                )
+            else:
+                # 新交互，添加记录
+                self.history_manager.add_interaction(
+                    self.current_user_input, full_response
+                )
+            # 重置当前用户输入，准备下一次记录
+            self.current_user_input = None
 
     def _call_llm(self, messages, model_config: Dict[str, Any]):
         """

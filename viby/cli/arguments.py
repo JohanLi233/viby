@@ -48,7 +48,12 @@ def get_version_string() -> str:
 
 
 def get_parser() -> argparse.ArgumentParser:
-    # 禁用默认的帮助选项，以便我们可以添加自定义的中文帮助选项
+    """
+    创建命令行参数解析器
+
+    Returns:
+        命令行参数解析器
+    """
     parser = argparse.ArgumentParser(
         description=get_text("GENERAL", "app_description"),
         epilog=get_text("GENERAL", "app_epilog"),
@@ -73,7 +78,7 @@ def get_parser() -> argparse.ArgumentParser:
         version=get_version_string(),
         help=get_text("GENERAL", "version_help"),
     )
-    parser.add_argument("prompt", nargs="?", help=get_text("GENERAL", "prompt_help"))
+
     parser.add_argument(
         "--chat", "-c", action="store_true", help=get_text("GENERAL", "chat_help")
     )
@@ -108,25 +113,115 @@ def get_parser() -> argparse.ArgumentParser:
         help="启用性能调试模式（开发者选项）",
     )
 
+    # === 添加子命令支持 ===
+    subparsers = parser.add_subparsers(dest="command", required=False)
+
+    # === 历史命令 ===
+    history_parser = subparsers.add_parser(
+        "history", help=get_text("HISTORY", "command_help")
+    )
+    history_subparsers = history_parser.add_subparsers(
+        dest="history_subcommand", help=get_text("HISTORY", "subcommand_help")
+    )
+
+    # 历史列表子命令
+    list_parser = history_subparsers.add_parser(
+        "list", help=get_text("HISTORY", "list_help")
+    )
+    list_parser.add_argument(
+        "--limit", "-n", type=int, default=10, help=get_text("HISTORY", "limit_help")
+    )
+
+    # 历史搜索子命令
+    search_parser = history_subparsers.add_parser(
+        "search", help=get_text("HISTORY", "search_help")
+    )
+    search_parser.add_argument("query", help=get_text("HISTORY", "query_help"))
+    search_parser.add_argument(
+        "--limit", "-n", type=int, default=10, help=get_text("HISTORY", "limit_help")
+    )
+
+    # 历史导出子命令
+    export_parser = history_subparsers.add_parser(
+        "export", help=get_text("HISTORY", "export_help")
+    )
+    export_parser.add_argument("file", help=get_text("HISTORY", "file_help"))
+    export_parser.add_argument(
+        "--format",
+        "-f",
+        choices=["json", "csv", "yaml"],
+        default="json",
+        help=get_text("HISTORY", "format_help"),
+    )
+    export_parser.add_argument(
+        "--type",
+        "-t",
+        choices=["interactions", "shell"],
+        default="interactions",
+        help=get_text("HISTORY", "type_help"),
+    )
+
+    # 历史清除子命令
+    clear_parser = history_subparsers.add_parser(
+        "clear", help=get_text("HISTORY", "clear_help")
+    )
+    clear_parser.add_argument(
+        "--type",
+        "-t",
+        choices=["all", "interactions", "shell"],
+        default="all",
+        help=get_text("HISTORY", "clear_type_help"),
+    )
+    clear_parser.add_argument(
+        "--force", "-f", action="store_true", help=get_text("HISTORY", "force_help")
+    )
+
+    # Shell历史子命令
+    shell_parser = history_subparsers.add_parser(
+        "shell", help=get_text("HISTORY", "shell_help")
+    )
+    shell_parser.add_argument(
+        "--limit", "-n", type=int, default=10, help=get_text("HISTORY", "limit_help")
+    )
+
     return parser
 
 
 def parse_arguments() -> argparse.Namespace:
-    return get_parser().parse_args()
+    """
+    解析命令行参数，支持解析已知参数和值以及剩余位置参数
+    Returns:
+        解析后的参数命名空间，额外属性 prompt_args 为剩余位置参数
+    """
+    parser = get_parser()
+    # 如果调用 history 子命令，使用 parse_args 来支持子命令解析
+    import sys
+
+    raw = sys.argv[1:]
+    if raw and raw[0] == "history":
+        return parser.parse_args()
+    # 否则，解析已知参数并收集剩余位置参数为 prompt_args
+    args, unknown = parser.parse_known_args()
+    setattr(args, "prompt_args", unknown)
+    return args
 
 
 def process_input(args: argparse.Namespace) -> Tuple[str, bool]:
     """
-    处理命令行参数和标准输入，组合成完整的用户输入
+    处理命令行输入，包括管道输入
 
     Args:
-        args: 解析后的命令行参数
+        args: 命令行参数命名空间
 
     Returns:
-        Tuple[str, bool]: (用户输入, 是否有效输入)
+        (输入文本, 是否有输入)的元组
     """
     # 获取命令行提示词和管道上下文
-    prompt = args.prompt.strip() if args.prompt else ""
+    prompt = (
+        " ".join(args.prompt_args)
+        if hasattr(args, "prompt_args") and args.prompt_args
+        else ""
+    )
     pipe_content = sys.stdin.read().strip() if not sys.stdin.isatty() else ""
 
     # 构造最终输入，过滤空值

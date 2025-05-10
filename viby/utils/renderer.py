@@ -195,6 +195,8 @@ class MarkdownStreamRenderer:
             # 刷新剩余内容
             if self.in_code_block:
                 self._flush_code_block()
+                # 确保重置代码块状态，处理未闭合的代码块情况
+                self.in_code_block = False
             else:
                 self._flush_paragraph()
 
@@ -212,6 +214,29 @@ class MarkdownStreamRenderer:
 
 # 默认渲染器实例，方便直接使用
 default_renderer = MarkdownStreamRenderer()
+
+
+def print_markdown(text: str, style: str = None) -> None:
+    """
+    打印Markdown格式的文本
+
+    Args:
+        text: 要打印的Markdown文本
+        style: 可选的样式（error, warning, success等）
+    """
+    console = Console()
+
+    # 根据样式应用不同的颜色
+    if style == "error":
+        console.print(f"[bold red]{text}[/bold red]")
+    elif style == "warning":
+        console.print(f"[bold yellow]{text}[/bold yellow]")
+    elif style == "success":
+        console.print(f"[bold green]{text}[/bold green]")
+    else:
+        # 默认使用Markdown渲染
+        md = Markdown(text)
+        console.print(md)
 
 
 def render_markdown_stream(
