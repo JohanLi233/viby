@@ -126,7 +126,6 @@ def run_config_wizard(config):
     init_text_manager(config)
     print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
 
-    temp_prompt = get_text("CONFIG_WIZARD", "temperature_prompt")
     api_timeout_prompt = get_text("CONFIG_WIZARD", "api_timeout_prompt")
     save_prompt = get_text("CONFIG_WIZARD", "config_saved")
     continue_prompt = get_text("CONFIG_WIZARD", "continue_prompt")
@@ -217,7 +216,7 @@ def run_config_wizard(config):
     while True:
         max_tokens = get_input(
             default_model_max_tokens_prompt,
-            str(config.default_model.max_tokens or config.max_tokens),
+            str(40960),
         )
         try:
             tokens_value = int(max_tokens)
@@ -228,6 +227,52 @@ def run_config_wizard(config):
         except ValueError:
             print(get_text("CONFIG_WIZARD", "invalid_integer", "请输入有效的整数"))
 
+    # 默认模型温度设置
+    default_model_temperature_prompt = get_text(
+        "CONFIG_WIZARD", "model_temperature_prompt"
+    ).format(model_name=config.default_model.name)
+    while True:
+        temperature = get_input(
+            default_model_temperature_prompt,
+            str(0.7),
+            allow_pass_keyword=True
+        )
+        if temperature == PASS_SENTINEL:
+            config.default_model.temperature = None
+            break
+        try:
+            temp_value = float(temperature)
+            if 0.0 <= temp_value <= 1.0:
+                config.default_model.temperature = temp_value
+                break
+            print(get_text("CONFIG_WIZARD", "temperature_range"))
+        except ValueError:
+            print(get_text("CONFIG_WIZARD", "invalid_decimal"))
+
+
+
+    # 默认模型top_p设置
+    default_model_top_p_prompt = get_text(
+        "CONFIG_WIZARD", "model_top_p_prompt"
+    ).format(model_name=config.default_model.name)
+    top_p = get_input(
+        default_model_top_p_prompt,
+        str(config.default_model.top_p or ""),
+        allow_pass_keyword=True
+    )
+    if top_p == PASS_SENTINEL or not top_p:
+        config.default_model.top_p = None
+    else:
+        try:
+            top_p_value = float(top_p)
+            if 0.0 <= top_p_value <= 1.0:
+                config.default_model.top_p = top_p_value
+            else:
+                print(get_text("CONFIG_WIZARD", "top_p_range"))
+                config.default_model.top_p = None
+        except ValueError:
+            print(get_text("CONFIG_WIZARD", "invalid_top_p"))
+            config.default_model.top_p = None
     print_separator()
 
     # --- 思考模型配置（可选） ---
@@ -284,7 +329,7 @@ def run_config_wizard(config):
         while True:
             max_tokens = get_input(
                 think_model_max_tokens_prompt,
-                str(config.think_model.max_tokens or config.max_tokens),
+                str(config.think_model.max_tokens or 40960),
             )
             try:
                 tokens_value = int(max_tokens)
@@ -294,6 +339,54 @@ def run_config_wizard(config):
                 print(get_text("CONFIG_WIZARD", "tokens_positive", "请输入正整数"))
             except ValueError:
                 print(get_text("CONFIG_WIZARD", "invalid_integer", "请输入有效的整数"))
+
+        # 思考模型温度设置
+        think_model_temperature_prompt = get_text(
+            "CONFIG_WIZARD", "model_temperature_prompt"
+        ).format(model_name=config.think_model.name)
+        while True:
+            temperature = get_input(
+                think_model_temperature_prompt,
+                str(config.think_model.temperature or 0.7),
+                allow_pass_keyword=True
+            )
+            if temperature == PASS_SENTINEL:
+                config.think_model.temperature = None
+                break
+            try:
+                temp_value = float(temperature)
+                if 0.0 <= temp_value <= 1.0:
+                    config.think_model.temperature = temp_value
+                    break
+                print(get_text("CONFIG_WIZARD", "temperature_range"))
+            except ValueError:
+                print(get_text("CONFIG_WIZARD", "invalid_decimal"))
+
+
+
+        # 思考模型top_p设置
+        think_model_top_p_prompt = get_text(
+            "CONFIG_WIZARD", "model_top_p_prompt"
+        ).format(model_name=config.think_model.name)
+        top_p = get_input(
+            think_model_top_p_prompt,
+            str(config.think_model.top_p or ""),
+            allow_pass_keyword=True
+        )
+        if top_p == PASS_SENTINEL or not top_p:
+            config.think_model.top_p = None
+        else:
+            try:
+                top_p_value = float(top_p)
+                if 0.0 <= top_p_value <= 1.0:
+                    config.think_model.top_p = top_p_value
+                else:
+                    print(get_text("CONFIG_WIZARD", "top_p_range"))
+                    config.think_model.top_p = None
+            except ValueError:
+                print(get_text("CONFIG_WIZARD", "invalid_top_p"))
+                config.think_model.top_p = None
+
     elif config.think_model:  # 用户输入"pass"或空白名称
         config.think_model = None
 
@@ -349,7 +442,7 @@ def run_config_wizard(config):
         while True:
             max_tokens = get_input(
                 fast_model_max_tokens_prompt,
-                str(config.fast_model.max_tokens or config.max_tokens),
+                str(config.fast_model.max_tokens or 40960),
             )
             try:
                 tokens_value = int(max_tokens)
@@ -360,48 +453,57 @@ def run_config_wizard(config):
             except ValueError:
                 print(get_text("CONFIG_WIZARD", "invalid_integer", "请输入有效的整数"))
 
+        # 快速模型温度设置
+        fast_model_temperature_prompt = get_text(
+            "CONFIG_WIZARD", "model_temperature_prompt"
+        ).format(model_name=config.fast_model.name)
+        while True:
+            temperature = get_input(
+                fast_model_temperature_prompt,
+                str(config.fast_model.temperature or 0.7),
+                allow_pass_keyword=True
+            )
+            if temperature == PASS_SENTINEL:
+                config.fast_model.temperature = None
+                break
+            try:
+                temp_value = float(temperature)
+                if 0.0 <= temp_value <= 1.0:
+                    config.fast_model.temperature = temp_value
+                    break
+                print(get_text("CONFIG_WIZARD", "temperature_range"))
+            except ValueError:
+                print(get_text("CONFIG_WIZARD", "invalid_decimal"))
+
+
+
+        # 快速模型top_p设置
+        fast_model_top_p_prompt = get_text(
+            "CONFIG_WIZARD", "model_top_p_prompt"
+        ).format(model_name=config.fast_model.name)
+        top_p = get_input(
+            fast_model_top_p_prompt,
+            str(config.fast_model.top_p or ""),
+            allow_pass_keyword=True
+        )
+        if top_p == PASS_SENTINEL or not top_p:
+            config.fast_model.top_p = None
+        else:
+            try:
+                top_p_value = float(top_p)
+                if 0.0 <= top_p_value <= 1.0:
+                    config.fast_model.top_p = top_p_value
+                else:
+                    print(get_text("CONFIG_WIZARD", "top_p_range"))
+                    config.fast_model.top_p = None
+            except ValueError:
+                print(get_text("CONFIG_WIZARD", "invalid_top_p"))
+                config.fast_model.top_p = None
+
     elif config.fast_model:  # 用户输入为空或输入"pass"，表示要跳过此模型配置
         config.fast_model = None
 
     print_separator()
-    # 温度设置
-    while True:
-        temp = get_input(temp_prompt, str(config.temperature))
-        try:
-            temp_value = float(temp)
-            if 0.0 <= temp_value <= 1.0:
-                config.temperature = temp_value
-                break
-            print(get_text("CONFIG_WIZARD", "temperature_range"))
-        except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_decimal"))
-
-    # 全局最大令牌数
-    global_max_tokens_prompt = get_text(
-        "CONFIG_WIZARD", "global_max_tokens_prompt", "设置默认全局最大令牌数"
-    )
-    while True:
-        max_tokens = get_input(global_max_tokens_prompt, str(config.max_tokens))
-        try:
-            tokens_value = int(max_tokens)
-            if tokens_value > 0:
-                config.max_tokens = tokens_value
-                break
-            print(get_text("CONFIG_WIZARD", "tokens_positive"))
-        except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_integer"))
-
-    # API超时
-    while True:
-        timeout = get_input(api_timeout_prompt, str(config.api_timeout))
-        try:
-            timeout_value = int(timeout)
-            if timeout_value > 0:
-                config.api_timeout = timeout_value
-                break
-            print(get_text("CONFIG_WIZARD", "timeout_positive"))
-        except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_integer"))
 
     # MCP工具设置
     enable_mcp_prompt = get_text("CONFIG_WIZARD", "enable_mcp_prompt")

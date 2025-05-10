@@ -104,6 +104,10 @@ class ModelManager:
         self.history_manager = HistoryManager()
         # 当前用户输入（用于历史记录）
         self.current_user_input = None
+        # 当前交互会话ID，用于标识一次完整的用户交互
+        self.interaction_id = None
+        # 标记当前交互是否已记录到历史
+        self.interaction_recorded = False
 
     def get_response(self, messages):
         """
@@ -139,7 +143,12 @@ class ModelManager:
                 (m for m in reversed(messages) if m.get("role") == "user"), None
             )
             if last_user_message:
-                self.current_user_input = last_user_message.get("content", "")
+                user_input = last_user_message.get("content", "")
+                # 如果是新的用户输入（与当前不同），重置交互状态
+                if user_input != self.current_user_input:
+                    self.current_user_input = user_input
+                    self.interaction_id = int(time.time() * 1000)  # 使用时间戳作为交互ID
+                    self.interaction_recorded = False
 
         # 调用LLM并返回生成器
         response_generator = self._call_llm(messages, model_config)
@@ -165,33 +174,16 @@ class ModelManager:
             full_response += chunk
             yield chunk
 
-        # 保存到历史记录（如果有用户输入）
-        if self.current_user_input:
-            # 检查是否已有该用户输入的记录
-            existing_records = self.history_manager.get_history(limit=5)
-            record = next(
-                (
-                    r
-                    for r in existing_records
-                    if r.get("content") == self.current_user_input
-                ),
-                None,
+        # 保存到历史记录（如果有用户输入且未记录过当前交互）
+        if self.current_user_input and not self.interaction_recorded and self.interaction_id:
+            # 记录当前交互，并标记为已记录
+            self.history_manager.add_interaction(
+                self.current_user_input, full_response,
+                metadata={"interaction_id": self.interaction_id}
             )
-            if record:
-                # 更新已有记录的response字段，追加本次响应
-                prev_response = record.get("response") or ""
-                combined_response = prev_response + full_response
-                # 更新历史记录
-                self.history_manager.update_interaction(
-                    record.get("id"), combined_response
-                )
-            else:
-                # 新交互，添加记录
-                self.history_manager.add_interaction(
-                    self.current_user_input, full_response
-                )
-            # 重置当前用户输入，准备下一次记录
-            self.current_user_input = None
+            self.interaction_recorded = True
+            # 注意：不重置current_user_input，因为在工具调用过程中可能再次调用LLM
+            # 只有当用户发送新消息时才会重置
 
     def _call_llm(self, messages, model_config: Dict[str, Any]):
         """
@@ -220,6 +212,9 @@ class ModelManager:
                 "max_tokens": model_config["max_tokens"],
                 "stream": True,
             }
+
+            if model_config.get("top_p") is not None:
+                params["top_p"] = model_config["top_p"]
 
             # 如果跟踪token，估算提示tokens（实际值将在响应中获取）
             if self.track_tokens:

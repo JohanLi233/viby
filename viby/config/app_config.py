@@ -16,6 +16,8 @@ class ModelProfileConfig:
     api_base_url: Optional[str] = None
     api_key: Optional[str] = None
     max_tokens: Optional[int] = None
+    temperature: Optional[float] = None
+    top_p: Optional[float] = None
 
 
 class Config:
@@ -36,8 +38,6 @@ class Config:
         )  # Initialize with empty name
 
         # Other general settings
-        self.temperature: float = 0.7
-        self.max_tokens: int = 40960
         self.api_timeout: int = 300
         self.language: str = "en-US"  # options: en-US, zh-CN
         self.enable_mcp: bool = True
@@ -73,9 +73,13 @@ class Config:
     def _to_dict(self, obj: Any) -> Any:
         """将对象转换为字典，处理嵌套对象"""
         if hasattr(obj, "__dict__"):
-            return {
-                k: self._to_dict(v) for k, v in obj.__dict__.items() if v is not None
-            }
+            # 对ModelProfileConfig，保留所有字段，即使是None
+            if isinstance(obj, ModelProfileConfig):
+                return {k: self._to_dict(v) for k, v in obj.__dict__.items()}
+            else:
+                return {
+                    k: self._to_dict(v) for k, v in obj.__dict__.items() if v is not None
+                }
         elif isinstance(obj, list):
             return [self._to_dict(i) for i in obj]
         return obj
@@ -123,8 +127,6 @@ class Config:
                     else:
                         self.fast_model = None
 
-                    self.temperature = config_data.get("temperature", self.temperature)
-                    self.max_tokens = config_data.get("max_tokens", self.max_tokens)
                     self.api_timeout = config_data.get("api_timeout", self.api_timeout)
                     self.language = config_data.get("language", self.language)
                     self.enable_mcp = config_data.get("enable_mcp", self.enable_mcp)
@@ -156,12 +158,6 @@ class Config:
                     elif not fast_model_data:
                         self.fast_model = None
 
-                    self.temperature = float(
-                        config_data.get("temperature", self.temperature)
-                    )
-                    self.max_tokens = int(
-                        config_data.get("max_tokens", self.max_tokens)
-                    )
                     self.api_timeout = int(
                         config_data.get("api_timeout", self.api_timeout)
                     )
@@ -203,8 +199,6 @@ class Config:
             "fast_model": self._to_dict(self.fast_model)
             if self.fast_model and self.fast_model.name
             else None,
-            "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
             "api_timeout": self.api_timeout,
             "language": self.language,
             "enable_mcp": self.enable_mcp,
@@ -236,28 +230,27 @@ class Config:
         if not profile_to_use or not profile_to_use.name:
             return {
                 "model": "qwen3:30b",
-                "temperature": self.temperature,
-                "max_tokens": self.max_tokens,
+                "temperature": 0.7,  # Default temperature
+                "max_tokens": 40960,  # Default max_tokens
                 "base_url": self.default_api_base_url or "http://localhost:11434",
                 "api_key": self.default_api_key,
                 "api_timeout": self.api_timeout,
+                "top_p": None,
             }
 
         resolved_base_url = profile_to_use.api_base_url or self.default_api_base_url
         resolved_api_key = profile_to_use.api_key or self.default_api_key
 
-        # 优先使用模型特定的 max_tokens 设置，如果没有则使用全局设置
-        resolved_max_tokens = (
-            profile_to_use.max_tokens
-            if profile_to_use.max_tokens is not None
-            else self.max_tokens
-        )
+        # 使用模型特定设置，如果未配置则使用默认值
+        resolved_max_tokens = profile_to_use.max_tokens if profile_to_use.max_tokens is not None else 40960
+        resolved_temperature = profile_to_use.temperature if profile_to_use.temperature is not None else 0.7
 
         return {
             "model": profile_to_use.name,
-            "temperature": self.temperature,
+            "temperature": resolved_temperature,
             "max_tokens": resolved_max_tokens,
             "base_url": resolved_base_url,
             "api_key": resolved_api_key,
             "api_timeout": self.api_timeout,
+            "top_p": profile_to_use.top_p,
         }
