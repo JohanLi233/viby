@@ -74,12 +74,11 @@ CONFIG_WIZARD = {
 SHELL = {
     "command_prompt": "Please generate a single shell ({1}) command for: {0} (OS: {2}). Only return the command itself, no explanations, no markdown.",
     "execute_prompt": "Execute command│  {0}  │?",
-    "choice_prompt": "[r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): ",
+    "choice_prompt": "[r]run, [e]edit, [y]copy, [q]quit (default: run): ",
     "edit_prompt": "Edit command (original: {0}):\n> ",
     "executing": "Executing command: {0}",
     "command_complete": "Command completed [Return code: {0}]",
     "command_error": "Command execution error: {0}",
-    "continue_chat": "Continuing chat with AI to improve the command...",
     "improve_command_prompt": "Improve this command: {0}, User feedback: {1}",
 }
 

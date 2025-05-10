@@ -84,8 +84,8 @@ def _execute_command(command: str) -> dict:
         return {
             "status": "executed",
             "code": process.returncode,
-            "stdout": process.stdout,
-            "stderr": process.stderr,
+            "output": process.stdout,
+            "error": process.stderr,
         }
     except Exception as e:
         print(f"{Colors.RED}{get_text('SHELL', 'command_error', str(e))}{Colors.END}")
@@ -117,13 +117,13 @@ def _copy_to_clipboard(command: str) -> dict:
     try:
         pyperclip.copy(command)
         print(f"{Colors.GREEN}{get_text('GENERAL', 'copy_success')}{Colors.END}")
-        return {"status": "copied", "code": 0}
+        return {"status": "completed", "code": 0}
     except Exception as e:
         print(f"{Colors.RED}{get_text('GENERAL', 'copy_fail', str(e))}{Colors.END}")
-        return {"status": "copy_failed", "code": 1, "message": str(e)}
+        return {"status": "completed", "code": 1, "message": str(e)}
 
 
 def _cancel_operation(command: str) -> dict:
     """取消操作"""
     print(f"{Colors.YELLOW}{get_text('GENERAL', 'operation_cancelled')}{Colors.END}")
-    return {"status": "cancelled", "code": 0}
+    return {"status": "completed", "code": 0}

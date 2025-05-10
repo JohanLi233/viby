@@ -74,12 +74,11 @@ CONFIG_WIZARD = {
 SHELL = {
     "command_prompt": "请只生成一个用于：{0} 的 shell ({1}) 命令（操作系统：{2}）。只返回命令本身，不要解释，不要 markdown。",
     "execute_prompt": "执行命令│  {0}  │?",
-    "choice_prompt": "[r]运行, [e]编辑, [y]复制, [c]对话, [q]放弃 (默认: 运行): ",
+    "choice_prompt": "[r]运行, [e]编辑, [y]复制, [q]放弃 (默认: 运行): ",
     "edit_prompt": "编辑命令（原命令: {0}）:\n> ",
     "executing": "执行命令: {0}",
     "command_complete": "命令完成 [返回码: {0}]",
     "command_error": "命令执行出错: {0}",
-    "continue_chat": "继续与AI对话改进命令...",
     "improve_command_prompt": "改进这个命令: {0}, 用户的反馈: {1}",
 }
 

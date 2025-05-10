@@ -27,7 +27,7 @@ Viby is a powerful AI agent that lives in your terminal, designed to solve virtu
 ## ✨ Features
 
 - **Intelligent Conversations** - Engage in natural multi-turn dialogues
-- **Command Generation** - Get optimized shell commands
+- **Automatic Shell Command Generation** - Get optimized shell commands when needed
 - **Pipeline Integration** - Process data from other commands (e.g., `git diff | viby "write a commit message"`)
 - **MCP Tools** - Extended capabilities through Model Context Protocol integration
 
@@ -82,9 +82,7 @@ yb "What is this project about?" < README.md
 ### Generate Shell Command
 
 ```sh
-yb --shell "How many lines of python code did I write?"
-# or
-yb -s "How many lines of python code did I write?"
+yb "How many lines of python code did I write?"
 # -> find . -type f -name "*.py" | xargs wc -l
 # -> [r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): 
 ```

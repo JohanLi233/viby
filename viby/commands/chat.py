@@ -37,6 +37,7 @@ class ChatCommand:
         self.llm_node - "continue" >> self.input_node
         self.llm_node - "interrupt" >> self.input_node
         self.execute_tool_node - "call_llm" >> self.llm_node
+        self.execute_tool_node - "completed" >> self.input_node
         self.input_node - "exit" >> DummyNode()
 
     def execute(self):
