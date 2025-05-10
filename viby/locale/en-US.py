@@ -123,7 +123,7 @@ MCP = {
     "executing_tool": "Executing Tool Call",
     "tool_result": "Tool Call Result",
     "shell_tool_description": "Execute a shell command on the user's system.",
-    "shell_tool_param_command": "The shell command to execute"
+    "shell_tool_param_command": "The shell command to execute",
 }
 
 AGENT = {
@@ -137,7 +137,7 @@ AGENT = {
         "\n# Available Tools\n"
         "\n{tools_info}\n"
         "\nTo use a tool, follow this format:\n"
-        "{{\"name\": \"tool_name\", \"arguments\": {{\"param1\": \"value1\", \"param2\": \"value2\"}}}}\n"
+        '{{"name": "tool_name", "arguments": {{"param1": "value1", "param2": "value2"}}}}\n'
         "You may call tools multiple times until the user's problem is fully solved.\n"
         "For example, if the user asks about the current directory project, first run pwd, then ls, and if there is a README or other important file, read it before giving a complete answer.\n"
         "You have the ability to operate the computer like a user, including accessing websites and resources (e.g., use curl to check the weather)."

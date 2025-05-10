@@ -17,12 +17,26 @@ _config = Config()
 
 # 不安全命令黑名单
 UNSAFE_COMMANDS = [
-    "rm -rf", "rm -r", "rmdir", "mkfs", 
-    "dd", ":(){ :|:& };:", "chmod -R 777", 
-    "> /dev/sda", "mv /* /dev/null", "wget", "curl",
-    "sudo rm", "> /etc/passwd", "shutdown", "reboot",
-    "find / -delete", ":(){ :|:& };:", "eval"
+    "rm -rf",
+    "rm -r",
+    "rmdir",
+    "mkfs",
+    "dd",
+    ":(){ :|:& };:",
+    "chmod -R 777",
+    "> /dev/sda",
+    "mv /* /dev/null",
+    "wget",
+    "curl",
+    "sudo rm",
+    "> /etc/passwd",
+    "shutdown",
+    "reboot",
+    "find / -delete",
+    ":(){ :|:& };:",
+    "eval",
 ]
+
 
 def set_yolo_mode(enabled: bool) -> bool:
     """
@@ -39,6 +53,7 @@ def set_yolo_mode(enabled: bool) -> bool:
     _config.save_config()
     return _config.enable_yolo_mode
 
+
 def is_yolo_mode_enabled() -> bool:
     """
     获取当前yolo模式状态
@@ -48,6 +63,7 @@ def is_yolo_mode_enabled() -> bool:
     """
     global _config
     return _config.enable_yolo_mode
+
 
 def _is_unsafe_command(command: str) -> bool:
     """
@@ -61,6 +77,7 @@ def _is_unsafe_command(command: str) -> bool:
     """
     return any(unsafe_cmd in command for unsafe_cmd in UNSAFE_COMMANDS)
 
+
 def handle_shell_command(command: str):
     """
     处理并执行shell命令
@@ -73,16 +90,18 @@ def handle_shell_command(command: str):
     """
     # 检查是否启用yolo模式并且命令是安全的
     if is_yolo_mode_enabled() and not _is_unsafe_command(command):
-        print(f"{Colors.BLUE}{get_text('SHELL', 'executing_yolo', command)}{Colors.END}")
+        print(
+            f"{Colors.BLUE}{get_text('SHELL', 'executing_yolo', command)}{Colors.END}"
+        )
         return _execute_command(command)
-    
+
     # 不是yolo模式或命令不安全，使用交互模式
     print(f"{Colors.BLUE}{get_text('SHELL', 'execute_prompt', command)}{Colors.END}")
-    
+
     # 如果命令不安全且yolo模式开启，显示警告
     if is_yolo_mode_enabled() and _is_unsafe_command(command):
         print(f"{Colors.RED}{get_text('SHELL', 'unsafe_command_warning')}{Colors.END}")
-    
+
     choice_prompt_html = HTML(
         f'<span class="ansiyellow">{get_text("SHELL", "choice_prompt")}</span>'
     )

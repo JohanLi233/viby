@@ -123,7 +123,7 @@ MCP = {
     "executing_tool": "正在执行工具调用",
     "tool_result": "工具调用结果",
     "shell_tool_description": "在用户系统上执行shell命令",
-    "shell_tool_param_command": "要执行的shell命令"
+    "shell_tool_param_command": "要执行的shell命令",
 }
 
 AGENT = {
@@ -136,7 +136,7 @@ AGENT = {
         "\n# 可用工具\n"
         "<tools>\n{tools_info}\n</tools>\n"
         "\n如需使用工具，请遵循以下格式：\n"
-        "<tool_call>{{\"name\": \"工具名称\", \"arguments\": {{\"参数1\": \"值1\", \"参数2\": \"值2\"}}}}</tool_call>\n"
+        '<tool_call>{{"name": "工具名称", "arguments": {{"参数1": "值1", "参数2": "值2"}}}}</tool_call>\n'
         "你可多次调用工具，直到彻底解决用户问题。\n"
         "例如，用户询问当前目录项目内容，你应先执行 pwd，再执行 ls，若有 README 等文件需进一步阅读后再完整答复。\n"
         "你具备像用户操作电脑一样的能力，可访问网站和各类资源（如查询天气可用 curl）。"

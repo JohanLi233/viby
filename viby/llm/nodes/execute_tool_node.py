@@ -52,11 +52,11 @@ class ExecuteToolNode(Node):
     def post(self, shared, prep_res, exec_res):
         """Process the final result"""
         shared["messages"].append({"role": "tool", "content": str(exec_res)})
-        
+
         # 检查是否是shell命令的特殊状态
         if isinstance(exec_res, dict) and "status" in exec_res:
             # 如果是复制到剪贴板(y)或取消操作(q)，不需要再调用LLM
             if exec_res["status"] in ["completed"]:
                 return "completed"
-        
+
         return "call_llm"
