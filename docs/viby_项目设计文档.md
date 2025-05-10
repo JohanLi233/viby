@@ -114,33 +114,32 @@ flowchart LR
     end
 
     subgraph ShellCommand Flow
-        CommandParser -- "viby shell" --> ShellCmd[ShellCommand]
-        ShellCmd --> PromptNode_Shell[PromptNode]
-        PromptNode_Shell -- call_llm --> LLMNode_Shell[LLMNode]
-        LLMNode_Shell -- execute_tool --> ExecuteToolNode_Shell[ExecuteToolNode]
-        ExecuteToolNode_Shell -- call_llm --> LLMNode_Shell
-        LLMNode_Shell -- continue --> ExecuteShellCommandNode[ExecuteShellCommandNode]
-        ExecuteShellCommandNode -- call_llm --> LLMNode_Shell
-        ExecuteShellCommandNode --> DummyNode_Shell[DummyNode]
+        CommandParser -- "viby (shell intent)" --> AskCmd[AskCommand]
+        AskCmd --> PromptNode_Ask[PromptNode]
+        PromptNode_Ask -- call_llm --> LLMNode_Ask[LLMNode]
+        LLMNode_Ask -- detect_shell_intent --> LLMNode_Ask
+        LLMNode_Ask -- execute_tool:execute_shell --> ExecuteToolNode_Shell[ExecuteToolNode]
+        ExecuteToolNode_Shell -- handle_shell_command --> ExecuteToolNode_Shell
+        ExecuteToolNode_Shell -- call_llm --> LLMNode_Ask
+        LLMNode_Ask --> DummyNode_Shell[DummyNode]
     end
 ```
 
-### 4.2. `ShellCommand` 详细流程
+### 4.2. Shell命令工具处理流程
 
-`ShellCommand` 是 Viby 的核心功能之一，其工作流程相对复杂：
+Shell命令处理是 Viby 的核心功能之一，现在通过工具调用机制实现：
 
-1. **输入获取 (`InputNode`)**: 接收用户用自然语言描述的任务（例如："列出当前目录下所有的 Python 文件"）。
-2. **命令生成 (`CommandNode` & Ollama LLM)**:
-    * `CommandNode` 将用户描述构造成合适的提示。
-    * 调用 Ollama LLM，请求生成对应的 Shell 命令及中文解释。
-    * LLM 返回建议的命令和解释。
-3. **用户交互与选择**:
-    * `CommandNode` 将生成的命令和解释展示给用户。
-    * 提供操作选项：运行 (`r`), 编辑 (`e`), 复制 (`y`), 放弃 (`q`)。
-4. **后续处理**:
-    * **运行**: 如果用户选择运行，`ExecuteShellCommandNode` 会执行该命令，并显示其输出或错误。
-    * **编辑**: 如果用户选择编辑，系统会启动 `prompt_toolkit` 提供的交互式编辑器，用户修改完毕后，可以选择再次运行或放弃。
-    * **复制/放弃**: 执行相应的操作。
+1. **输入处理**: LLM接收用户用自然语言描述的任务（例如："列出当前目录下所有的 Python 文件"）。
+2. **意图检测**:
+    * LLM识别用户意图为获取Shell命令。
+    * LLM自动选择调用`execute_shell`工具，生成相应的Shell命令。
+3. **工具调用**:
+    * `ExecuteToolNode`接收到工具调用请求，处理参数并调用`handle_shell_command`函数。
+    * 系统展示生成的命令并提供操作选项：运行 (`r`), 编辑 (`e`), 复制 (`y`), 放弃 (`q`)。
+4. **用户交互与执行**:
+    * **运行**: 如果用户选择运行，系统会执行该命令，并显示其输出或错误。
+    * **编辑**: 如果用户选择编辑，系统会启动`prompt_toolkit`提供的交互式编辑器，用户修改完毕后，可以选择再次运行或放弃。
+    * **复制/放弃**: 执行相应的操作并返回结果给LLM。
 
 ### 4.3. `ChatCommand` (交互式对话) 流程
 
@@ -162,7 +161,7 @@ flowchart TD
     B --> C["命令分发器(Typer/Argparse)"]
 
     C -->|"viby"| D["AskCommand"]
-    C -->|"viby -s"| E["ShellCommand"]
+    C -->|"viby (shell意图)"| E["AskCommand + execute_shell工具"]
     C -->|"viby -c"| F["ChatCommand"]
     
     subgraph "(PocketFlow Nodes)"
@@ -202,7 +201,7 @@ flowchart TD
         %% 工具调用路径
         LN -->|"execute_tool"| ET["ExecuteToolNode"]:::nodeStyle
         ET -->|"执行工具"| MCP["MCP工具"]:::externalStyle
-        MCP -->|"工具结果"| ET
+        MCP(执行execute_shell等工具) -->|"工具结果"| ET
         ET -->|"call_llm"| LN
         
         %% 命令执行路径

@@ -2,6 +2,8 @@ from pocketflow import Node
 from viby.mcp import call_tool
 from viby.locale import get_text
 from viby.utils.formatting import print_markdown
+from viby.llm.nodes.handlers import handle_shell_command
+from viby.tools import AVAILABLE_TOOLS
 
 
 class ExecuteToolNode(Node):
@@ -27,6 +29,20 @@ class ExecuteToolNode(Node):
         print_markdown(tool_call_info, title, "json")
 
         try:
+            # 检查是否是viby自有工具
+            if selected_server == "viby":
+                viby_tool_names = [
+                    tool_def["name"] for tool_def in AVAILABLE_TOOLS.values()
+                ]
+                if tool_name in viby_tool_names:
+                    if tool_name == "execute_shell":
+                        command = parameters.get("command", "")
+                        result = handle_shell_command(command)
+                        return result
+                    else:
+                        raise ValueError(f"未实现的Viby工具: {tool_name}")
+
+            # 否则使用标准MCP工具调用
             result = call_tool(tool_name, selected_server, parameters)
             return result
         except Exception as e:
@@ -35,25 +51,12 @@ class ExecuteToolNode(Node):
 
     def post(self, shared, prep_res, exec_res):
         """Process the final result"""
-        # 使用标准Markdown格式打印结果
-        title = get_text("MCP", "tool_result")
-
-        # 处理可能的TextContent对象
-        try:
-            # 尝试将结果转为字符串
-            if hasattr(exec_res, "__str__"):
-                result_content = str(exec_res)
-            else:
-                result_content = exec_res
-            print_markdown(result_content, title)
-        except Exception as e:
-            # 如果序列化失败，防止崩溃
-            print(f"{get_text('MCP', 'execution_error', str(e))}")
-            print_markdown(str(exec_res), title)
-
-        # 保存响应到共享状态
-        shared["response"] = exec_res
-
-        shared["messages"].append({"role": "tool", "content": result_content})
-
+        shared["messages"].append({"role": "tool", "content": str(exec_res)})
+        
+        # 检查是否是shell命令的特殊状态
+        if isinstance(exec_res, dict) and "status" in exec_res:
+            # 如果是复制到剪贴板(y)或取消操作(q)，不需要再调用LLM
+            if exec_res["status"] in ["completed"]:
+                return "completed"
+        
         return "call_llm"

@@ -258,7 +258,7 @@ This feature is particularly useful when:
 Generate and execute Shell commands:
 
 ```bash
-yb --shell "Create a project with three subdirectories and initialize it as a git repository"
+yb "Create a project with three subdirectories and initialize it as a git repository"
 ```
 
 Example output:
@@ -376,12 +376,11 @@ Viby provides a series of commands for different ways of interacting with large 
   ```
   After entering chat mode, you can directly input questions and use `exit` to quit.
 
-### 4.3 `yb --shell [task description]`
-- **Function**: Generate appropriate Shell commands based on the task description and provide execution options (run, edit, copy, quit).
-- **Alias**: `-s`
+### 4.3 `yb [command task description]`
+- **Function**: When asking about shell commands or operations, Viby automatically detects your intent and generates appropriate commands with execution options (run, edit, copy, quit).
 - **Example**:
   ```bash
-  yb --shell "List all .txt files in the current directory and count their lines"
+  yb "List all .txt files in the current directory and count their lines"
   ```
 
 ### 4.4 `yb --config`

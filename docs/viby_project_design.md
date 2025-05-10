@@ -114,31 +114,30 @@ flowchart LR
     end
 
     subgraph ShellCommand Flow
-        CommandParser -- "viby shell" --> ShellCmd[ShellCommand]
-        ShellCmd --> PromptNode_Shell[PromptNode]
-        PromptNode_Shell -- call_llm --> LLMNode_Shell[LLMNode]
-        LLMNode_Shell -- execute_tool --> ExecuteToolNode_Shell[ExecuteToolNode]
-        ExecuteToolNode_Shell -- call_llm --> LLMNode_Shell
-        LLMNode_Shell -- continue --> ExecuteShellCommandNode[ExecuteShellCommandNode]
-        ExecuteShellCommandNode -- call_llm --> LLMNode_Shell
-        ExecuteShellCommandNode --> DummyNode_Shell[DummyNode]
+        CommandParser -- "viby (shell intent)" --> AskCmd[AskCommand]
+        AskCmd --> PromptNode_Ask[PromptNode]
+        PromptNode_Ask -- call_llm --> LLMNode_Ask[LLMNode]
+        LLMNode_Ask -- detect_shell_intent --> LLMNode_Ask
+        LLMNode_Ask -- execute_tool:execute_shell --> ExecuteToolNode_Shell[ExecuteToolNode]
+        ExecuteToolNode_Shell -- handle_shell_command --> ExecuteToolNode_Shell
+        ExecuteToolNode_Shell -- call_llm --> LLMNode_Ask
+        LLMNode_Ask --> DummyNode_Shell[DummyNode]
     end
 ```
 
-### 4.2. `ShellCommand` Detailed Process
+### 4.2. Shell Command Tool Processing
 
-`ShellCommand` is one of Viby's core functions, with a relatively complex workflow:
+Shell command processing is now integrated through the MCP tool system and automatically detected when needed:
 
-1. **Input Acquisition (`InputNode`):** Receives tasks described by users in natural language (e.g.: "List all Python files in the current directory").
-2. **Command Generation (`CommandNode` & Ollama LLM):**
-   * `CommandNode` constructs appropriate prompts from user descriptions.
-   * Calls Ollama LLM to request corresponding shell commands and Chinese explanations.
-   * LLM returns suggested commands and explanations.
+1. **Intent Detection:** When a user query is about shell commands or system operations, the system automatically detects this intent.
+2. **Command Generation (Via LLM):**
+   * LLM recognizes the shell command intent and generates appropriate shell commands.
+   * Commands are returned with explanations when appropriate.
 3. **User Interaction & Selection:**
-   * `CommandNode` displays generated commands and explanations to users.
+   * `ExecuteShellCommandNode` displays generated commands to users.
    * Provides operation options: run (`r`), edit (`e`), copy (`y`), quit (`q`).
 4. **Subsequent Processing:**
-   * **Run:** If user chooses to run, `ExecuteShellCommandNode` executes the command and displays its output or error.
+   * **Run:** If user chooses to run, the system executes the command and displays its output or error.
    * **Edit:** If user chooses to edit, the system starts the interactive editor provided by `prompt_toolkit`. After modification, users can choose to run again or quit.
    * **Copy/Quit:** Performs corresponding operations.
 
@@ -162,7 +161,7 @@ flowchart TD
     B --> C["Command Dispatcher(Typer/Argparse)"]
 
     C -->|"viby"| D["AskCommand"]
-    C -->|"viby -s"| E["ShellCommand"]
+    C -->|"viby (shell intent)"| E["AskCommand + execute_shell tool"]
     C -->|"viby -c"| F["ChatCommand"]
     
     subgraph "(PocketFlow Nodes)"
