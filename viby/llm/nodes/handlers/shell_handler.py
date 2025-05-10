@@ -10,7 +10,56 @@ from prompt_toolkit import prompt
 from prompt_toolkit.formatted_text import HTML
 from viby.utils.formatting import Colors, print_separator
 from viby.locale import get_text
+from viby.config.app_config import Config
 
+# 获取全局配置实例
+_config = Config()
+
+# 不安全命令黑名单
+UNSAFE_COMMANDS = [
+    "rm -rf", "rm -r", "rmdir", "mkfs", 
+    "dd", ":(){ :|:& };:", "chmod -R 777", 
+    "> /dev/sda", "mv /* /dev/null", "wget", "curl",
+    "sudo rm", "> /etc/passwd", "shutdown", "reboot",
+    "find / -delete", ":(){ :|:& };:", "eval"
+]
+
+def set_yolo_mode(enabled: bool) -> bool:
+    """
+    开启或关闭yolo模式
+
+    Args:
+        enabled: 是否开启yolo模式
+
+    Returns:
+        当前yolo模式状态
+    """
+    global _config
+    _config.enable_yolo_mode = enabled
+    _config.save_config()
+    return _config.enable_yolo_mode
+
+def is_yolo_mode_enabled() -> bool:
+    """
+    获取当前yolo模式状态
+
+    Returns:
+        当前yolo模式是否开启
+    """
+    global _config
+    return _config.enable_yolo_mode
+
+def _is_unsafe_command(command: str) -> bool:
+    """
+    检查命令是否在不安全命令黑名单中
+
+    Args:
+        command: 要检查的命令
+
+    Returns:
+        如果命令包含黑名单中的内容则返回True
+    """
+    return any(unsafe_cmd in command for unsafe_cmd in UNSAFE_COMMANDS)
 
 def handle_shell_command(command: str):
     """
@@ -22,8 +71,18 @@ def handle_shell_command(command: str):
     Returns:
         命令执行结果
     """
-    # 交互模式，显示命令并等待用户确认
+    # 检查是否启用yolo模式并且命令是安全的
+    if is_yolo_mode_enabled() and not _is_unsafe_command(command):
+        print(f"{Colors.BLUE}{get_text('SHELL', 'executing_yolo', command)}{Colors.END}")
+        return _execute_command(command)
+    
+    # 不是yolo模式或命令不安全，使用交互模式
     print(f"{Colors.BLUE}{get_text('SHELL', 'execute_prompt', command)}{Colors.END}")
+    
+    # 如果命令不安全且yolo模式开启，显示警告
+    if is_yolo_mode_enabled() and _is_unsafe_command(command):
+        print(f"{Colors.RED}{get_text('SHELL', 'unsafe_command_warning')}{Colors.END}")
+    
     choice_prompt_html = HTML(
         f'<span class="ansiyellow">{get_text("SHELL", "choice_prompt")}</span>'
     )

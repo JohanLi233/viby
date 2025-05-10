@@ -42,6 +42,7 @@ class Config:
         self.language: str = "en-US"  # options: en-US, zh-CN
         self.enable_mcp: bool = True
         self.mcp_config_folder: Optional[str] = None
+        self.enable_yolo_mode: bool = False  # yolo模式默认关闭
 
         # 为不同操作系统获取正确的配置目录路径
         self.config_dir: Path = self._get_config_dir()
@@ -171,6 +172,9 @@ class Config:
                     self.mcp_config_folder = config_data.get(
                         "mcp_config_folder", self.mcp_config_folder
                     )
+                    self.enable_yolo_mode = bool(
+                        config_data.get("enable_yolo_mode", self.enable_yolo_mode)
+                    )
 
                 if migrated:
                     print("迁移完成。正在保存新格式的配置。")
@@ -205,6 +209,7 @@ class Config:
             "language": self.language,
             "enable_mcp": self.enable_mcp,
             "mcp_config_folder": self.mcp_config_folder,
+            "enable_yolo_mode": self.enable_yolo_mode,
         }
 
         try:

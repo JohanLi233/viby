@@ -419,6 +419,15 @@ def run_config_wizard(config):
             + get_text("CONFIG_WIZARD", "mcp_config_info").format(config.config_dir)
         )
 
+    # Yolo模式设置
+    enable_yolo_prompt = get_text("CONFIG_WIZARD", "enable_yolo_mode_prompt")
+    enable_yolo_choices = [
+        get_text("CONFIG_WIZARD", "no"),
+        get_text("CONFIG_WIZARD", "yes"),
+    ]
+    enable_yolo = number_choice(enable_yolo_choices, enable_yolo_prompt)
+    config.enable_yolo_mode = enable_yolo == get_text("CONFIG_WIZARD", "yes")
+
     # 保存配置
     config.save_config()
 
