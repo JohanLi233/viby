@@ -120,6 +120,8 @@ MCP = {
     "result": "✅ Result: {0}",
     "executing_tool": "Executing Tool Call",
     "tool_result": "Tool Call Result",
+    "shell_tool_description": "Execute a shell command on the user's system.",
+    "shell_tool_param_command": "The shell command to execute"
 }
 
 AGENT = {

@@ -4,7 +4,7 @@ Command line argument parsing for viby
 
 import argparse
 import sys
-from typing import Tuple, Optional
+from typing import Tuple
 import importlib.metadata
 import pathlib
 import os
@@ -76,9 +76,6 @@ def get_parser() -> argparse.ArgumentParser:
     parser.add_argument("prompt", nargs="?", help=get_text("GENERAL", "prompt_help"))
     parser.add_argument(
         "--chat", "-c", action="store_true", help=get_text("GENERAL", "chat_help")
-    )
-    parser.add_argument(
-        "--shell", "-s", action="store_true", help=get_text("GENERAL", "shell_help")
     )
     parser.add_argument(
         "--config", action="store_true", help=get_text("GENERAL", "config_help")

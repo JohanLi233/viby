@@ -179,26 +179,11 @@ def main() -> int:
         user_input, has_input = process_input(args)
 
         # 懒加载模型管理器
-        if args.shell or args.chat or has_input:
+        if args.chat or has_input:
             # 只有在需要时才导入模型管理器
             from viby.llm.models import ModelManager
 
             model_manager = ModelManager(config, args)
-
-            # 优先处理特定模式，如 --shell
-            if args.shell:
-                if not has_input:
-                    get_parser().print_help()
-                    return 1
-                ShellCommand = get_command_class("shell")
-                shell_command = ShellCommand(model_manager)
-
-                # 如果启用性能调试，打印报告
-                if is_debugging_enabled():
-                    import_tracker.print_report("Shell命令初始化报告")
-                    memory_tracker.print_report("Shell命令初始化内存报告")
-
-                return shell_command.execute(user_input)
 
             # 如果是聊天模式 (显式指定 --chat 或默认进入的交互模式)
             if args.chat:

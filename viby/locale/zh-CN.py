@@ -120,6 +120,8 @@ MCP = {
     "result": "✅ 结果: {0}",
     "executing_tool": "正在执行工具调用",
     "tool_result": "工具调用结果",
+    "shell_tool_description": "在用户系统上执行shell命令",
+    "shell_tool_param_command": "要执行的shell命令"
 }
 
 AGENT = {
