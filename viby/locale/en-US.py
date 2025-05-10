@@ -126,6 +126,60 @@ MCP = {
     "shell_tool_param_command": "The shell command to execute",
 }
 
+# History command related
+HISTORY = {
+    # Command and subcommand help
+    "command_help": "Manage interaction history records",
+    "subcommand_help": "Subcommands for history management",
+    "subcommand_required": "A history subcommand must be specified (e.g., list, search, export, clear, shell)",
+    "list_help": "List recent history records",
+    "search_help": "Search history records",
+    "export_help": "Export history records",
+    "clear_help": "Clear history records",
+    "shell_help": "List shell command history",
+    # Command argument descriptions
+    "limit_help": "Number of records to display",
+    "query_help": "Search keyword",
+    "file_help": "Path to export file",
+    "format_help": "Export format (json, csv, yaml)",
+    "type_help": "Type of history to export (interactions, shell)",
+    "clear_type_help": "Type of history to clear (all, interactions, shell)",
+    "force_help": "Force clear without confirmation",
+    # List and search results
+    "recent_history": "Recent interaction history",
+    "search_results": "Search results: '{0}'",
+    "no_history": "No history records found.",
+    "no_matching_history": "No matching history for '{0}'.",
+    "no_shell_history": "No shell command history found.",
+    "recent_shell_history": "Recent shell command history",
+    # Table column titles
+    "timestamp": "Time",
+    "type": "Type",
+    "content": "Content",
+    "response": "Response",
+    "directory": "Directory",
+    "command": "Command",
+    "exit_code": "Exit code",
+    # Export related
+    "export_path_required": "Export file path is required.",
+    "create_directory_failed": "Failed to create directory: {0}",
+    "file_exists_overwrite": "File {0} already exists. Overwrite?",
+    "export_cancelled": "Export cancelled.",
+    "exporting_history": "Exporting history records...",
+    "export_successful": "History records successfully exported to {0}, format: {1}, type: {2}",
+    "export_failed": "Failed to export history records.",
+    # Clear related
+    "confirm_clear_all": "Are you sure you want to clear all history records?",
+    "confirm_clear_interactions": "Are you sure you want to clear all interaction history records?",
+    "confirm_clear_shell": "Are you sure you want to clear all shell command history records?",
+    "clear_cancelled": "Clear operation cancelled.",
+    "clearing_history": "Clearing history records...",
+    "clear_successful": "Successfully cleared {0} history records",
+    "clear_failed": "Failed to clear history records.",
+    # Error messages
+    "search_term_required": "A search keyword is required.",
+}
+
 AGENT = {
     "system_prompt": (
         "You are viby, an intelligent, thoughtful, and insightful Chinese-friendly AI assistant. "
@@ -135,10 +189,10 @@ AGENT = {
         "User OS: {os_info}\n"
         "User Shell: {shell_info}\n"
         "\n# Available Tools\n"
-        "\n{tools_info}\n"
+        "<tools>\n{tools_info}\n</tools>\n"
         "\nTo use a tool, follow this format:\n"
         '{{"name": "tool_name", "arguments": {{"param1": "value1", "param2": "value2"}}}}\n'
-        "You may call tools multiple times until the user's problem is fully solved.\n"
+        "You may call different tools multiple times until the user's problem is fully solved.\n"
         "For example, if the user asks about the current directory project, first run pwd, then ls, and if there is a README or other important file, read it before giving a complete answer.\n"
         "You have the ability to operate the computer like a user, including accessing websites and resources (e.g., use curl to check the weather)."
         "Always strive to solve the user's needs efficiently and thoroughly."
@@ -146,3 +200,9 @@ AGENT = {
 }
 
 RENDERER = {"render_error": "Rendering error: {}"}
+
+# 命令相关
+COMMANDS = {
+    "unknown_subcommand": "unknown subcommand:{0}",
+    "available_commands": "Available Commands:",
+}

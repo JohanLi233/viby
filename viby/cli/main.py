@@ -10,11 +10,12 @@ import locale
 import signal
 from typing import Optional, Dict, Any
 import importlib
+import argparse
 
-from viby.cli.arguments import parse_arguments, process_input, get_parser
+from viby.cli.arguments import parse_arguments, process_input
 from viby.config.app_config import Config
 from viby.utils.logging import setup_logging, get_logger
-from viby.locale import init_text_manager, get_text
+from viby.locale import init_text_manager
 
 # 性能监控工具导入
 from viby.utils.performance import (
@@ -151,8 +152,94 @@ def main() -> int:
         # 初始化文本管理器，保证所有命令都能安全使用 get_text
         init_text_manager(config)
 
-        # 解析命令行参数
-        args = parse_arguments()
+        # 区分 history 子命令和 ask/chat 模式
+        raw_args = sys.argv[1:]
+        if raw_args and raw_args[0] == "history":
+            # 使用原有解析器处理 history
+            args = parse_arguments()
+
+            # 手动检查是否提供了子命令
+            if not hasattr(args, "history_subcommand") or not args.history_subcommand:
+                from viby.locale import get_text
+
+                print(f"yb history: {get_text('HISTORY', 'subcommand_required')}")
+                from viby.cli.arguments import get_parser
+
+                get_parser().parse_args(["history", "-h"])
+                return 1
+
+            HistoryCommand = get_command_class("history")
+            history_command = HistoryCommand()
+            return history_command.execute(args.history_subcommand, args)
+        else:
+            # 简化解析 flags 和 prompt_args，跳过子命令解析
+            from argparse import ArgumentParser
+            from viby.cli.arguments import get_version_string, get_text
+
+            simple_parser = ArgumentParser(
+                description=get_text("GENERAL", "app_description"),
+                epilog=get_text("GENERAL", "app_epilog"),
+                formatter_class=argparse.RawDescriptionHelpFormatter,
+                add_help=False,
+            )
+            simple_parser.add_argument(
+                "-h",
+                "--help",
+                action="help",
+                default=argparse.SUPPRESS,
+                help=get_text("GENERAL", "help_text"),
+            )
+            simple_parser.add_argument(
+                "-v",
+                "--version",
+                action="version",
+                version=get_version_string(),
+                help=get_text("GENERAL", "version_help"),
+            )
+            simple_parser.add_argument(
+                "--chat",
+                "-c",
+                action="store_true",
+                help=get_text("GENERAL", "chat_help"),
+            )
+            simple_parser.add_argument(
+                "--config", action="store_true", help=get_text("GENERAL", "config_help")
+            )
+            simple_parser.add_argument(
+                "--think",
+                "-t",
+                action="store_true",
+                help=get_text("GENERAL", "think_help"),
+            )
+            simple_parser.add_argument(
+                "--fast",
+                "-f",
+                action="store_true",
+                help=get_text("GENERAL", "fast_help"),
+            )
+            simple_parser.add_argument(
+                "--language",
+                "-l",
+                choices=["en-US", "zh-CN"],
+                help=get_text("GENERAL", "language_help"),
+            )
+            simple_parser.add_argument(
+                "--tokens",
+                "-k",
+                action="store_true",
+                help=get_text("GENERAL", "tokens_help"),
+            )
+            simple_parser.add_argument(
+                "--debug-performance",
+                action="store_true",
+                help="启用性能调试模式（开发者选项）",
+            )
+            simple_parser.add_argument(
+                "prompt_args",
+                nargs=argparse.REMAINDER,
+                help=get_text("GENERAL", "prompt_help"),
+            )
+            args = simple_parser.parse_args()
 
         # 如果启用了性能调试，更新导入跟踪
         if is_debugging_enabled() and "--version" in sys.argv:
@@ -160,14 +247,18 @@ def main() -> int:
             memory_tracker.print_report("Version命令内存报告")
 
         # 处理语言参数
-        if args.language and args.language != config.language:
+        if (
+            hasattr(args, "language")
+            and args.language
+            and args.language != config.language
+        ):
             config.language = args.language
             config.save_config()
             # 重新初始化文本管理器以应用新语言
             init_text_manager(config)
 
         # 首次运行或指定 --config 参数时启动交互式配置向导
-        if config.is_first_run or args.config:
+        if config.is_first_run or getattr(args, "config", False):
             # 懒加载配置向导
             run_config_wizard = lazy_load_wizard()
             run_config_wizard(config)
@@ -178,15 +269,18 @@ def main() -> int:
         # 处理输入来源（组合命令行参数和管道输入）
         user_input, has_input = process_input(args)
 
+        # 显示调试信息
+        logger.debug(f"用户输入: '{user_input}', 有输入: {has_input}")
+
         # 懒加载模型管理器
-        if args.chat or has_input:
+        if getattr(args, "chat", False) or has_input:
             # 只有在需要时才导入模型管理器
             from viby.llm.models import ModelManager
 
             model_manager = ModelManager(config, args)
 
             # 如果是聊天模式 (显式指定 --chat 或默认进入的交互模式)
-            if args.chat:
+            if getattr(args, "chat", False):
                 ChatCommand = get_command_class("chat")
                 chat_command = ChatCommand(model_manager)
 
@@ -211,7 +305,7 @@ def main() -> int:
 
         # 如果没有输入且没有指定其他模式，显示帮助
         # 或者以上条件都不满足（例如，只提供了无效的参数组合），显示帮助
-        get_parser().print_help()
+        simple_parser.print_help()
 
         # 如果启用性能调试，打印帮助性能报告
         if is_debugging_enabled():

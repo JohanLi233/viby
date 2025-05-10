@@ -6,19 +6,25 @@ import os
 import subprocess
 import platform
 import pyperclip
+import re
 from prompt_toolkit import prompt
 from prompt_toolkit.formatted_text import HTML
 from viby.utils.formatting import Colors, print_separator
+from viby.utils.history import HistoryManager
 from viby.locale import get_text
 from viby.config.app_config import Config
 
 # 获取全局配置实例
 _config = Config()
+# 初始化历史管理器
+_history_manager = HistoryManager()
 
 # 不安全命令黑名单
 UNSAFE_COMMANDS = [
+    "rm",
     "rm -rf",
     "rm -r",
+    "rm -f",
     "rmdir",
     "mkfs",
     "dd",
@@ -32,9 +38,24 @@ UNSAFE_COMMANDS = [
     "> /etc/passwd",
     "shutdown",
     "reboot",
+    "halt",
+    "poweroff",
     "find / -delete",
     ":(){ :|:& };:",
     "eval",
+    "sudo",
+    "chown",
+    "> /dev/null",
+    "shred",
+]
+
+# 高危命令模式，使用正则表达式
+UNSAFE_PATTERNS = [
+    r"^rm\s+(-[a-zA-Z]*[fr][a-zA-Z]*\s+|--recursive\s+|--force\s+)",  # rm命令带有-f或-r参数
+    r"^sudo\s+",  # 以sudo开头的命令
+    r">\s*/dev/",  # 重定向到设备文件
+    r">\s*/etc/",  # 重定向到系统配置文件
+    r"mv\s+/\S+\s+/dev/null",  # 移动文件到/dev/null
 ]
 
 
@@ -67,15 +88,37 @@ def is_yolo_mode_enabled() -> bool:
 
 def _is_unsafe_command(command: str) -> bool:
     """
-    检查命令是否在不安全命令黑名单中
+    检查命令是否不安全
 
     Args:
         command: 要检查的命令
 
     Returns:
-        如果命令包含黑名单中的内容则返回True
+        如果命令可能不安全则返回True
     """
-    return any(unsafe_cmd in command for unsafe_cmd in UNSAFE_COMMANDS)
+    # 分割命令，获取主命令
+    cmd_parts = command.strip().split()
+    if not cmd_parts:
+        return False
+
+    main_cmd = cmd_parts[0]
+
+    # 安全命令白名单检查
+    safe_commands = ["ls", "echo", "cat", "grep", "pwd", "cd", "mkdir", "touch"]
+    if main_cmd in safe_commands:
+        return False
+
+    # 检查命令是否匹配危险模式
+    if any(re.search(pattern, command) for pattern in UNSAFE_PATTERNS):
+        return True
+
+    # 检查命令是否包含黑名单中的字符串
+    # 只检查主命令和选项，避免误判文件名或echo内容
+    command_prefix = " ".join(cmd_parts[:2] if len(cmd_parts) > 1 else cmd_parts)
+    if any(unsafe_cmd in command_prefix for unsafe_cmd in UNSAFE_COMMANDS):
+        return True
+
+    return False
 
 
 def handle_shell_command(command: str):
@@ -88,18 +131,32 @@ def handle_shell_command(command: str):
     Returns:
         命令执行结果
     """
+    # 检查命令是否安全
+    is_unsafe = _is_unsafe_command(command)
+
     # 检查是否启用yolo模式并且命令是安全的
-    if is_yolo_mode_enabled() and not _is_unsafe_command(command):
+    if is_yolo_mode_enabled() and not is_unsafe:
         print(
             f"{Colors.BLUE}{get_text('SHELL', 'executing_yolo', command)}{Colors.END}"
         )
-        return _execute_command(command)
+        result = _execute_command(command)
+        # 记录shell命令及其结果到历史记录
+        _history_manager.add_shell_command(
+            command,
+            os.getcwd(),  # 当前工作目录作为directory参数
+            result.get("code", 1),
+            {
+                "output": result.get("output", ""),
+                "error": result.get("error", ""),
+            },  # 将输出作为元数据
+        )
+        return result
 
     # 不是yolo模式或命令不安全，使用交互模式
     print(f"{Colors.BLUE}{get_text('SHELL', 'execute_prompt', command)}{Colors.END}")
 
     # 如果命令不安全且yolo模式开启，显示警告
-    if is_yolo_mode_enabled() and _is_unsafe_command(command):
+    if is_yolo_mode_enabled() and is_unsafe:
         print(f"{Colors.RED}{get_text('SHELL', 'unsafe_command_warning')}{Colors.END}")
 
     choice_prompt_html = HTML(
@@ -108,7 +165,21 @@ def handle_shell_command(command: str):
     choice = prompt(choice_prompt_html).strip().lower()
 
     # 根据用户选择执行不同操作
-    return _handle_choice(choice, command)
+    result = _handle_choice(choice, command)
+
+    # 只有在实际执行了命令时才记录历史
+    if result.get("status") == "executed":
+        _history_manager.add_shell_command(
+            command,
+            os.getcwd(),  # 当前工作目录作为directory参数
+            result.get("code", 1),
+            {
+                "output": result.get("output", ""),
+                "error": result.get("error", ""),
+            },  # 将输出作为元数据
+        )
+
+    return result
 
 
 def _execute_command(command: str) -> dict:

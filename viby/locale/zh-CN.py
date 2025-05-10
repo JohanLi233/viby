@@ -21,6 +21,7 @@ GENERAL = {
     "copy_success": "内容已复制到剪贴板！",
     "copy_fail": "复制失败: {0}",
     "help_text": "显示此帮助信息并退出",
+    "invalid_command": "无效的命令",
     # LLM相关
     "llm_empty_response": "【提示】模型没有返回任何内容，请尝试重新提问或检查您的提示。",
     # Token使用相关
@@ -126,6 +127,60 @@ MCP = {
     "shell_tool_param_command": "要执行的shell命令",
 }
 
+# 历史命令相关
+HISTORY = {
+    # 命令和子命令帮助
+    "command_help": "管理交互历史记录",
+    "subcommand_help": "历史管理的子命令",
+    "subcommand_required": "必须指定一个历史子命令（如 list、search、export、clear、shell）",
+    "list_help": "列出最近的历史记录",
+    "search_help": "搜索历史记录",
+    "export_help": "导出历史记录",
+    "clear_help": "清除历史记录",
+    "shell_help": "列出shell命令历史",
+    # 命令参数描述
+    "limit_help": "显示的记录数量",
+    "query_help": "搜索关键词",
+    "file_help": "导出文件的路径",
+    "format_help": "导出格式 (json, csv, yaml)",
+    "type_help": "导出的历史类型 (interactions, shell)",
+    "clear_type_help": "要清除的历史类型 (all, interactions, shell)",
+    "force_help": "强制清除，不提示确认",
+    # 列表和搜索结果
+    "recent_history": "最近交互历史",
+    "search_results": "搜索结果：'{0}'",
+    "no_history": "没有找到历史记录。",
+    "no_matching_history": "没有找到匹配 '{0}' 的历史记录。",
+    "no_shell_history": "没有找到Shell命令历史记录。",
+    "recent_shell_history": "最近Shell命令历史",
+    # 表格列标题
+    "timestamp": "时间",
+    "type": "类型",
+    "content": "内容",
+    "response": "回复",
+    "directory": "目录",
+    "command": "命令",
+    "exit_code": "退出码",
+    # 导出相关
+    "export_path_required": "必须指定导出文件路径。",
+    "create_directory_failed": "创建目录失败: {0}",
+    "file_exists_overwrite": "文件 {0} 已存在，是否覆盖?",
+    "export_cancelled": "导出已取消。",
+    "exporting_history": "正在导出历史记录...",
+    "export_successful": "历史记录已成功导出到 {0}，格式: {1}，类型: {2}",
+    "export_failed": "导出历史记录失败。",
+    # 清除相关
+    "confirm_clear_all": "确定要清除所有历史记录吗?",
+    "confirm_clear_interactions": "确定要清除所有交互历史记录吗?",
+    "confirm_clear_shell": "确定要清除所有Shell命令历史记录吗?",
+    "clear_cancelled": "清除操作已取消。",
+    "clearing_history": "正在清除历史记录...",
+    "clear_successful": "已成功清除 {0} 历史记录",
+    "clear_failed": "清除历史记录失败。",
+    # 错误信息
+    "search_term_required": "必须提供搜索关键词。",
+}
+
 AGENT = {
     "system_prompt": (
         "你是 viby，一位智能、贴心且富有洞察力的中文 AI 助手。你不仅被动响应，更能主动引导对话，提出见解、建议和明确的决策。"
@@ -137,7 +192,7 @@ AGENT = {
         "<tools>\n{tools_info}\n</tools>\n"
         "\n如需使用工具，请遵循以下格式：\n"
         '<tool_call>{{"name": "工具名称", "arguments": {{"参数1": "值1", "参数2": "值2"}}}}</tool_call>\n'
-        "你可多次调用工具，直到彻底解决用户问题。\n"
+        "你可多次调用不同的的工具，直到彻底解决用户问题。单是每次只能调用一个工具。\n"
         "例如，用户询问当前目录项目内容，你应先执行 pwd，再执行 ls，若有 README 等文件需进一步阅读后再完整答复。\n"
         "你具备像用户操作电脑一样的能力，可访问网站和各类资源（如查询天气可用 curl）。"
         "始终以高效、全面的流程解决用户需求。"
@@ -146,3 +201,9 @@ AGENT = {
 
 # 渲染器相关信息
 RENDERER = {"render_error": "渲染错误: {}"}
+
+# 命令相关
+COMMANDS = {
+    "unknown_subcommand": "未知子命令：{0}",
+    "available_commands": "可用命令：",
+}
