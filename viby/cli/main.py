@@ -155,6 +155,20 @@ def main() -> int:
         # 区分子命令（history、shortcuts）和 ask/chat 模式
         raw_args = sys.argv[1:]
 
+        # 处理版本 (-v / --version) 和帮助 (-h / --help) 的快捷路径，避免依赖 argparse
+        if raw_args and all(arg in ["-v", "--version"] for arg in raw_args):
+            # 版本信息
+            from viby.cli.arguments import get_version_string
+
+            print(get_version_string())
+            return 0
+        if raw_args and any(arg in ["-h", "--help"] for arg in raw_args):
+            # 帮助信息
+            from viby.cli.arguments import get_parser
+
+            get_parser().print_help()
+            return 0
+
         # 处理 history 子命令
         if raw_args and raw_args[0] == "history":
             # 使用原有解析器处理 history
