@@ -119,6 +119,27 @@ yb "What time is it now?"
 # -> "datetime": "2025-05-03T00:49:57+08:00"
 ```
 
+### Keyboard Shortcuts
+
+Viby provides a convenient keyboard shortcut (Ctrl+Q) that allows you to quickly use Viby with the current command line content:
+
+```sh
+# Install the keyboard shortcuts (auto-detects your shell)
+yb shortcuts
+
+# After installation, type any command and press Ctrl+Q
+help me analysis my readme file  # Now press Ctrl+Q
+# -> This transforms into: yb help me analysis my readme file
+# -> [AI analyzes and responds to question]
+```
+
+Supported shells:
+- Bash
+- Zsh
+- Fish
+
+After installing shortcuts, you'll need to reload your shell configuration (`source ~/.bashrc`, `source ~/.zshrc`, or equivalent) or restart your terminal for the shortcuts to take effect.
+
 For more detailed examples and advanced usage, see the [Usage Examples](./docs/viby_usage_examples.md) documentation.
 
 ## Configuration

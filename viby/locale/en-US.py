@@ -6,7 +6,7 @@ English prompts and interface text
 GENERAL = {
     # Command line arguments related
     "app_description": "viby - A versatile command-line tool for interacting with large language models",
-    "app_epilog": 'Examples:\n  viby "What is the Fibonacci sequence?"\n  git diff | viby "Help me write a commit message"\n  viby --shell "Find all json files in current directory"\n',
+    "app_epilog": 'Examples:\n  yb "What is the Fibonacci sequence?"\n  git diff | yb "Help me write a commit message"\n  yb "Find all json files in current directory"\n',
     "prompt_help": "Prompt content to send to the model",
     "chat_help": "Start an interactive chat session with the model",
     "shell_help": "Generate and optionally execute shell commands",
@@ -190,6 +190,31 @@ HISTORY = {
     "clear_failed": "Failed to clear history records.",
     # Error messages
     "search_term_required": "A search keyword is required.",
+}
+
+# Shortcuts command related
+SHORTCUTS = {
+    # Command and subcommand help
+    "command_help": "Install terminal keyboard shortcuts (Ctrl+Q activates Viby), auto-detects shell type",
+    "subcommand_help": "Keyboard shortcuts management subcommands (optional)",
+    "install_help": "Install keyboard shortcuts to shell configuration",
+    "shell_help": "Optional: manually specify shell type (auto-detected by default)",
+    # Operation results
+    "install_success": "Shortcuts successfully installed to {0}",
+    "install_exists": "Shortcuts already exist in {0}",
+    "install_error": "Failed to install shortcuts: {0}",
+    "shell_not_supported": "Unsupported shell type: {0}",
+    "action_required": "Please run 'source {0}' or restart your terminal to activate shortcuts",
+    "activation_note": "After installation, you can use Ctrl+Q shortcut to quickly launch Viby",
+    # Auto-detection related
+    "auto_detect_shell": "Auto-detected shell type",
+    "auto_detect_failed": "Unable to auto-detect shell type, will try common shell types",
+    # Logs and status messages
+    "read_config_error": "Error reading configuration file",
+    "install_error_log": "Error adding shortcuts",
+    "status": "Status",
+    "message": "Message",
+    "action_instructions": "Required action: source {0} or restart terminal"
 }
 
 AGENT = {

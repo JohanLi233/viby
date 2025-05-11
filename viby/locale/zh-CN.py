@@ -6,7 +6,7 @@
 GENERAL = {
     # 命令行参数相关
     "app_description": "viby - 一个多功能的命令行工具，用于与大型语言模型交互",
-    "app_epilog": '示例：\n  viby "什么是斐波那契数列？"\n  git diff | viby "帮我写一个提交消息"\n  viby --shell "在当前目录中找到所有json文件"\n',
+    "app_epilog": '示例：\n  yb "什么是斐波那契数列？"\n  git diff | yb "帮我写一个提交消息"\n  yb "在当前目录中找到所有json文件"\n',
     "prompt_help": "发送给模型的提示内容",
     "chat_help": "启动与模型的交互式聊天会话",
     "shell_help": "生成并可选择执行shell命令",
@@ -193,6 +193,31 @@ HISTORY = {
     "search_term_required": "必须提供搜索关键词。",
 }
 
+# 快捷键相关
+SHORTCUTS = {
+    # 命令和子命令帮助
+    "command_help": "安装终端键盘快捷键（Ctrl+Q 激活 Viby），自动检测shell类型",
+    "subcommand_help": "快捷键管理子命令（可选）",
+    "install_help": "安装键盘快捷键到shell配置",
+    "shell_help": "可选：手动指定shell类型（默认自动检测）",
+    # 操作结果
+    "install_success": "快捷键已成功安装到{0}",
+    "install_exists": "快捷键已存在于{0}",
+    "install_error": "安装快捷键失败: {0}",
+    "shell_not_supported": "不支持的shell类型: {0}",
+    "action_required": "请运行 'source {0}' 或重新启动终端以激活快捷键",
+    "activation_note": "安装成功后，您可以使用 Ctrl+Q 快捷键来快速启动 Viby",
+    # 自动检测部分
+    "auto_detect_shell": "自动检测到shell类型",
+    "auto_detect_failed": "无法自动检测shell类型，将尝试常见shell类型",
+    # 日志和状态消息
+    "read_config_error": "读取配置文件时出错",
+    "install_error_log": "添加快捷键时出错",
+    "status": "状态",
+    "message": "消息",
+    "action_instructions": "需要操作: source {0} 或重启终端"
+}
+
 AGENT = {
     "system_prompt": (
         "你是 viby，一位智能、贴心且富有洞察力的中文 AI 助手。你不仅被动响应，更能主动引导对话，提出见解、建议和明确的决策。"
@@ -204,10 +229,10 @@ AGENT = {
         "<tools>\n{tools_info}\n</tools>\n"
         "\n如需使用工具，请遵循以下格式：\n"
         '<tool_call>{{"name": "工具名称", "arguments": {{"参数1": "值1", "参数2": "值2"}}}}</tool_call>\n'
-        "你可多次调用不同的的工具，直到彻底解决用户问题。单是每次只能调用一个工具。\n"
+        "你可多次调用不同的的工具，直到彻底解决用户问题。但每次只能调用一个工具。\n"
         "例如，用户询问当前目录项目内容，你应先执行 pwd，再执行 ls，若有 README 等文件需进一步阅读后再完整答复。\n"
         "你具备像用户操作电脑一样的能力，可访问网站和各类资源（如查询天气可用 curl）。"
-        "始终以高效、全面的流程解决用户需求。"
+        "保证始终以高效、全面的流程彻底解决用户需求。"
     )
 }
 

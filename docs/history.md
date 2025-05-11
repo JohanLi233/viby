@@ -92,7 +92,7 @@ yb history clear --shell
 
 历史记录存储在SQLite数据库中，默认路径为：
 
-- **macOS/Linux**: `~/.config/viby/_history.db`
+- **macOS/Linux**: `~/.config/viby/history.db`
 
 可以通过环境变量`VIBY_HISTORY_DB_PATH`自定义数据库路径。
 

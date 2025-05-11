@@ -118,8 +118,28 @@ yb "现在几点了？"
 # -> "datetime": "2025-05-03T00:49:57+08:00"
 ```
 
-更多详细示例和高级用法，请参阅[使用示例](./docs/viby_使用示例.md)文档。
+### 键盘快捷键
 
+Viby 提供了一个便捷的键盘快捷键（Ctrl+Q），让你可以快速将当前命令行内容传递给 Viby：
+
+```sh
+# 安装键盘快捷键（自动检测你的 shell 类型）
+yb shortcuts
+
+# 安装后，输入任何命令并按下 Ctrl+Q
+帮我阅读分析readme文件  # 现在按 Ctrl+Q
+# -> 这会转变为: yb 帮我阅读分析readme文件
+# -> [AI 阅读readme文件并总结]
+```
+
+支持的 shell：
+- Bash
+- Zsh
+- Fish
+
+安装快捷键后，你需要重新加载 shell 配置（`source ~/.bashrc`、`source ~/.zshrc` 或类似命令）或重启终端才能使快捷键生效。
+
+更多详细示例和高级用法，请参阅[使用示例](./docs/viby_使用示例.md)文档。
 ## 配置
 
 Viby 从 `~/.config/viby/config.yaml` 读取配置。你可以在这里设置模型、参数和 MCP 选项。
