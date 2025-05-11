@@ -1,20 +1,26 @@
-default_api_base_url: http://localhost:1234/v1
-default_api_key: null
 default_model:
   name: qwen3-30b-a3b-mlx@4bit
   api_base_url: http://localhost:1234/v1
+  api_key: null
   max_tokens: 40960
+  temperature: 0.6
+  top_p: 0.95
 think_model:
   name: deepseek/deepseek-chat-v3-0324:free
   api_base_url: https://openrouter.ai/api/v1
   api_key: <API_KEY>
-  max_tokens: 131072
+  max_tokens: 20480
+  temperature: 0.7
+  top_p: null
 fast_model:
   name: qwen3-0.6b-mlx
-  max_tokens: 40960
-temperature: 0.7
-max_tokens: 20480
+  api_base_url: null
+  api_key: null
+  max_tokens: 20480
+  temperature: 0.7
+  top_p: null
 api_timeout: 300
 language: zh-CN
 enable_mcp: true
 mcp_config_folder: null
+enable_yolo_mode: true

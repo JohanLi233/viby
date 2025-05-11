@@ -20,13 +20,18 @@ def mock_config_path():
         config_dir.mkdir(parents=True)
         config_path = config_dir / "config.yaml"
 
-        # 写入基本配置
+        # 写入基本配置（使用新的配置格式）
         with open(config_path, "w") as f:
             f.write("""
+default_model:
+  name: test-model
+  temperature: 0.7
+  max_tokens: 40960
+  api_base_url: null
+  api_key: null
+  top_p: null
 language: zh-CN
 enable_mcp: true
-temperature: 0.7
-max_tokens: 40960
 api_timeout: 300
             """)
 
@@ -49,9 +54,15 @@ def test_config_with_logging_integration(mock_config_path, mock_logger):
             # 验证配置加载正确
             assert config.language == "zh-CN"
             assert config.enable_mcp is True
-            assert config.temperature == 0.7
-            assert config.max_tokens == 40960
+            # 使用新的配置结构验证模型属性
+            assert config.default_model.temperature == 0.7
+            assert config.default_model.max_tokens == 40960
             assert config.api_timeout == 300
+
+            # 或者通过get_model_config方法验证
+            model_config = config.get_model_config()
+            assert model_config["temperature"] == 0.7
+            assert model_config["max_tokens"] == 40960
 
             # 修改配置
             config.language = "en-US"

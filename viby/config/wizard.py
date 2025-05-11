@@ -88,6 +88,83 @@ def validate_url(url):
     return True
 
 
+def configure_model_profile(profile, model_type, config):
+    """配置模型资料"""
+    model_name_prompt = get_text("CONFIG_WIZARD", f"{model_type}_model_name_prompt")
+    current_name = profile.name if profile else ""
+    
+    name_input = get_input(model_name_prompt, current_name, allow_pass_keyword=True)
+    
+    if not name_input or name_input == PASS_SENTINEL:
+        return None
+        
+    if not profile or profile.name != name_input:
+        profile = ModelProfileConfig(name=name_input)
+    
+    # 模型特定URL
+    url_prompt = get_text("CONFIG_WIZARD", "model_specific_url_prompt").format(model_name=profile.name)
+    url_input = get_input(
+        url_prompt,
+        profile.api_base_url or "",
+        validator=lambda x: not x or validate_url(x),
+        allow_pass_keyword=True,
+    )
+    profile.api_base_url = None if not url_input or url_input == PASS_SENTINEL else url_input
+    
+    # 模型特定API密钥
+    key_prompt = get_text("CONFIG_WIZARD", "model_specific_key_prompt").format(model_name=profile.name)
+    key_input = get_input(key_prompt, profile.api_key or "", allow_pass_keyword=True)
+    profile.api_key = None if not key_input or key_input == PASS_SENTINEL else key_input
+    
+    # 最大令牌数
+    tokens_prompt = get_text("CONFIG_WIZARD", "model_max_tokens_prompt").format(model_name=profile.name)
+    while True:
+        max_tokens = get_input(tokens_prompt, str(profile.max_tokens or 40960))
+        try:
+            tokens_value = int(max_tokens)
+            if tokens_value > 0:
+                profile.max_tokens = tokens_value
+                break
+            print(get_text("CONFIG_WIZARD", "tokens_positive"))
+        except ValueError:
+            print(get_text("CONFIG_WIZARD", "invalid_integer"))
+    
+    # 温度设置
+    temp_prompt = get_text("CONFIG_WIZARD", "model_temperature_prompt").format(model_name=profile.name)
+    while True:
+        temperature = get_input(temp_prompt, str(profile.temperature or 0.7), allow_pass_keyword=True)
+        if temperature == PASS_SENTINEL:
+            profile.temperature = None
+            break
+        try:
+            temp_value = float(temperature)
+            if 0.0 <= temp_value <= 1.0:
+                profile.temperature = temp_value
+                break
+            print(get_text("CONFIG_WIZARD", "temperature_range"))
+        except ValueError:
+            print(get_text("CONFIG_WIZARD", "invalid_decimal"))
+    
+    # top_p设置
+    top_p_prompt = get_text("CONFIG_WIZARD", "model_top_p_prompt").format(model_name=profile.name)
+    top_p = get_input(top_p_prompt, str(profile.top_p or ""), allow_pass_keyword=True)
+    if top_p == PASS_SENTINEL or not top_p:
+        profile.top_p = None
+    else:
+        try:
+            top_p_value = float(top_p)
+            if 0.0 <= top_p_value <= 1.0:
+                profile.top_p = top_p_value
+            else:
+                print(get_text("CONFIG_WIZARD", "top_p_range"))
+                profile.top_p = None
+        except ValueError:
+            print(get_text("CONFIG_WIZARD", "invalid_top_p"))
+            profile.top_p = None
+    
+    return profile
+
+
 def run_config_wizard(config):
     """配置向导主函数"""
     # 初始化文本管理器，加载初始语言文本
@@ -126,375 +203,22 @@ def run_config_wizard(config):
     init_text_manager(config)
     print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
 
-    get_text("CONFIG_WIZARD", "api_timeout_prompt")
-    save_prompt = get_text("CONFIG_WIZARD", "config_saved")
-    continue_prompt = get_text("CONFIG_WIZARD", "continue_prompt")
-
     print()
     print_separator()
 
-    # --- 全局API设置 ---
-    default_api_url_prompt = (
-        get_text("CONFIG_WIZARD", "default_api_url_prompt")
-        if callable(get_text)
-        else "默认API基地址"
-    )
-    config.default_api_base_url = get_input(
-        default_api_url_prompt,
-        config.default_api_base_url or "http://localhost:11434",
-        validator=validate_url,
-    )
-
-    default_api_key_prompt = (
-        get_text("CONFIG_WIZARD", "default_api_key_prompt")
-        if callable(get_text)
-        else "默认API密钥（可选）"
-    )
-    config.default_api_key = get_input(
-        default_api_key_prompt, config.default_api_key or "", allow_pass_keyword=True
-    )
-    if not config.default_api_key or config.default_api_key == PASS_SENTINEL:
-        config.default_api_key = None
-
-    print_separator()
-
-    # --- 默认模型配置（必填） ---
+    # --- 默认模型配置 ---
     print_header(get_text("CONFIG_WIZARD", "default_model_header"))
-
-    # 确保default_model是ModelProfileConfig实例并且有一个名称。
-    # 这应该是由app_config.py的初始化保证的，但作为一个安全措施：
-    if not isinstance(config.default_model, ModelProfileConfig):
-        config.default_model = ModelProfileConfig(name="qwen3:30b")
-    elif not config.default_model.name:
-        config.default_model.name = "qwen3:30b"
-
-    default_model_name_prompt_text = get_text(
-        "CONFIG_WIZARD", "default_model_name_prompt"
-    )
-    # 直接获取模型名称输入，使用现有名称作为默认值。
-    config.default_model.name = get_input(
-        default_model_name_prompt_text, config.default_model.name
-    )
-
-    # 格式化提示字符串以包含实际模型名称
-    formatted_default_model_url_prompt = get_text(
-        "CONFIG_WIZARD", "model_specific_url_prompt"
-    ).format(model_name=config.default_model.name)
-    user_provided_default_model_url = get_input(
-        formatted_default_model_url_prompt,
-        config.default_model.api_base_url or "",
-        validator=lambda x: not x or validate_url(x),
-        allow_pass_keyword=True,
-    )
-    if (
-        not user_provided_default_model_url
-        or user_provided_default_model_url == PASS_SENTINEL
-    ):
-        config.default_model.api_base_url = None  # 存储None以使用全局
-    else:
-        config.default_model.api_base_url = user_provided_default_model_url
-
-    # 格式化提示字符串以包含实际模型名称
-    formatted_default_model_key_prompt = get_text(
-        "CONFIG_WIZARD", "model_specific_key_prompt"
-    ).format(model_name=config.default_model.name)
-    config.default_model.api_key = get_input(
-        formatted_default_model_key_prompt,
-        config.default_model.api_key or "",
-        allow_pass_keyword=True,
-    )
-    if (
-        not config.default_model.api_key
-        or config.default_model.api_key == PASS_SENTINEL
-    ):
-        config.default_model.api_key = None  # 存储None如果为空
-
-    # 默认模型特定的最大令牌数
-    default_model_max_tokens_prompt = get_text(
-        "CONFIG_WIZARD", "model_max_tokens_prompt"
-    ).format(model_name=config.default_model.name)
-    while True:
-        max_tokens = get_input(
-            default_model_max_tokens_prompt,
-            str(40960),
-        )
-        try:
-            tokens_value = int(max_tokens)
-            if tokens_value > 0:
-                config.default_model.max_tokens = tokens_value
-                break
-            print(get_text("CONFIG_WIZARD", "tokens_positive", "请输入正整数"))
-        except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_integer", "请输入有效的整数"))
-
-    # 默认模型温度设置
-    default_model_temperature_prompt = get_text(
-        "CONFIG_WIZARD", "model_temperature_prompt"
-    ).format(model_name=config.default_model.name)
-    while True:
-        temperature = get_input(
-            default_model_temperature_prompt, str(0.7), allow_pass_keyword=True
-        )
-        if temperature == PASS_SENTINEL:
-            config.default_model.temperature = None
-            break
-        try:
-            temp_value = float(temperature)
-            if 0.0 <= temp_value <= 1.0:
-                config.default_model.temperature = temp_value
-                break
-            print(get_text("CONFIG_WIZARD", "temperature_range"))
-        except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_decimal"))
-
-    # 默认模型top_p设置
-    default_model_top_p_prompt = get_text("CONFIG_WIZARD", "model_top_p_prompt").format(
-        model_name=config.default_model.name
-    )
-    top_p = get_input(
-        default_model_top_p_prompt,
-        str(config.default_model.top_p or ""),
-        allow_pass_keyword=True,
-    )
-    if top_p == PASS_SENTINEL or not top_p:
-        config.default_model.top_p = None
-    else:
-        try:
-            top_p_value = float(top_p)
-            if 0.0 <= top_p_value <= 1.0:
-                config.default_model.top_p = top_p_value
-            else:
-                print(get_text("CONFIG_WIZARD", "top_p_range"))
-                config.default_model.top_p = None
-        except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_top_p"))
-            config.default_model.top_p = None
+    config.default_model = configure_model_profile(config.default_model, "default", config)
     print_separator()
 
-    # --- 思考模型配置（可选） ---
+    # --- 思考模型配置 ---
     print_header(get_text("CONFIG_WIZARD", "think_model_header"))
-    think_model_name_prompt = get_text("CONFIG_WIZARD", "think_model_name_prompt")
-    current_think_model_name = config.think_model.name if config.think_model else ""
-
-    think_model_name_input = get_input(
-        think_model_name_prompt, current_think_model_name, allow_pass_keyword=True
-    )
-
-    if think_model_name_input and think_model_name_input != PASS_SENTINEL:
-        if not config.think_model or config.think_model.name != think_model_name_input:
-            config.think_model = ModelProfileConfig(name=think_model_name_input)
-        # 如果名称没有改变并且配置文件存在，我们只需在下面确认/更新URL/密钥
-
-        # 格式化提示字符串以包含实际模型名称
-        formatted_think_model_url_prompt = get_text(
-            "CONFIG_WIZARD", "model_specific_url_prompt"
-        ).format(model_name=config.think_model.name)
-        user_provided_think_model_url = get_input(
-            formatted_think_model_url_prompt,
-            config.think_model.api_base_url or "",
-            validator=lambda x: not x or validate_url(x),
-            allow_pass_keyword=True,
-        )
-        if (
-            not user_provided_think_model_url
-            or user_provided_think_model_url == PASS_SENTINEL
-        ):
-            config.think_model.api_base_url = None
-        else:
-            config.think_model.api_base_url = user_provided_think_model_url
-
-        # 格式化提示字符串以包含实际模型名称
-        formatted_think_model_key_prompt = get_text(
-            "CONFIG_WIZARD", "model_specific_key_prompt"
-        ).format(model_name=config.think_model.name)
-        config.think_model.api_key = get_input(
-            formatted_think_model_key_prompt,
-            config.think_model.api_key or "",
-            allow_pass_keyword=True,
-        )
-        if (
-            not config.think_model.api_key
-            or config.think_model.api_key == PASS_SENTINEL
-        ):
-            config.think_model.api_key = None
-
-        # 思考模型特定的最大令牌数
-        think_model_max_tokens_prompt = get_text(
-            "CONFIG_WIZARD", "model_max_tokens_prompt"
-        ).format(model_name=config.think_model.name)
-        while True:
-            max_tokens = get_input(
-                think_model_max_tokens_prompt,
-                str(config.think_model.max_tokens or 40960),
-            )
-            try:
-                tokens_value = int(max_tokens)
-                if tokens_value > 0:
-                    config.think_model.max_tokens = tokens_value
-                    break
-                print(get_text("CONFIG_WIZARD", "tokens_positive", "请输入正整数"))
-            except ValueError:
-                print(get_text("CONFIG_WIZARD", "invalid_integer", "请输入有效的整数"))
-
-        # 思考模型温度设置
-        think_model_temperature_prompt = get_text(
-            "CONFIG_WIZARD", "model_temperature_prompt"
-        ).format(model_name=config.think_model.name)
-        while True:
-            temperature = get_input(
-                think_model_temperature_prompt,
-                str(config.think_model.temperature or 0.7),
-                allow_pass_keyword=True,
-            )
-            if temperature == PASS_SENTINEL:
-                config.think_model.temperature = None
-                break
-            try:
-                temp_value = float(temperature)
-                if 0.0 <= temp_value <= 1.0:
-                    config.think_model.temperature = temp_value
-                    break
-                print(get_text("CONFIG_WIZARD", "temperature_range"))
-            except ValueError:
-                print(get_text("CONFIG_WIZARD", "invalid_decimal"))
-
-        # 思考模型top_p设置
-        think_model_top_p_prompt = get_text(
-            "CONFIG_WIZARD", "model_top_p_prompt"
-        ).format(model_name=config.think_model.name)
-        top_p = get_input(
-            think_model_top_p_prompt,
-            str(config.think_model.top_p or ""),
-            allow_pass_keyword=True,
-        )
-        if top_p == PASS_SENTINEL or not top_p:
-            config.think_model.top_p = None
-        else:
-            try:
-                top_p_value = float(top_p)
-                if 0.0 <= top_p_value <= 1.0:
-                    config.think_model.top_p = top_p_value
-                else:
-                    print(get_text("CONFIG_WIZARD", "top_p_range"))
-                    config.think_model.top_p = None
-            except ValueError:
-                print(get_text("CONFIG_WIZARD", "invalid_top_p"))
-                config.think_model.top_p = None
-
-    elif config.think_model:  # 用户输入"pass"或空白名称
-        config.think_model = None
-
+    config.think_model = configure_model_profile(config.think_model, "think", config)
     print_separator()
 
-    # --- 快速模型配置（可选） ---
+    # --- 快速模型配置 ---
     print_header(get_text("CONFIG_WIZARD", "fast_model_header"))
-    fast_model_name_prompt = get_text("CONFIG_WIZARD", "fast_model_name_prompt")
-    current_fast_model_name = config.fast_model.name if config.fast_model else ""
-
-    fast_model_name_input = get_input(
-        fast_model_name_prompt, current_fast_model_name, allow_pass_keyword=True
-    )
-
-    if fast_model_name_input and fast_model_name_input != PASS_SENTINEL:
-        if not config.fast_model or config.fast_model.name != fast_model_name_input:
-            config.fast_model = ModelProfileConfig(name=fast_model_name_input)
-
-        # 格式化提示字符串以包含实际模型名称
-        formatted_fast_model_url_prompt = get_text(
-            "CONFIG_WIZARD", "model_specific_url_prompt"
-        ).format(model_name=config.fast_model.name)
-        user_provided_fast_model_url = get_input(
-            formatted_fast_model_url_prompt,
-            config.fast_model.api_base_url or "",
-            validator=lambda x: not x or validate_url(x),
-            allow_pass_keyword=True,
-        )
-        if (
-            not user_provided_fast_model_url
-            or user_provided_fast_model_url == PASS_SENTINEL
-        ):
-            config.fast_model.api_base_url = None
-        else:
-            config.fast_model.api_base_url = user_provided_fast_model_url
-
-        # 格式化提示字符串以包含实际模型名称
-        formatted_fast_model_key_prompt = get_text(
-            "CONFIG_WIZARD", "model_specific_key_prompt"
-        ).format(model_name=config.fast_model.name)
-        config.fast_model.api_key = get_input(
-            formatted_fast_model_key_prompt,
-            config.fast_model.api_key or "",
-            allow_pass_keyword=True,
-        )
-        if not config.fast_model.api_key or config.fast_model.api_key == PASS_SENTINEL:
-            config.fast_model.api_key = None
-
-        # 快速模型特定的最大令牌数
-        fast_model_max_tokens_prompt = get_text(
-            "CONFIG_WIZARD", "model_max_tokens_prompt"
-        ).format(model_name=config.fast_model.name)
-        while True:
-            max_tokens = get_input(
-                fast_model_max_tokens_prompt,
-                str(config.fast_model.max_tokens or 40960),
-            )
-            try:
-                tokens_value = int(max_tokens)
-                if tokens_value > 0:
-                    config.fast_model.max_tokens = tokens_value
-                    break
-                print(get_text("CONFIG_WIZARD", "tokens_positive", "请输入正整数"))
-            except ValueError:
-                print(get_text("CONFIG_WIZARD", "invalid_integer", "请输入有效的整数"))
-
-        # 快速模型温度设置
-        fast_model_temperature_prompt = get_text(
-            "CONFIG_WIZARD", "model_temperature_prompt"
-        ).format(model_name=config.fast_model.name)
-        while True:
-            temperature = get_input(
-                fast_model_temperature_prompt,
-                str(config.fast_model.temperature or 0.7),
-                allow_pass_keyword=True,
-            )
-            if temperature == PASS_SENTINEL:
-                config.fast_model.temperature = None
-                break
-            try:
-                temp_value = float(temperature)
-                if 0.0 <= temp_value <= 1.0:
-                    config.fast_model.temperature = temp_value
-                    break
-                print(get_text("CONFIG_WIZARD", "temperature_range"))
-            except ValueError:
-                print(get_text("CONFIG_WIZARD", "invalid_decimal"))
-
-        # 快速模型top_p设置
-        fast_model_top_p_prompt = get_text(
-            "CONFIG_WIZARD", "model_top_p_prompt"
-        ).format(model_name=config.fast_model.name)
-        top_p = get_input(
-            fast_model_top_p_prompt,
-            str(config.fast_model.top_p or ""),
-            allow_pass_keyword=True,
-        )
-        if top_p == PASS_SENTINEL or not top_p:
-            config.fast_model.top_p = None
-        else:
-            try:
-                top_p_value = float(top_p)
-                if 0.0 <= top_p_value <= 1.0:
-                    config.fast_model.top_p = top_p_value
-                else:
-                    print(get_text("CONFIG_WIZARD", "top_p_range"))
-                    config.fast_model.top_p = None
-            except ValueError:
-                print(get_text("CONFIG_WIZARD", "invalid_top_p"))
-                config.fast_model.top_p = None
-
-    elif config.fast_model:  # 用户输入为空或输入"pass"，表示要跳过此模型配置
-        config.fast_model = None
-
+    config.fast_model = configure_model_profile(config.fast_model, "fast", config)
     print_separator()
 
     # MCP工具设置
@@ -527,6 +251,7 @@ def run_config_wizard(config):
 
     print()
     print_separator()
-    print(f"{save_prompt}: {config.config_path}")
-    input(f"\n{continue_prompt}")
+    print(f"{get_text('CONFIG_WIZARD', 'config_saved')}: {config.config_path}")
+    input(f"\n{get_text('CONFIG_WIZARD', 'continue_prompt')}")
     return config
+

@@ -24,27 +24,23 @@ class Config:
     """viby 应用的配置管理器"""
 
     def __init__(self):
-        # Default global API settings
-        self.default_api_base_url: Optional[str] = "http://localhost:11434"
-        self.default_api_key: Optional[str] = None
-
-        # Model profiles
-        self.default_model: ModelProfileConfig = ModelProfileConfig(name="qwen3:30b")
-        self.think_model: Optional[ModelProfileConfig] = ModelProfileConfig(
-            name=""
-        )  # Initialize with empty name
-        self.fast_model: Optional[ModelProfileConfig] = ModelProfileConfig(
-            name=""
-        )  # Initialize with empty name
-
-        # Other general settings
+        # 全局设置
         self.api_timeout: int = 300
         self.language: str = "en-US"  # options: en-US, zh-CN
         self.enable_mcp: bool = True
         self.mcp_config_folder: Optional[str] = None
         self.enable_yolo_mode: bool = False  # yolo模式默认关闭
 
-        # 为不同操作系统获取正确的配置目录路径
+        # 模型配置
+        self.default_model: ModelProfileConfig = ModelProfileConfig(name="qwen3:30b")
+        self.think_model: Optional[ModelProfileConfig] = ModelProfileConfig(
+            name=""
+        )  # 使用空名称初始化
+        self.fast_model: Optional[ModelProfileConfig] = ModelProfileConfig(
+            name=""
+        )  # 使用空名称初始化
+
+        # 配置文件路径
         self.config_dir: Path = self._get_config_dir()
         self.config_path: Path = self.config_dir / "config.yaml"
 
@@ -53,14 +49,12 @@ class Config:
 
         self.is_first_run: bool = not self.config_path.exists()
         if self.is_first_run:
-            self.save_config()  # Save initial new-format config
+            self.save_config()  # 保存初始配置
 
         self.load_config()
 
     def _get_config_dir(self) -> Path:
-        """
-        获取适合当前操作系统的配置目录路径
-        """
+        """获取适合当前操作系统的配置目录路径"""
         system = platform.system()
 
         if system == "Windows":
@@ -87,111 +81,81 @@ class Config:
         return obj
 
     def load_config(self) -> None:
-        """从YAML文件加载配置，支持从旧格式迁移"""
+        """从YAML文件加载配置"""
         try:
             if self.config_path.exists():
                 with open(self.config_path, "r", encoding="utf-8") as f:
                     config_data = yaml.safe_load(f) or {}
 
-                # --- 从旧格式迁移 ---
-                migrated = False
-                if "model" in config_data and isinstance(config_data["model"], str):
-                    print("正在将旧配置格式迁移到新结构...")
-                    self.default_api_base_url = config_data.get(
-                        "base_url", self.default_api_base_url
-                    )
-                    self.default_api_key = config_data.get(
-                        "api_key", self.default_api_key
-                    )
+                # 加载模型配置
+                default_model_data = config_data.get("default_model")
+                if default_model_data and isinstance(default_model_data, dict):
+                    model_profile = ModelProfileConfig()
+                    model_profile.name = default_model_data.get("name", "")
+                    model_profile.api_base_url = default_model_data.get("api_base_url")
+                    model_profile.api_key = default_model_data.get("api_key")
+                    model_profile.max_tokens = default_model_data.get("max_tokens")
+                    model_profile.temperature = default_model_data.get("temperature")
+                    model_profile.top_p = default_model_data.get("top_p")
+                    self.default_model = model_profile
 
-                    self.default_model.name = config_data.get(
-                        "model", self.default_model.name
-                    )
-                    self.default_model.api_base_url = config_data.get("base_url")
+                think_model_data = config_data.get("think_model")
+                if think_model_data and isinstance(think_model_data, dict):
+                    model_profile = ModelProfileConfig()
+                    model_profile.name = think_model_data.get("name", "")
+                    model_profile.api_base_url = think_model_data.get("api_base_url")
+                    model_profile.api_key = think_model_data.get("api_key")
+                    model_profile.max_tokens = think_model_data.get("max_tokens")
+                    model_profile.temperature = think_model_data.get("temperature")
+                    model_profile.top_p = think_model_data.get("top_p")
+                    self.think_model = model_profile
+                elif not think_model_data:
+                    self.think_model = None
 
-                    if config_data.get("think_model"):
-                        if self.think_model is None:
-                            self.think_model = ModelProfileConfig()
-                        self.think_model.name = config_data["think_model"]
-                        self.think_model.api_base_url = config_data.get(
-                            "think_model_base_url"
-                        )
-                    else:
-                        self.think_model = None
+                fast_model_data = config_data.get("fast_model")
+                if fast_model_data and isinstance(fast_model_data, dict):
+                    model_profile = ModelProfileConfig()
+                    model_profile.name = fast_model_data.get("name", "")
+                    model_profile.api_base_url = fast_model_data.get("api_base_url")
+                    model_profile.api_key = fast_model_data.get("api_key")
+                    model_profile.max_tokens = fast_model_data.get("max_tokens")
+                    model_profile.temperature = fast_model_data.get("temperature")
+                    model_profile.top_p = fast_model_data.get("top_p")
+                    self.fast_model = model_profile
+                elif not fast_model_data:
+                    self.fast_model = None
 
-                    if config_data.get("fast_model"):
-                        if self.fast_model is None:
-                            self.fast_model = ModelProfileConfig()
-                        self.fast_model.name = config_data["fast_model"]
-                        self.fast_model.api_base_url = config_data.get(
-                            "fast_model_base_url"
-                        )
-                    else:
-                        self.fast_model = None
-
-                    self.api_timeout = config_data.get("api_timeout", self.api_timeout)
-                    self.language = config_data.get("language", self.language)
-                    self.enable_mcp = config_data.get("enable_mcp", self.enable_mcp)
-                    self.mcp_config_folder = config_data.get(
-                        "mcp_config_folder", self.mcp_config_folder
-                    )
-                    migrated = True
-                else:
-                    self.default_api_base_url = config_data.get(
-                        "default_api_base_url", self.default_api_base_url
-                    )
-                    self.default_api_key = config_data.get(
-                        "default_api_key", self.default_api_key
-                    )
-
-                    default_model_data = config_data.get("default_model")
-                    if default_model_data and isinstance(default_model_data, dict):
-                        self.default_model = ModelProfileConfig(**default_model_data)
-
-                    think_model_data = config_data.get("think_model")
-                    if think_model_data and isinstance(think_model_data, dict):
-                        self.think_model = ModelProfileConfig(**think_model_data)
-                    elif not think_model_data:
-                        self.think_model = None
-
-                    fast_model_data = config_data.get("fast_model")
-                    if fast_model_data and isinstance(fast_model_data, dict):
-                        self.fast_model = ModelProfileConfig(**fast_model_data)
-                    elif not fast_model_data:
-                        self.fast_model = None
-
-                    self.api_timeout = int(
-                        config_data.get("api_timeout", self.api_timeout)
-                    )
-                    self.language = config_data.get("language", self.language)
-                    self.enable_mcp = bool(
-                        config_data.get("enable_mcp", self.enable_mcp)
-                    )
-                    self.mcp_config_folder = config_data.get(
-                        "mcp_config_folder", self.mcp_config_folder
-                    )
-                    self.enable_yolo_mode = bool(
-                        config_data.get("enable_yolo_mode", self.enable_yolo_mode)
-                    )
-
-                if migrated:
-                    print("迁移完成。正在保存新格式的配置。")
-                    self.save_config()
+                # 加载全局设置
+                self.api_timeout = int(
+                    config_data.get("api_timeout", self.api_timeout)
+                )
+                self.language = config_data.get("language", self.language)
+                self.enable_mcp = bool(
+                    config_data.get("enable_mcp", self.enable_mcp)
+                )
+                self.mcp_config_folder = config_data.get(
+                    "mcp_config_folder", self.mcp_config_folder
+                )
+                self.enable_yolo_mode = bool(
+                    config_data.get("enable_yolo_mode", self.enable_yolo_mode)
+                )
 
         except Exception as e:
-            print(f"警告: 无法从 {self.config_path} 加载或迁移配置: {e}。使用默认值。")
+            print(f"警告: 无法从 {self.config_path} 加载配置: {e}。使用默认值。")
             if not isinstance(self.default_model, ModelProfileConfig):
                 self.default_model = ModelProfileConfig(name="qwen3:30b")
-            self.think_model and self.fast_model
+            # 确保think_model和fast_model总是有有效值或者为None
+            if self.think_model and not isinstance(self.think_model, ModelProfileConfig):
+                self.think_model = None
+            if self.fast_model and not isinstance(self.fast_model, ModelProfileConfig):
+                self.fast_model = None
 
     def save_config(self) -> None:
-        """将当前配置保存到 YAML 文件 (新格式)"""
+        """将当前配置保存到 YAML 文件"""
         # 确保配置目录存在
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
         config_data = {
-            "default_api_base_url": self.default_api_base_url,
-            "default_api_key": self.default_api_key,
             "default_model": self._to_dict(self.default_model)
             if self.default_model
             else None,
@@ -232,21 +196,20 @@ class Config:
         if not profile_to_use or not profile_to_use.name:
             return {
                 "model": None,  # 不再提供默认模型，必须明确指定
-                "temperature": None,  # 移除默认值
-                "top_p": None,  # 保持为None，不提供默认值
-                "max_tokens": None,  # 移除默认值
-                "base_url": self.default_api_base_url or "http://localhost:11434",
-                "api_key": self.default_api_key,
+                "temperature": None,
+                "top_p": None,
+                "max_tokens": None,
+                "base_url": "http://localhost:1234/v1",  # 默认API基础URL
+                "api_key": None,
                 "api_timeout": self.api_timeout,
             }
 
-        resolved_base_url = profile_to_use.api_base_url or self.default_api_base_url
-        resolved_api_key = profile_to_use.api_key or self.default_api_key
+        resolved_base_url = profile_to_use.api_base_url or "http://localhost:1234/v1"
+        resolved_api_key = profile_to_use.api_key
 
-        # 不再提供默认值，直接使用配置中的值，可以为None
+        # 使用配置中的值
         resolved_max_tokens = profile_to_use.max_tokens
         resolved_temperature = profile_to_use.temperature
-        # top_p也直接使用配置中的值，可以为None
         resolved_top_p = profile_to_use.top_p
 
         return {
