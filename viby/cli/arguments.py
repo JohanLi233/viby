@@ -183,11 +183,9 @@ def get_parser() -> argparse.ArgumentParser:
     shell_parser.add_argument(
         "--limit", "-n", type=int, default=10, help=get_text("HISTORY", "limit_help")
     )
-    
+
     # === 快捷键命令 ===
-    shortcuts_parser = subparsers.add_parser(
-        "shortcuts", help=get_text("SHORTCUTS", "command_help")
-    )
+    _ = subparsers.add_parser("shortcuts", help=get_text("SHORTCUTS", "command_help"))
     return parser
 
 

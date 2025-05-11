@@ -20,6 +20,15 @@ class ModelProfileConfig:
     top_p: Optional[float] = None
 
 
+@dataclass
+class AutoCompactConfig:
+    """自动压缩配置类"""
+
+    enabled: bool = True
+    threshold_ratio: float = 0.7  # 当消息token数量超过max_tokens的阈值比例时压缩
+    keep_last_exchanges: int = 1  # 保留的最近对话轮数
+
+
 class Config:
     """viby 应用的配置管理器"""
 
@@ -30,6 +39,9 @@ class Config:
         self.enable_mcp: bool = True
         self.mcp_config_folder: Optional[str] = None
         self.enable_yolo_mode: bool = False  # yolo模式默认关闭
+
+        # 自动消息压缩配置
+        self.autocompact: AutoCompactConfig = AutoCompactConfig()
 
         # 模型配置
         self.default_model: ModelProfileConfig = ModelProfileConfig(name="qwen3:30b")
@@ -67,8 +79,8 @@ class Config:
     def _to_dict(self, obj: Any) -> Any:
         """将对象转换为字典，处理嵌套对象"""
         if hasattr(obj, "__dict__"):
-            # 对ModelProfileConfig，保留所有字段，即使是None
-            if isinstance(obj, ModelProfileConfig):
+            # 对ModelProfileConfig和AutoCompactConfig，保留所有字段，即使是None
+            if isinstance(obj, (ModelProfileConfig, AutoCompactConfig)):
                 return {k: self._to_dict(v) for k, v in obj.__dict__.items()}
             else:
                 return {
@@ -125,14 +137,23 @@ class Config:
                 elif not fast_model_data:
                     self.fast_model = None
 
+                # 加载自动压缩配置
+                autocompact_data = config_data.get("autocompact")
+                if autocompact_data and isinstance(autocompact_data, dict):
+                    self.autocompact.enabled = autocompact_data.get(
+                        "enabled", self.autocompact.enabled
+                    )
+                    self.autocompact.threshold_ratio = autocompact_data.get(
+                        "threshold_ratio", self.autocompact.threshold_ratio
+                    )
+                    self.autocompact.keep_last_exchanges = autocompact_data.get(
+                        "keep_last_exchanges", self.autocompact.keep_last_exchanges
+                    )
+
                 # 加载全局设置
-                self.api_timeout = int(
-                    config_data.get("api_timeout", self.api_timeout)
-                )
+                self.api_timeout = int(config_data.get("api_timeout", self.api_timeout))
                 self.language = config_data.get("language", self.language)
-                self.enable_mcp = bool(
-                    config_data.get("enable_mcp", self.enable_mcp)
-                )
+                self.enable_mcp = bool(config_data.get("enable_mcp", self.enable_mcp))
                 self.mcp_config_folder = config_data.get(
                     "mcp_config_folder", self.mcp_config_folder
                 )
@@ -145,7 +166,9 @@ class Config:
             if not isinstance(self.default_model, ModelProfileConfig):
                 self.default_model = ModelProfileConfig(name="qwen3:30b")
             # 确保think_model和fast_model总是有有效值或者为None
-            if self.think_model and not isinstance(self.think_model, ModelProfileConfig):
+            if self.think_model and not isinstance(
+                self.think_model, ModelProfileConfig
+            ):
                 self.think_model = None
             if self.fast_model and not isinstance(self.fast_model, ModelProfileConfig):
                 self.fast_model = None
@@ -165,6 +188,7 @@ class Config:
             "fast_model": self._to_dict(self.fast_model)
             if self.fast_model and self.fast_model.name
             else None,
+            "autocompact": self._to_dict(self.autocompact),
             "api_timeout": self.api_timeout,
             "language": self.language,
             "enable_mcp": self.enable_mcp,

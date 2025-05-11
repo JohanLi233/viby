@@ -5,13 +5,14 @@ Model management for viby - handles interactions with LLM providers
 from typing import Dict, Any, List
 from viby.config.app_config import Config
 from viby.locale import get_text
-from viby.utils.lazy_import import lazy_import
 from viby.utils.history import HistoryManager
+from viby.utils.logging import get_logger
+from viby.llm.compaction import CompactionManager
+from viby.llm.client import create_openai_client
 import time
-import os
 
-# 懒加载openai库，只有在实际使用时才会导入
-openai = lazy_import("openai")
+# 创建日志记录器
+logger = get_logger()
 
 
 class TokenTracker:
@@ -25,7 +26,6 @@ class TokenTracker:
         self.prompt_tokens = 0
         self.completion_tokens = 0
         self.total_tokens = 0
-        self.model_name = ""
         self.start_time = time.time()
         self.end_time = None
 
@@ -38,7 +38,6 @@ class TokenTracker:
                 self.prompt_tokens += getattr(usage, "prompt_tokens", 0)
                 self.completion_tokens += getattr(usage, "completion_tokens", 0)
                 self.total_tokens = self.prompt_tokens + self.completion_tokens
-                self.model_name = getattr(response, "model", self.model_name)
                 return True
             return False
         except (AttributeError, TypeError):
@@ -62,11 +61,6 @@ class TokenTracker:
                 else:
                     # 如果没有提供total_tokens，则自行计算
                     self.total_tokens = self.prompt_tokens + self.completion_tokens
-
-                # 更新model_name如果有的话
-                model = getattr(chunk, "model", None)
-                if model:
-                    self.model_name = model
 
                 return True
             return False
@@ -113,6 +107,10 @@ class ModelManager:
         self.interaction_id = None
         # 标记当前交互是否已记录到历史
         self.interaction_recorded = False
+        # 上一次处理过的用户消息引用，用于检测新输入
+        self.last_user_message_ref = None
+        # 添加消息压缩管理器
+        self.compaction_manager = CompactionManager(config)
 
     def get_response(self, messages):
         """
@@ -149,13 +147,23 @@ class ModelManager:
             )
             if last_user_message:
                 user_input = last_user_message.get("content", "")
-                # 如果是新的用户输入（与当前不同），重置交互状态
-                if user_input != self.current_user_input:
+
+                # 判断是否为新的用户输入：通过比较消息对象引用
+                if last_user_message is not self.last_user_message_ref:
+                    logger.debug("检测到新的用户输入")
+                    # 新的用户输入
+                    self.last_user_message_ref = last_user_message
                     self.current_user_input = user_input
-                    self.interaction_id = int(
-                        time.time() * 1000
-                    )  # 使用时间戳作为交互ID
+                    self.interaction_id = int(time.time() * 1000)
                     self.interaction_recorded = False
+
+                    compressed_messages, compression_stats = (
+                        self.compaction_manager.compact_messages(messages, model_config)
+                    )
+
+                    # 如果消息被压缩了，使用压缩后的消息
+                    if compression_stats.get("compressed", False):
+                        messages = compressed_messages
 
         # 调用LLM并返回生成器
         response_generator = self._call_llm(messages, model_config)
@@ -181,7 +189,7 @@ class ModelManager:
             full_response += chunk
             yield chunk
 
-        # 保存到历史记录（如果有用户输入且未记录过当前交互）
+        # 保存到历史记录（如果有用户输入且未记录过当前交互，或者是新的用户输入）
         if (
             self.current_user_input
             and not self.interaction_recorded
@@ -209,19 +217,18 @@ class ModelManager:
             生成器，流式返回 (text_chunks, None)
         """
         model = model_config["model"]
-        
+
         # 检查模型名是否为None，如果是则抛出错误
         if model is None:
             error_msg = get_text("GENERAL", "model_not_specified_error")
             yield error_msg
             return
-            
+
         base_url = model_config["base_url"].rstrip("/")
         api_key = model_config.get("api_key", "")
 
         try:
-            # 只有在实际调用LLM时才会加载OpenAI库
-            client = openai.OpenAI(api_key=api_key or "EMPTY", base_url=f"{base_url}")
+            client = create_openai_client(api_key, base_url)
 
             # 准备请求参数
             params = {
@@ -229,17 +236,17 @@ class ModelManager:
                 "messages": messages,
                 "stream": True,
             }
-            
+
             # 只有当参数有值时才添加到请求中
             if model_config.get("temperature") is not None:
                 params["temperature"] = model_config["temperature"]
-            
+
             if model_config.get("max_tokens") is not None:
                 params["max_tokens"] = model_config["max_tokens"]
-                
+
             if model_config.get("top_p") is not None:
                 params["top_p"] = model_config["top_p"]
-                
+
             if self.track_tokens:
                 params["stream_options"] = {"include_usage": True}
 
@@ -249,8 +256,7 @@ class ModelManager:
             think_mode = False
 
             for chunk in stream:
-                if os.environ.get("VIBY_DEBUG"):
-                    print(chunk)
+                logger.debug(f"OpenAI API响应块: {chunk}")
 
                 delta = chunk.choices[0].delta
                 reasoning = getattr(delta, "reasoning", None)

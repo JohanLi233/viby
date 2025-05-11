@@ -154,7 +154,7 @@ def main() -> int:
 
         # 区分子命令（history、shortcuts）和 ask/chat 模式
         raw_args = sys.argv[1:]
-        
+
         # 处理 history 子命令
         if raw_args and raw_args[0] == "history":
             # 使用原有解析器处理 history
@@ -173,12 +173,12 @@ def main() -> int:
             HistoryCommand = get_command_class("history")
             history_command = HistoryCommand()
             return history_command.execute(args.history_subcommand, args)
-            
+
         # 处理 shortcuts 命令
         elif raw_args and raw_args[0] == "shortcuts":
             # 使用解析器处理 shortcuts
             args = parse_arguments()
-            
+
             ShortcutsCommand = get_command_class("shortcuts")
             shortcuts_command = ShortcutsCommand()
             return shortcuts_command.execute(None, args)

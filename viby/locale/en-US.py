@@ -51,6 +51,8 @@ CONFIG_WIZARD = {
     "invalid_top_p": "Invalid top_p value, set to None!",
     "min_p_range": "min_p must be between 0.0 and 1.0, set to None!",
     "invalid_min_p": "Invalid min_p value, set to None!",
+    "threshold_range": "Threshold must be between 0.1 and 0.9!",
+    "keep_exchanges_range": "Keep exchanges must be between 1 and 5!",
     # Prompts
     "PASS_PROMPT_HINT": "(type 'pass' to skip)",
     "checking_chinese": "Checking if terminal supports Chinese...",
@@ -65,6 +67,10 @@ CONFIG_WIZARD = {
     "think_model_name_prompt": "Think Model Name (optional, leave blank to skip)",
     "fast_model_header": "--- Fast Model Configuration (Optional) ---",
     "fast_model_name_prompt": "Fast Model Name (optional, leave blank to skip)",
+    "autocompact_header": "--- Auto Message Compaction Configuration ---",
+    "enable_autocompact_prompt": "Enable automatic message compaction",
+    "autocompact_threshold_prompt": "Compaction threshold (ratio of max_tokens to trigger compaction, 0.1-0.9)",
+    "keep_exchanges_prompt": "Number of recent exchanges to keep uncompacted (1-5)",
     "model_max_tokens_prompt": "Set maximum tokens for {model_name} model (20480)",
     "model_temperature_prompt": "Set temperature for {model_name} model (0.0-1.0)",
     "model_top_k_prompt": "Set top_k value for {model_name} model (leave blank to disable)",
@@ -190,6 +196,13 @@ HISTORY = {
     "clear_failed": "Failed to clear history records.",
     # Error messages
     "search_term_required": "A search keyword is required.",
+    "history_compacted": "Message history has been compacted, preserving key information while saving {0} tokens.",
+    "compaction_enabled": "Auto message compaction is enabled, threshold: {0}%",
+    "compaction_disabled": "Auto message compaction is disabled",
+    # New message compaction related text
+    "compressed_summary_prefix": "Here's a compressed summary of the previous conversation:\n\n",
+    "compaction_system_prompt": "You are a chat history compression assistant. Your task is to compress the provided conversation history into a smaller token count while preserving all important information and context. Your goal is to reduce token count while maintaining key contextual elements. The summary should be coherent, readable, and include all relevant information, but with more concise wording. Do not add any information that was not present in the original conversation.",
+    "compaction_user_prompt": "Please compress the following conversation history, preserving important information but reducing token count:\n\n{0}",
 }
 
 # Shortcuts command related
@@ -214,7 +227,7 @@ SHORTCUTS = {
     "install_error_log": "Error adding shortcuts",
     "status": "Status",
     "message": "Message",
-    "action_instructions": "Required action: source {0} or restart terminal"
+    "action_instructions": "Required action: source {0} or restart terminal",
 }
 
 AGENT = {
