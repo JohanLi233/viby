@@ -19,58 +19,60 @@ logger = logging.getLogger(__name__)
 SHELL_CONFIG = {
     "bash": {
         "path": "~/.bashrc",
-        "command": '\n# Viby keyboard shortcut\nbind -x \'"\\C-q": "yb $READLINE_LINE"\'\n'
+        "command": '\n# Viby keyboard shortcut\nbind -x \'"\\C-q": "yb $READLINE_LINE"\'\n',
     },
     "zsh": {
         "path": "~/.zshrc",
-        "command": '\n# Viby keyboard shortcut\nviby-shortcut() { [[ -n "$BUFFER" ]] && BUFFER="yb $BUFFER" || BUFFER="yb"; zle accept-line; }\nzle -N viby-shortcut\nbindkey "^q" viby-shortcut\n'
+        "command": '\n# Viby keyboard shortcut\nviby-shortcut() { [[ -n "$BUFFER" ]] && BUFFER="yb $BUFFER" || BUFFER="yb"; zle accept-line; }\nzle -N viby-shortcut\nbindkey "^q" viby-shortcut\n',
     },
     "fish": {
         "path": "~/.config/fish/config.fish",
-        "command": '\n# Viby keyboard shortcut\nfunction viby_shortcut\n  set -l cmd (commandline)\n  if test -n "$cmd"\n    commandline -r "yb $cmd"\n  else\n    commandline -r "yb"\n  end\n  commandline -f execute\nend\nbind \\cq viby_shortcut\n'
-    }
+        "command": '\n# Viby keyboard shortcut\nfunction viby_shortcut\n  set -l cmd (commandline)\n  if test -n "$cmd"\n    commandline -r "yb $cmd"\n  else\n    commandline -r "yb"\n  end\n  commandline -f execute\nend\nbind \\cq viby_shortcut\n',
+    },
 }
+
 
 def detect_shell() -> Optional[str]:
     """
     检测用户使用的shell
-    
+
     Returns:
         shell名称（bash, zsh, fish）或None（如果无法检测）
     """
     shell_path = os.environ.get("SHELL", "")
     if not shell_path:
         return None
-    
+
     shell_name = os.path.basename(shell_path).lower()
     return shell_name if shell_name in SHELL_CONFIG else None
+
 
 def install_shortcuts(shell: Optional[str] = None) -> Dict[str, str]:
     """
     安装Viby键盘快捷键到用户的shell配置
-    
+
     Args:
         shell: 可选指定shell名称（否则自动检测）
-        
+
     Returns:
         包含操作结果的字典
     """
     # 自动检测shell类型
     if not shell:
         shell = detect_shell()
-    
+
     # 验证shell类型
     if not shell or shell not in SHELL_CONFIG:
         return {
             "status": "error",
-            "message": get_text("SHORTCUTS", "shell_not_supported").format(shell)
+            "message": get_text("SHORTCUTS", "shell_not_supported").format(shell),
         }
-    
+
     # 获取配置信息
     config_info = SHELL_CONFIG[shell]
     config_path = Path(os.path.expanduser(config_info["path"]))
     shortcut_command = config_info["command"]
-    
+
     # 检查快捷键是否已存在
     if config_path.exists():
         try:
@@ -78,31 +80,34 @@ def install_shortcuts(shell: Optional[str] = None) -> Dict[str, str]:
                 if shortcut_command.strip() in f.read():
                     return {
                         "status": "info",
-                        "message": get_text("SHORTCUTS", "install_exists").format(config_path)
+                        "message": get_text("SHORTCUTS", "install_exists").format(
+                            config_path
+                        ),
                     }
         except Exception as e:
             logger.error(f"{get_text('SHORTCUTS', 'read_config_error')}: {e}")
-    
+
     # 添加快捷键绑定
     try:
         # 确保配置文件所在目录存在
         config_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # 添加快捷键配置
         with open(config_path, "a", encoding="utf-8") as f:
             f.write(shortcut_command)
-        
+
         return {
             "status": "success",
             "message": get_text("SHORTCUTS", "install_success").format(config_path),
-            "action_required": f"{config_path}"
+            "action_required": f"{config_path}",
         }
     except Exception as e:
         logger.error(f"{get_text('SHORTCUTS', 'install_error_log')}: {e}")
         return {
             "status": "error",
-            "message": get_text("SHORTCUTS", "install_error").format(str(e))
+            "message": get_text("SHORTCUTS", "install_error").format(str(e)),
         }
+
 
 def main():
     """
@@ -112,7 +117,12 @@ def main():
     print(f"{get_text('SHORTCUTS', 'status')}: {result['status']}")
     print(f"{get_text('SHORTCUTS', 'message')}: {result['message']}")
     if "action_required" in result:
-        print(get_text('SHORTCUTS', 'action_instructions').format(result['action_required']))
+        print(
+            get_text("SHORTCUTS", "action_instructions").format(
+                result["action_required"]
+            )
+        )
+
 
 if __name__ == "__main__":
-    main() 
+    main()

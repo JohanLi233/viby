@@ -52,6 +52,8 @@ CONFIG_WIZARD = {
     "invalid_top_p": "无效的top_p值，已设为None",
     "min_p_range": "min_p必须在0.0到1.0之间，已设为None",
     "invalid_min_p": "无效的min_p值，已设为None",
+    "threshold_range": "阈值必须在0.1和0.9之间!",
+    "keep_exchanges_range": "保留轮数必须在1和5之间!",
     # 提示文本
     "PASS_PROMPT_HINT": "(输入 'pass' 跳过)",
     "checking_chinese": "正在检查终端是否支持中文...",
@@ -66,6 +68,10 @@ CONFIG_WIZARD = {
     "think_model_name_prompt": "Think 模型名称 (可选, 留空跳过)",
     "fast_model_header": "--- Fast 模型配置 (可选) ---",
     "fast_model_name_prompt": "Fast 模型名称 (可选, 留空跳过)",
+    "autocompact_header": "--- 消息自动压缩配置 ---",
+    "enable_autocompact_prompt": "是否启用消息自动压缩功能",
+    "autocompact_threshold_prompt": "压缩阈值 (当消息token数量超过max_tokens的比例时触发压缩, 0.1-0.9)",
+    "keep_exchanges_prompt": "保留最近几轮对话不压缩 (1-5)",
     "model_max_tokens_prompt": "为{model_name}模型设置最大令牌数 (20480)",
     "model_temperature_prompt": "设置模型 {model_name} 的温度 (0.0-1.0)",
     "model_top_k_prompt": "设置模型 {model_name} 的top_k值 (留空则不使用)",
@@ -191,6 +197,14 @@ HISTORY = {
     "clear_failed": "清除历史记录失败。",
     # 错误信息
     "search_term_required": "必须提供搜索关键词。",
+    # 添加消息压缩相关的文本
+    "history_compacted": "历史消息已压缩，保留了关键信息并节省了 {0} 个tokens。",
+    "compaction_enabled": "自动消息压缩已启用，阈值: {0}%",
+    "compaction_disabled": "自动消息压缩已禁用",
+    # 新增消息压缩相关文本
+    "compressed_summary_prefix": "以下是之前对话的压缩摘要:\n\n",
+    "compaction_system_prompt": "你是一个聊天历史压缩助手。你的任务是将提供的对话历史压缩到更小的token数量，同时保留所有重要信息和上下文。你的目标是减少token数量同时保持关键上下文。总结应该是连贯的，可读的，并包含所有相关信息，但措辞应更简洁。不要添加任何未在原始对话中出现的信息。",
+    "compaction_user_prompt": "请压缩以下对话历史，保留重要信息但减少token数量:\n\n{0}",
 }
 
 # 快捷键相关
@@ -215,7 +229,7 @@ SHORTCUTS = {
     "install_error_log": "添加快捷键时出错",
     "status": "状态",
     "message": "消息",
-    "action_instructions": "需要操作: source {0} 或重启终端"
+    "action_instructions": "需要操作: source {0} 或重启终端",
 }
 
 AGENT = {
