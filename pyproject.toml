@@ -9,6 +9,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "fastmcp>=2.2.7",
+    "maturin>=1.8.4",
     "openai>=1.76.2",
     "pocketflow>=0.0.2",
     "prompt-toolkit>=3.0.51",

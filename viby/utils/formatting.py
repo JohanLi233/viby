@@ -124,7 +124,7 @@ def format_markdown(content, title=None, code_type=None):
     return "\n".join(result)
 
 
-def print_markdown(content, title=None, code_type=None):
+def print_markdown(content, title=None, code_type=None, style=None):
     """
     以标准的 Markdown 格式打印内容。
 
@@ -132,8 +132,21 @@ def print_markdown(content, title=None, code_type=None):
         content: 要打印的内容，可以是字符串、字典、列表等
         title: 可选的标题
         code_type: 代码块的类型，如 "json", "python" 等，为 None 则按纯文本处理
+        style: 可选的样式（error, warning, success等），用于简单文本着色
     """
 
     console = Console()
+
+    # 处理样式参数 (从原renderer.py中的函数兼容)
+    if style is not None:
+        if style == "error":
+            console.print(f"[bold red]{content}[/bold red]")
+        elif style == "warning":
+            console.print(f"[bold yellow]{content}[/bold yellow]")
+        elif style == "success":
+            console.print(f"[bold green]{content}[/bold green]")
+        return
+
+    # 原有的格式化和打印逻辑
     md_text = format_markdown(content, title, code_type)
     console.print(Markdown(md_text, justify="left"))

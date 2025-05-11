@@ -1,256 +1,102 @@
-import time
-from typing import Iterator, Optional
+from typing import Iterable, Optional
+
 from rich.console import Console
-from rich.markdown import Markdown
 from rich.live import Live
-from rich.spinner import Spinner
-from viby.utils.formatting import process_markdown_links
-from viby.locale import get_text
+from rich.markdown import Markdown
+
+# 本地工具函数
+from viby.utils.formatting import process_markdown_links, print_markdown
+
+__all__ = ["render_markdown_stream", "print_markdown"]
 
 
-class MarkdownStreamRenderer:
-    """优化的Markdown流式渲染器"""
+def _is_interactive(console: Console) -> bool:
+    """判断当前 ``console`` 是否连接到交互式 TTY。"""
 
-    def __init__(self):
-        """初始化渲染器"""
-        self.console = Console()
-        self.buffer = []
-        self.last_render_time = 0
-        self.in_code_block = False
-        self.content = {"text": "", "para": [], "code": []}
-
-        # 默认配置
-        self.typing_effect = True
-        self.typing_speed = 0.001
-        self.smooth_scroll = True
-        self.throttle_ms = 0
-        self.buffer_size = 10
-        self.show_cursor = False
-        self.cursor_char = "▌"
-        self.cursor_blink = True
-        self.enable_animations = True
-        self.code_block_instant = True
-
-        # 性能监控
-        self.render_count = 0
-        self.total_render_time = 0
-        self.start_time = 0
-        self.end_time = 0
-
-    def _should_render(self) -> bool:
-        """
-        决定是否应该执行渲染操作
-        基于节流时间和缓冲区大小
-        """
-        now = time.time() * 1000  # 转换为毫秒
-        time_passed = now - self.last_render_time
-
-        # 如果已经过了节流时间或缓冲区满了，就应该渲染
-        if time_passed >= self.throttle_ms or len(self.buffer) >= self.buffer_size:
-            self.last_render_time = now
-            return True
-        return False
-
-    def _process_buffer(self):
-        """处理缓冲区内容"""
-        if not self.buffer:
-            return
-
-        # 合并缓冲区内容
-        chunk = "".join(self.buffer)
-        self.buffer.clear()
-
-        # 处理特殊标签
-        chunk = chunk.replace("<think>", "\n<think>\n").replace(
-            "</think>", "\n</think>\n"
-        )
-
-        # 处理每一行
-        for line in chunk.splitlines(keepends=True):
-            line = line.replace("<think>", "`<think>`").replace(
-                "</think>", "`</think>`"
-            )
-
-            # 处理代码块标记
-            if line.lstrip().startswith("```"):
-                if not self.in_code_block:
-                    self._flush_paragraph()
-                self.in_code_block = not self.in_code_block
-                self.content["code"].append(line)
-                if not self.in_code_block:
-                    self._flush_code_block()
-                continue
-
-            # 根据当前状态添加内容
-            if self.in_code_block:
-                self.content["code"].append(line)
-            else:
-                if not line.strip():
-                    self._flush_paragraph()
-                else:
-                    self.content["para"].append(line)
-
-        # 更新完整内容
-        self.content["text"] += chunk
-
-    def _flush_paragraph(self):
-        """将段落内容渲染到控制台"""
-        if not self.content["para"]:
-            return
-
-        text = "".join(self.content["para"])
-        processed_text = process_markdown_links(text)
-
-        # 使用打字机效果或直接渲染
-        if self.typing_effect:
-            self._render_with_typing_effect(processed_text, False)
-        else:
-            self.console.print(Markdown(processed_text, justify="left"))
-
-        self.content["para"].clear()
-
-    def _flush_code_block(self):
-        """将代码块内容渲染到控制台"""
-        if not self.content["code"]:
-            return
-
-        code_text = "".join(self.content["code"])
-
-        # 代码块可以选择是否使用打字机效果
-        if self.typing_effect and not self.code_block_instant:
-            self._render_with_typing_effect(code_text, True)
-        else:
-            self.console.print(Markdown(code_text, justify="left"))
-
-        self.content["code"].clear()
-
-    def _render_with_typing_effect(self, text: str, is_code: bool):
-        """
-        使用打字机效果渲染文本
-
-        Args:
-            text: 要渲染的文本
-            is_code: 是否是代码块
-        """
-        # 预处理为Markdown，但不立即渲染
-        Markdown(text, justify="left")
-
-        with Live(auto_refresh=False) as live:
-            rendered_text = ""
-            i = 0
-            while i < len(text):
-                # 显示更多的字符
-                rendered_text += text[i]
-                i += 1
-
-                # 刷新显示
-                if i % 3 == 0 or i == len(text):  # 为提高性能，每3个字符刷新一次
-                    cursor = self.cursor_char if self.show_cursor else ""
-                    live.update(
-                        Markdown(rendered_text + cursor, justify="left"), refresh=True
-                    )
-
-                # 控制速度
-                if not is_code or not self.code_block_instant:
-                    time.sleep(self.typing_speed)
-
-    def render_stream(
-        self, text_stream: Iterator[str], return_full: bool = True
-    ) -> Optional[str]:
-        """
-        渲染流式文本内容
-
-        Args:
-            text_stream: 文本流迭代器
-            return_full: 是否返回完整内容
-
-        Returns:
-            完整内容（如果return_full为True）
-        """
-        self.start_time = time.time()
-
-        # 显示加载指示器
-        if self.enable_animations:
-            spinner = Spinner("dots")
-            with Live(spinner, auto_refresh=True, transient=True) as live:
-                live.update(spinner)
-                time.sleep(0.5)  # 让用户看到加载动画
-
-        try:
-            for chunk in text_stream:
-                # 将块添加到缓冲区
-                self.buffer.append(chunk)
-
-                # 判断是否应该渲染
-                if self._should_render():
-                    render_start = time.time()
-                    self._process_buffer()
-                    self.render_count += 1
-                    self.total_render_time += time.time() - render_start
-
-            # 确保所有内容都被处理
-            if self.buffer:
-                self._process_buffer()
-
-            # 刷新剩余内容
-            if self.in_code_block:
-                self._flush_code_block()
-                # 确保重置代码块状态，处理未闭合的代码块情况
-                self.in_code_block = False
-            else:
-                self._flush_paragraph()
-
-        except Exception as e:
-            self.console.print(
-                f"[bold red]{get_text('RENDERER', 'render_error', str(e))}[/bold red]"
-            )
-
-        self.end_time = time.time()
-
-        if return_full:
-            return self.content["text"]
-        return None
-
-
-# 默认渲染器实例，方便直接使用
-default_renderer = MarkdownStreamRenderer()
-
-
-def print_markdown(text: str, style: str = None) -> None:
-    """
-    打印Markdown格式的文本
-
-    Args:
-        text: 要打印的Markdown文本
-        style: 可选的样式（error, warning, success等）
-    """
-    console = Console()
-
-    # 根据样式应用不同的颜色
-    if style == "error":
-        console.print(f"[bold red]{text}[/bold red]")
-    elif style == "warning":
-        console.print(f"[bold yellow]{text}[/bold yellow]")
-    elif style == "success":
-        console.print(f"[bold green]{text}[/bold green]")
-    else:
-        # 默认使用Markdown渲染
-        md = Markdown(text)
-        console.print(md)
+    # 一些环境（如 Jupyter Notebook）虽然 is_terminal 为 True，但不支持 ANSI 控制码
+    is_jupyter = getattr(console, "_is_jupyter", False)
+    return console.is_terminal and not is_jupyter
 
 
 def render_markdown_stream(
-    text_stream: Iterator[str],
-    return_full: bool = True,
-) -> Optional[str]:
-    """
-    优化版的流式Markdown渲染函数
+    text_stream: Iterable[str],
+    *,
+    console: Optional[Console] = None,
+    refresh_per_second: int = 120,
+    enhance_links: bool = True,
+) -> str:
+    console = console or Console()
+    accumulated: list[str] = []  # 使用列表收集字符串，效率更高
 
-    Args:
-        text_stream: 文本流迭代器
-        return_full: 是否返回完整内容
+    # 对于非交互终端（如重定向到文件），直接顺序输出即可。
+    if not _is_interactive(console):
+        for chunk in text_stream:
+            if chunk:
+                accumulated.append(chunk)
+                # 保留 <think> 标记但确保其独占一行
+                printable = _process_think_tokens(chunk)
+                console.print(printable, end="", soft_wrap=True)
+        console.print()  # 最后补一个换行
+        return "".join(accumulated)
 
-    Returns:
-        完整内容（如果return_full为True）
-    """
-    return default_renderer.render_stream(text_stream, return_full)
+    # 交互式终端使用 Live 动态刷新，获得更流畅的体验。
+    with Live(
+        Markdown(""),
+        console=console,
+        refresh_per_second=refresh_per_second,
+        transient=True,  # 退出时清理 Live 区域，随后输出最终结果
+        auto_refresh=True,
+    ) as live:
+        content_so_far = ""
+        for chunk in text_stream:
+            if not chunk:
+                continue
+            accumulated.append(chunk)
+            content_so_far = "".join(accumulated)
+
+            # 处理 <think> 标记以确保独立成行并用特殊样式显示
+            processed_content = _process_think_tokens(content_so_far)
+
+            if enhance_links:
+                processed_content = process_markdown_links(processed_content)
+
+            # 保证内容可见: 通过确保较大的内容不会被截断
+            # 这里使用空行确保内容显示在终端高度的最下方
+            # 注意：这与 transient=True 配合使用可正常工作
+            extra_lines = max(0, console.height - 10)
+
+            # 滚动到最后一行的技巧
+            content_to_display = processed_content
+            if "\n" in content_to_display:
+                lines = content_to_display.splitlines()
+                if len(lines) > console.height - 5:
+                    # 若内容太长，只显示最后几行
+                    content_to_display = "\n".join(lines[-(console.height - 5) :])
+
+            # 确保内容始终保持在视野内
+            content_with_padding = content_to_display + "\n" * extra_lines
+
+            live.update(Markdown(content_with_padding))
+
+    # Live 区域已被清理，再次打印最终内容供用户滚动查看
+    final_text = "".join(accumulated)
+    final_text = _process_think_tokens(final_text)
+    if enhance_links:
+        final_text = process_markdown_links(final_text)
+    console.print(Markdown(final_text))
+
+    return final_text
+
+
+def _process_think_tokens(text: str) -> str:
+    # 检查文本是否以 <think> 开头
+    if text.startswith("<think>"):
+        # 移除开头的 <think> 标签并在适当位置添加格式化的标签
+        text = text.replace("<think>", "`<think>`\n", 1)
+
+    # 检查文本是否包含 </think> 结尾标签
+    if "</think>" in text:
+        # 将 </think> 替换为格式化的标签
+        text = text.replace("</think>", "\n`</think>`", 1)
+
+    return text
