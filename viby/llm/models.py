@@ -8,6 +8,7 @@ from viby.locale import get_text
 from viby.utils.lazy_import import lazy_import
 from viby.utils.history import HistoryManager
 import time
+import os
 
 # 懒加载openai库，只有在实际使用时才会导入
 openai = lazy_import("openai")
@@ -46,24 +47,28 @@ class TokenTracker:
     def update_from_chunk(self, chunk):
         """从流式返回的块中更新token计数"""
         try:
-            # 有些API在流式块中也会提供token信息
+            # 从API直接提供的token信息更新计数
             usage = getattr(chunk, "usage", None)
-            if usage and hasattr(usage, "completion_tokens"):
-                self.completion_tokens = usage.completion_tokens
-                self.total_tokens = self.prompt_tokens + self.completion_tokens
-                return True
+            if usage:
+                # 新的API响应格式可能包含完整的token计数信息
+                if hasattr(usage, "prompt_tokens"):
+                    self.prompt_tokens = usage.prompt_tokens
 
-            # 如果没有直接提供token信息，增加一个估算
-            # 假设每个包含内容的块大约是1个token（非常粗略的估计）
-            delta = getattr(chunk, "choices", [{}])[0].get("delta", {})
-            content = delta.get("content", "")
-            if content:
-                self.completion_tokens += max(
-                    1, len(content) // 4
-                )  # 粗略估计4个字符约为1个token
-                self.total_tokens = self.prompt_tokens + self.completion_tokens
-                return True
+                if hasattr(usage, "completion_tokens"):
+                    self.completion_tokens = usage.completion_tokens
 
+                if hasattr(usage, "total_tokens"):
+                    self.total_tokens = usage.total_tokens
+                else:
+                    # 如果没有提供total_tokens，则自行计算
+                    self.total_tokens = self.prompt_tokens + self.completion_tokens
+
+                # 更新model_name如果有的话
+                model = getattr(chunk, "model", None)
+                if model:
+                    self.model_name = model
+
+                return True
             return False
         except (AttributeError, TypeError):
             return False
@@ -147,7 +152,9 @@ class ModelManager:
                 # 如果是新的用户输入（与当前不同），重置交互状态
                 if user_input != self.current_user_input:
                     self.current_user_input = user_input
-                    self.interaction_id = int(time.time() * 1000)  # 使用时间戳作为交互ID
+                    self.interaction_id = int(
+                        time.time() * 1000
+                    )  # 使用时间戳作为交互ID
                     self.interaction_recorded = False
 
         # 调用LLM并返回生成器
@@ -175,11 +182,16 @@ class ModelManager:
             yield chunk
 
         # 保存到历史记录（如果有用户输入且未记录过当前交互）
-        if self.current_user_input and not self.interaction_recorded and self.interaction_id:
+        if (
+            self.current_user_input
+            and not self.interaction_recorded
+            and self.interaction_id
+        ):
             # 记录当前交互，并标记为已记录
             self.history_manager.add_interaction(
-                self.current_user_input, full_response,
-                metadata={"interaction_id": self.interaction_id}
+                self.current_user_input,
+                full_response,
+                metadata={"interaction_id": self.interaction_id},
             )
             self.interaction_recorded = True
             # 注意：不重置current_user_input，因为在工具调用过程中可能再次调用LLM
@@ -210,73 +222,50 @@ class ModelManager:
                 "messages": messages,
                 "temperature": model_config["temperature"],
                 "max_tokens": model_config["max_tokens"],
+                "top_p": model_config["top_p"],
                 "stream": True,
             }
-
-            if model_config.get("top_p") is not None:
-                params["top_p"] = model_config["top_p"]
-
-            # 如果跟踪token，估算提示tokens（实际值将在响应中获取）
             if self.track_tokens:
-                # 简单估算，实际值会在响应中获取
-                self.token_tracker.prompt_tokens = sum(
-                    len(m.get("content", "")) // 4 for m in messages
-                )
+                params["stream_options"] = {"include_usage": True}
 
             # 创建流式处理
             stream = client.chat.completions.create(**params)
-            saw_any = False
-            in_think = False
-            accumulated_content = ""  # 收集所有内容用于在结束时估算tokens
+            has_output = False
+            think_mode = False
 
             for chunk in stream:
+                if os.environ.get("VIBY_DEBUG"):
+                    print(chunk)
+
                 delta = chunk.choices[0].delta
                 reasoning = getattr(delta, "reasoning", None)
                 content = delta.content
 
-                # 更新token计数
                 if self.track_tokens:
                     self.token_tracker.update_from_chunk(chunk)
-                    if content:
-                        accumulated_content += content
 
-                # 思考内容
                 if reasoning:
-                    if not in_think:
+                    if not think_mode:
                         yield "<think>"
-                        in_think = True
-                    saw_any = True
+                        think_mode = True
+                    has_output = True
                     yield reasoning
 
-                # 普通内容
                 if content:
-                    if in_think:
+                    if think_mode:
                         yield "</think>"
-                        in_think = False
-                    saw_any = True
+                        think_mode = False
+                    has_output = True
                     yield content
 
-            # 流结束后如果仍在思考模式，闭合标签
-            if in_think:
+            if think_mode:
                 yield "</think>"
 
-            # 如果没有任何输出，添加提示
-            if not saw_any:
-                empty = get_text("GENERAL", "llm_empty_response")
-                yield empty
+            if not has_output:
+                yield get_text("GENERAL", "llm_empty_response")
 
-            # 如果跟踪token，再次确保completion_tokens正确更新
-            if self.track_tokens and accumulated_content:
-                # 如果前面的方法没有正确更新completion_tokens，使用粗略估计
-                if self.token_tracker.completion_tokens == 0:
-                    self.token_tracker.completion_tokens = len(accumulated_content) // 4
-                # 确保总tokens正确
-                self.token_tracker.total_tokens = (
-                    self.token_tracker.prompt_tokens
-                    + self.token_tracker.completion_tokens
-                )
-
-                yield "\n\n"  # 添加空行分隔
+            if self.track_tokens:
+                yield "\n\n"
                 for stat_line in self.token_tracker.get_formatted_stats():
                     yield stat_line + "\n"
 

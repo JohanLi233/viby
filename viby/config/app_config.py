@@ -78,7 +78,9 @@ class Config:
                 return {k: self._to_dict(v) for k, v in obj.__dict__.items()}
             else:
                 return {
-                    k: self._to_dict(v) for k, v in obj.__dict__.items() if v is not None
+                    k: self._to_dict(v)
+                    for k, v in obj.__dict__.items()
+                    if v is not None
                 }
         elif isinstance(obj, list):
             return [self._to_dict(i) for i in obj]
@@ -242,8 +244,16 @@ class Config:
         resolved_api_key = profile_to_use.api_key or self.default_api_key
 
         # 使用模型特定设置，如果未配置则使用默认值
-        resolved_max_tokens = profile_to_use.max_tokens if profile_to_use.max_tokens is not None else 40960
-        resolved_temperature = profile_to_use.temperature if profile_to_use.temperature is not None else 0.7
+        resolved_max_tokens = (
+            profile_to_use.max_tokens
+            if profile_to_use.max_tokens is not None
+            else 40960
+        )
+        resolved_temperature = (
+            profile_to_use.temperature
+            if profile_to_use.temperature is not None
+            else 0.7
+        )
 
         return {
             "model": profile_to_use.name,

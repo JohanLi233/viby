@@ -126,7 +126,7 @@ def run_config_wizard(config):
     init_text_manager(config)
     print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
 
-    api_timeout_prompt = get_text("CONFIG_WIZARD", "api_timeout_prompt")
+    get_text("CONFIG_WIZARD", "api_timeout_prompt")
     save_prompt = get_text("CONFIG_WIZARD", "config_saved")
     continue_prompt = get_text("CONFIG_WIZARD", "continue_prompt")
 
@@ -233,9 +233,7 @@ def run_config_wizard(config):
     ).format(model_name=config.default_model.name)
     while True:
         temperature = get_input(
-            default_model_temperature_prompt,
-            str(0.7),
-            allow_pass_keyword=True
+            default_model_temperature_prompt, str(0.7), allow_pass_keyword=True
         )
         if temperature == PASS_SENTINEL:
             config.default_model.temperature = None
@@ -249,16 +247,14 @@ def run_config_wizard(config):
         except ValueError:
             print(get_text("CONFIG_WIZARD", "invalid_decimal"))
 
-
-
     # 默认模型top_p设置
-    default_model_top_p_prompt = get_text(
-        "CONFIG_WIZARD", "model_top_p_prompt"
-    ).format(model_name=config.default_model.name)
+    default_model_top_p_prompt = get_text("CONFIG_WIZARD", "model_top_p_prompt").format(
+        model_name=config.default_model.name
+    )
     top_p = get_input(
         default_model_top_p_prompt,
         str(config.default_model.top_p or ""),
-        allow_pass_keyword=True
+        allow_pass_keyword=True,
     )
     if top_p == PASS_SENTINEL or not top_p:
         config.default_model.top_p = None
@@ -348,7 +344,7 @@ def run_config_wizard(config):
             temperature = get_input(
                 think_model_temperature_prompt,
                 str(config.think_model.temperature or 0.7),
-                allow_pass_keyword=True
+                allow_pass_keyword=True,
             )
             if temperature == PASS_SENTINEL:
                 config.think_model.temperature = None
@@ -362,8 +358,6 @@ def run_config_wizard(config):
             except ValueError:
                 print(get_text("CONFIG_WIZARD", "invalid_decimal"))
 
-
-
         # 思考模型top_p设置
         think_model_top_p_prompt = get_text(
             "CONFIG_WIZARD", "model_top_p_prompt"
@@ -371,7 +365,7 @@ def run_config_wizard(config):
         top_p = get_input(
             think_model_top_p_prompt,
             str(config.think_model.top_p or ""),
-            allow_pass_keyword=True
+            allow_pass_keyword=True,
         )
         if top_p == PASS_SENTINEL or not top_p:
             config.think_model.top_p = None
@@ -461,7 +455,7 @@ def run_config_wizard(config):
             temperature = get_input(
                 fast_model_temperature_prompt,
                 str(config.fast_model.temperature or 0.7),
-                allow_pass_keyword=True
+                allow_pass_keyword=True,
             )
             if temperature == PASS_SENTINEL:
                 config.fast_model.temperature = None
@@ -475,8 +469,6 @@ def run_config_wizard(config):
             except ValueError:
                 print(get_text("CONFIG_WIZARD", "invalid_decimal"))
 
-
-
         # 快速模型top_p设置
         fast_model_top_p_prompt = get_text(
             "CONFIG_WIZARD", "model_top_p_prompt"
@@ -484,7 +476,7 @@ def run_config_wizard(config):
         top_p = get_input(
             fast_model_top_p_prompt,
             str(config.fast_model.top_p or ""),
-            allow_pass_keyword=True
+            allow_pass_keyword=True,
         )
         if top_p == PASS_SENTINEL or not top_p:
             config.fast_model.top_p = None
