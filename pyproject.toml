@@ -1,6 +1,6 @@
 [project]
 name = "viby"
-version = "0.1.7"
+version = "0.1.8"
 description = "Viby vibes everything"
 authors = [
     { name = "JohanLi233", email = "li_zhonghan@qq.com" }
