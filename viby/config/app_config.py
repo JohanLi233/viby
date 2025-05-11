@@ -231,29 +231,23 @@ class Config:
 
         if not profile_to_use or not profile_to_use.name:
             return {
-                "model": "qwen3:30b",
-                "temperature": 0.7,  # Default temperature
-                "max_tokens": 40960,  # Default max_tokens
+                "model": None,  # 不再提供默认模型，必须明确指定
+                "temperature": None,  # 移除默认值
+                "top_p": None,  # 保持为None，不提供默认值
+                "max_tokens": None,  # 移除默认值
                 "base_url": self.default_api_base_url or "http://localhost:11434",
                 "api_key": self.default_api_key,
                 "api_timeout": self.api_timeout,
-                "top_p": None,
             }
 
         resolved_base_url = profile_to_use.api_base_url or self.default_api_base_url
         resolved_api_key = profile_to_use.api_key or self.default_api_key
 
-        # 使用模型特定设置，如果未配置则使用默认值
-        resolved_max_tokens = (
-            profile_to_use.max_tokens
-            if profile_to_use.max_tokens is not None
-            else 40960
-        )
-        resolved_temperature = (
-            profile_to_use.temperature
-            if profile_to_use.temperature is not None
-            else 0.7
-        )
+        # 不再提供默认值，直接使用配置中的值，可以为None
+        resolved_max_tokens = profile_to_use.max_tokens
+        resolved_temperature = profile_to_use.temperature
+        # top_p也直接使用配置中的值，可以为None
+        resolved_top_p = profile_to_use.top_p
 
         return {
             "model": profile_to_use.name,
@@ -262,5 +256,5 @@ class Config:
             "base_url": resolved_base_url,
             "api_key": resolved_api_key,
             "api_timeout": self.api_timeout,
-            "top_p": profile_to_use.top_p,
+            "top_p": resolved_top_p,
         }

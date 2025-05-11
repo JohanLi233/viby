@@ -209,6 +209,13 @@ class ModelManager:
             生成器，流式返回 (text_chunks, None)
         """
         model = model_config["model"]
+        
+        # 检查模型名是否为None，如果是则抛出错误
+        if model is None:
+            error_msg = get_text("GENERAL", "model_not_specified_error")
+            yield error_msg
+            return
+            
         base_url = model_config["base_url"].rstrip("/")
         api_key = model_config.get("api_key", "")
 
@@ -220,11 +227,19 @@ class ModelManager:
             params = {
                 "model": model,
                 "messages": messages,
-                "temperature": model_config["temperature"],
-                "max_tokens": model_config["max_tokens"],
-                "top_p": model_config["top_p"],
                 "stream": True,
             }
+            
+            # 只有当参数有值时才添加到请求中
+            if model_config.get("temperature") is not None:
+                params["temperature"] = model_config["temperature"]
+            
+            if model_config.get("max_tokens") is not None:
+                params["max_tokens"] = model_config["max_tokens"]
+                
+            if model_config.get("top_p") is not None:
+                params["top_p"] = model_config["top_p"]
+                
             if self.track_tokens:
                 params["stream_options"] = {"include_usage": True}
 

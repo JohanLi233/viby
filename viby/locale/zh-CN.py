@@ -5,32 +5,34 @@
 # 通用提示
 GENERAL = {
     # 命令行参数相关
-    "app_description": "viby - 一个与大语言模型交互的多功能命令行工具",
-    "app_epilog": '示例:\n  viby "什么是斐波那契数列?"\n  git diff | viby "帮我写一个commit消息"\n  viby --shell "找当前目录下所有json文件"\n',
-    "prompt_help": "要发送给模型的提示内容",
-    "chat_help": "启动与模型的交互式对话会话",
-    "shell_help": "生成并选择性执行Shell命令",
+    "app_description": "viby - 一个多功能的命令行工具，用于与大型语言模型交互",
+    "app_epilog": '示例：\n  viby "什么是斐波那契数列？"\n  git diff | viby "帮我写一个提交消息"\n  viby --shell "在当前目录中找到所有json文件"\n',
+    "prompt_help": "发送给模型的提示内容",
+    "chat_help": "启动与模型的交互式聊天会话",
+    "shell_help": "生成并可选择执行shell命令",
     "config_help": "启动交互式配置向导",
-    "think_help": "使用思考模型进行更深入的分析（如果已配置）",
-    "fast_help": "使用快速模型进行更快的响应（如果已配置）",
+    "think_help": "使用思考模型进行深入分析（如已配置）",
+    "fast_help": "使用快速模型获得更快的响应（如已配置）",
     "version_help": "显示程序版本号并退出",
     "language_help": "设置界面语言（en-US或zh-CN）",
-    "tokens_help": "显示token使用情况",
+    "tokens_help": "显示token使用信息",
     # 界面文本
     "operation_cancelled": "操作已取消。",
     "copy_success": "内容已复制到剪贴板！",
-    "copy_fail": "复制失败: {0}",
+    "copy_fail": "复制失败：{0}",
     "help_text": "显示此帮助信息并退出",
     "invalid_command": "无效的命令",
-    # LLM相关
-    "llm_empty_response": "【提示】模型没有返回任何内容，请尝试重新提问或检查您的提示。",
+    # LLM响应
+    "llm_empty_response": "模型未返回任何内容，请重试或检查您的提示。",
     # Token使用相关
     "token_usage_title": "Token使用统计：",
-    "token_usage_prompt": "输入Tokens: {0}",
-    "token_usage_completion": "输出Tokens: {0}",
-    "token_usage_total": "总Tokens: {0}",
-    "token_usage_duration": "响应时间: {0}",
-    "token_usage_not_available": "无法获取Token使用信息",
+    "token_usage_prompt": "输入Token数：{0}",
+    "token_usage_completion": "输出Token数：{0}",
+    "token_usage_total": "总Token数：{0}",
+    "token_usage_duration": "响应时间：{0}",
+    "token_usage_not_available": "Token使用信息不可用",
+    # 模型错误
+    "model_not_specified_error": "错误：未指定模型。您必须在配置中明确设置一个模型。",
 }
 
 # 配置向导相关

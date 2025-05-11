@@ -30,6 +30,8 @@ GENERAL = {
     "token_usage_total": "Total Tokens: {0}",
     "token_usage_duration": "Response Time: {0}",
     "token_usage_not_available": "Token usage information not available",
+    # Model error
+    "model_not_specified_error": "Error: No model specified. You must explicitly set a model in the configuration.",
 }
 
 # Configuration wizard related
