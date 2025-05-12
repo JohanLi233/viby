@@ -3,6 +3,8 @@ from typing import Iterable, Optional
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
+import re
+from flatlatex import converter
 
 # 本地工具函数
 from viby.utils.formatting import process_markdown_links, print_markdown
@@ -16,6 +18,30 @@ def _is_interactive(console: Console) -> bool:
     # 一些环境（如 Jupyter Notebook）虽然 is_terminal 为 True，但不支持 ANSI 控制码
     is_jupyter = getattr(console, "_is_jupyter", False)
     return console.is_terminal and not is_jupyter
+
+
+# math converter for LaTeX rendering
+MATH_CONVERTER = converter()
+
+def _process_latex_tokens(text: str) -> str:
+    """Convert LaTeX math ($...$ and $$...$$) to unicode using flatlatex."""
+    # convert display math $$...$$
+    def _convert_display(m):
+        expr = m.group(1)
+        try:
+            return MATH_CONVERTER.convert(expr)
+        except Exception:
+            return m.group(0)
+    text = re.sub(r"\$\$(.+?)\$\$", _convert_display, text, flags=re.DOTALL)
+    # convert inline math $...$
+    def _convert_inline(m):
+        expr = m.group(1)
+        try:
+            return MATH_CONVERTER.convert(expr)
+        except Exception:
+            return m.group(0)
+    text = re.sub(r"\$(.+?)\$", _convert_inline, text)
+    return text
 
 
 def render_markdown_stream(
@@ -34,7 +60,7 @@ def render_markdown_stream(
             if chunk:
                 accumulated.append(chunk)
                 # 保留 <think> 标记但确保其独占一行
-                printable = _process_think_tokens(chunk)
+                printable = _process_think_tokens(_process_latex_tokens(chunk))
                 console.print(printable, end="", soft_wrap=True)
         console.print()  # 最后补一个换行
         return "".join(accumulated)
@@ -55,7 +81,7 @@ def render_markdown_stream(
             content_so_far = "".join(accumulated)
 
             # 处理 <think> 标记以确保独立成行并用特殊样式显示
-            processed_content = _process_think_tokens(content_so_far)
+            processed_content = _process_think_tokens(_process_latex_tokens(content_so_far))
 
             if enhance_links:
                 processed_content = process_markdown_links(processed_content)
@@ -80,7 +106,7 @@ def render_markdown_stream(
 
     # Live 区域已被清理，再次打印最终内容供用户滚动查看
     final_text = "".join(accumulated)
-    final_text = _process_think_tokens(final_text)
+    final_text = _process_think_tokens(_process_latex_tokens(final_text))
     if enhance_links:
         final_text = process_markdown_links(final_text)
     console.print(Markdown(final_text))
