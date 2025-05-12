@@ -1,4 +1,5 @@
 import re
+import json
 from rich.console import Console
 from rich.markdown import Markdown
 
@@ -81,72 +82,34 @@ def process_markdown_links(text):
     return re.sub(link_pattern, replace_link, text)
 
 
-def format_markdown(content, title=None, code_type=None):
-    """
-    将内容格式化为标准的 Markdown 格式。
-
-    Args:
-        content: 要格式化的内容，可以是字符串、字典、列表等
-        title: 可选的标题
-        code_type: 代码块的类型，如 "json", "python" 等，为 None 则按纯文本处理
-
-    Returns:
-        格式化后的 Markdown 字符串
-    """
-    import json
-
-    result = []
-
-    # 添加标题
-    if title:
-        result.append(f"## {title}\n")
-
-    # 处理内容
-    if code_type:
-        # 如果提供了代码类型，则格式化为代码块
-        if isinstance(content, (dict, list)) and code_type == "json":
-            # 字典或列表转为JSON
-            formatted_content = json.dumps(content, ensure_ascii=False, indent=2)
-            result.append(f"```{code_type}\n{formatted_content}\n```")
-        else:
-            # 其他内容转为字符串
-            result.append(f"```{code_type}\n{str(content)}\n```")
+def format_markdown(content):
+    if isinstance(content, (dict, list)):
+        text = json.dumps(content, ensure_ascii=False, indent=2)
+        return f"```json\n{text}\n```"
     else:
-        # 没有代码类型，直接添加内容
-        if isinstance(content, (dict, list)):
-            # 字典或列表转为JSON
-            formatted_content = json.dumps(content, ensure_ascii=False, indent=2)
-            result.append(f"```json\n{formatted_content}\n```")
-        else:
-            # 其他内容直接转为字符串
-            result.append(str(content))
-
-    return "\n".join(result)
+        return str(content)
 
 
-def print_markdown(content, title=None, code_type=None, style=None):
+def print_markdown(content, style=None):
     """
-    以标准的 Markdown 格式打印内容。
+    以 Markdown 格式打印内容或使用特定样式直接打印文本。
 
     Args:
         content: 要打印的内容，可以是字符串、字典、列表等
-        title: 可选的标题
-        code_type: 代码块的类型，如 "json", "python" 等，为 None 则按纯文本处理
         style: 可选的样式（error, warning, success等），用于简单文本着色
     """
-
     console = Console()
-
-    # 处理样式参数 (从原renderer.py中的函数兼容)
-    if style is not None:
-        if style == "error":
-            console.print(f"[bold red]{content}[/bold red]")
-        elif style == "warning":
-            console.print(f"[bold yellow]{content}[/bold yellow]")
-        elif style == "success":
-            console.print(f"[bold green]{content}[/bold green]")
+    
+    # 使用样式直接打印
+    if style in ["error", "warning", "success"]:
+        style_map = {
+            "error": "bold red",
+            "warning": "bold yellow",
+            "success": "bold green"
+        }
+        console.print(f"[{style_map[style]}]{content}[/{style_map[style]}]")
         return
-
-    # 原有的格式化和打印逻辑
-    md_text = format_markdown(content, title, code_type)
+    
+    # 使用Markdown渲染
+    md_text = format_markdown(content)
     console.print(Markdown(md_text, justify="left"))

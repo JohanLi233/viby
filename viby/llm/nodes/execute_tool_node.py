@@ -25,8 +25,8 @@ class ExecuteToolNode(Node):
             "parameters": parameters,
         }
         # 使用本地化文本
-        title = get_text("MCP", "executing_tool")
-        print_markdown(tool_call_info, title, "json")
+        print_markdown(get_text("MCP", "executing_tool"))
+        print_markdown(tool_call_info)
 
         try:
             # 检查是否是viby自有工具
@@ -51,7 +51,12 @@ class ExecuteToolNode(Node):
 
     def post(self, shared, prep_res, exec_res):
         """Process the final result"""
+        tool_name, parameters, selected_server = prep_res
         shared["messages"].append({"role": "tool", "content": str(exec_res)})
+
+        # 打印工具执行结果，但跳过shell命令结果（shell结果已经在终端中显示了）
+        if not (selected_server == "viby" and tool_name == "execute_shell"):
+            print_markdown(str(exec_res))
 
         # 检查是否是shell命令的特殊状态
         if isinstance(exec_res, dict) and "status" in exec_res:
