@@ -1,6 +1,6 @@
 """Viby - Viby vibes everything"""
 
-__version__ = "0.1.8"
+__version__ = "0.2.0"
 
 # 使用延迟导入方式，避免立即加载所有依赖
 from viby.utils.lazy_import import lazy_function
