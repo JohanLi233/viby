@@ -182,6 +182,26 @@ def main() -> int:
             ShortcutsCommand = get_command_class("shortcuts")
             shortcuts_command = ShortcutsCommand()
             return shortcuts_command.execute(None, args)
+            
+        # 处理 tools 命令
+        elif raw_args and raw_args[0] == "tools":
+            # 解析参数
+            args = parse_arguments()
+            
+            # 如果没有指定子命令，显示帮助信息
+            if not hasattr(args, "tools_subcommand") or not args.tools_subcommand:
+                from viby.locale import get_text
+                print(f"yb tools: {get_text('TOOLS', 'subcommand_required', '需要指定子命令')}")
+                from viby.cli.arguments import get_parser
+                get_parser().parse_args(["tools", "-h"])
+                return 1
+            
+            # 创建工具命令实例
+            from viby.commands.tools import ToolsCommand
+            tools_command = ToolsCommand()
+            
+            # 执行子命令
+            return tools_command.execute(args.tools_subcommand, args)
         else:
             # 简化解析 flags 和 prompt_args，跳过子命令解析
             from argparse import ArgumentParser

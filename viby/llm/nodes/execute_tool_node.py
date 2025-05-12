@@ -2,8 +2,7 @@ from pocketflow import Node
 from viby.mcp import call_tool
 from viby.locale import get_text
 from viby.utils.formatting import print_markdown
-from viby.llm.nodes.handlers import handle_shell_command
-from viby.tools import AVAILABLE_TOOLS
+from viby.tools import AVAILABLE_TOOLS, TOOL_EXECUTORS
 
 
 class ExecuteToolNode(Node):
@@ -35,9 +34,10 @@ class ExecuteToolNode(Node):
                     tool_def["name"] for tool_def in AVAILABLE_TOOLS.values()
                 ]
                 if tool_name in viby_tool_names:
-                    if tool_name == "execute_shell":
-                        command = parameters.get("command", "")
-                        result = handle_shell_command(command)
+                    if tool_name in TOOL_EXECUTORS:
+                        # 使用注册的执行函数处理工具
+                        executor = TOOL_EXECUTORS[tool_name]
+                        result = executor(parameters)
                         return result
                     else:
                         raise ValueError(f"未实现的Viby工具: {tool_name}")

@@ -179,6 +179,49 @@ def configure_model_profile(profile, model_type, config):
     return profile
 
 
+def configure_embedding_model(config):
+    """配置嵌入模型"""
+    # 嵌入模型名称
+    model_prompt = get_text("CONFIG_WIZARD", "embedding_model_name_prompt", "选择嵌入模型名称")
+    model_name = get_input(model_prompt, config.embedding.model_name)
+    config.embedding.model_name = model_name
+
+    # 模型缓存目录
+    cache_prompt = get_text("CONFIG_WIZARD", "embedding_cache_dir_prompt", "设置模型缓存目录 (可选)")
+    cache_dir = get_input(cache_prompt, config.embedding.cache_dir or "", allow_pass_keyword=True)
+    config.embedding.cache_dir = None if not cache_dir or cache_dir == PASS_SENTINEL else cache_dir
+
+    # 更新频率
+    update_prompt = get_text("CONFIG_WIZARD", "embedding_update_frequency_prompt", "工具嵌入更新频率")
+    update_choices = ["on_change", "manual"]
+    update_display = get_text("CONFIG_WIZARD", "embedding_update_choices", "有变化时, 手动").split(", ")
+    
+    print(update_prompt)
+    for i, (choice, display) in enumerate(zip(update_choices, update_display), 1):
+        selected = " (当前)" if config.embedding.update_frequency == choice else ""
+        print(f"  {i}. {display}{selected}")
+        
+    while True:
+        try:
+            default_index = update_choices.index(config.embedding.update_frequency) + 1 if config.embedding.update_frequency in update_choices else 1
+            update_input = input(f"[{default_index}]: ").strip()
+            if not update_input:
+                if config.embedding.update_frequency not in update_choices:
+                    config.embedding.update_frequency = update_choices[0]  # 如果当前值不在选项中，使用第一个选项
+                break  # 保持当前选择
+                
+            update_num = int(update_input)
+            if 1 <= update_num <= len(update_choices):
+                config.embedding.update_frequency = update_choices[update_num - 1]
+                break
+            else:
+                print(get_text("CONFIG_WIZARD", "number_range_error").format(len(update_choices)))
+        except ValueError:
+            print(get_text("CONFIG_WIZARD", "invalid_number"))
+            
+    return config
+
+
 def run_config_wizard(config):
     """配置向导主函数"""
     # 初始化文本管理器，加载初始语言文本
@@ -235,6 +278,11 @@ def run_config_wizard(config):
     # --- 快速模型配置 ---
     print_header(get_text("CONFIG_WIZARD", "fast_model_header"))
     config.fast_model = configure_model_profile(config.fast_model, "fast", config)
+    print_separator()
+    
+    # --- 嵌入模型配置 ---
+    print_header(get_text("CONFIG_WIZARD", "embedding_model_header", "嵌入模型配置"))
+    config = configure_embedding_model(config)
     print_separator()
 
     # --- 自动压缩配置 ---

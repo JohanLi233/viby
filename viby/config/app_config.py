@@ -21,6 +21,15 @@ class ModelProfileConfig:
 
 
 @dataclass
+class EmbeddingModelConfig:
+    """嵌入模型配置类"""
+    
+    model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"  # 默认嵌入模型
+    cache_dir: Optional[str] = None  # 模型缓存目录
+    update_frequency: str = "on_change"  # 更新频率: on_change, manual
+
+
+@dataclass
 class AutoCompactConfig:
     """自动压缩配置类"""
 
@@ -42,6 +51,9 @@ class Config:
 
         # 自动消息压缩配置
         self.autocompact: AutoCompactConfig = AutoCompactConfig()
+        
+        # 嵌入模型配置
+        self.embedding: EmbeddingModelConfig = EmbeddingModelConfig()
 
         # 模型配置
         self.default_model: ModelProfileConfig = ModelProfileConfig(name="qwen3:30b")
@@ -80,7 +92,7 @@ class Config:
         """将对象转换为字典，处理嵌套对象"""
         if hasattr(obj, "__dict__"):
             # 对ModelProfileConfig和AutoCompactConfig，保留所有字段，即使是None
-            if isinstance(obj, (ModelProfileConfig, AutoCompactConfig)):
+            if isinstance(obj, (ModelProfileConfig, AutoCompactConfig, EmbeddingModelConfig)):
                 return {k: self._to_dict(v) for k, v in obj.__dict__.items()}
             else:
                 return {
@@ -149,6 +161,19 @@ class Config:
                     self.autocompact.keep_last_exchanges = autocompact_data.get(
                         "keep_last_exchanges", self.autocompact.keep_last_exchanges
                     )
+                
+                # 加载嵌入模型配置
+                embedding_data = config_data.get("embedding")
+                if embedding_data and isinstance(embedding_data, dict):
+                    self.embedding.model_name = embedding_data.get(
+                        "model_name", self.embedding.model_name
+                    )
+                    self.embedding.cache_dir = embedding_data.get(
+                        "cache_dir", self.embedding.cache_dir
+                    )
+                    self.embedding.update_frequency = embedding_data.get(
+                        "update_frequency", self.embedding.update_frequency
+                    )
 
                 # 加载全局设置
                 self.api_timeout = int(config_data.get("api_timeout", self.api_timeout))
@@ -189,6 +214,7 @@ class Config:
             if self.fast_model and self.fast_model.name
             else None,
             "autocompact": self._to_dict(self.autocompact),
+            "embedding": self._to_dict(self.embedding),
             "api_timeout": self.api_timeout,
             "language": self.language,
             "enable_mcp": self.enable_mcp,
@@ -244,4 +270,12 @@ class Config:
             "api_key": resolved_api_key,
             "api_timeout": self.api_timeout,
             "top_p": resolved_top_p,
+        }
+
+    def get_embedding_config(self) -> Dict[str, Any]:
+        """获取嵌入模型配置"""
+        return {
+            "model_name": self.embedding.model_name,
+            "cache_dir": self.embedding.cache_dir,
+            "update_frequency": self.embedding.update_frequency
         }

@@ -135,13 +135,27 @@ CHAT = {
 MCP = {
     "tools_error": "\nError: Failed to get MCP tools: {0}",
     "parsing_error": "❌ Error parsing LLM response: {0}",
-    "execution_error": "\n❌ Tool execution error: {0}",
+    "execution_error": "\n❌ Error executing tool: {0}",
     "error_message": "Error executing tool: {0}",
     "result": "✅ Result: {0}",
-    "executing_tool": "## Executing Tool Call",
-    "tool_result": "Tool Call Result",
-    "shell_tool_description": "Execute a shell command on the user's system.",
+    "executing_tool": "## Executing tool call",
+    "tool_result": "Tool call result",
+    "shell_tool_description": "Execute a shell command on the user's system",
     "shell_tool_param_command": "The shell command to execute",
+    # Tool retrieval
+    "tool_retrieval_description": "Search for most relevant MCP tools based on user query, returning tool names, descriptions, parameters, and similarity scores",
+    "tool_retrieval_param_query": "Search query text describing needed tool functionality or user needs",
+    "tool_retrieval_param_top_k": "Number of most relevant tools to return, default is 5",
+    # Update embeddings
+    "update_tool_embeddings_description": "Update tool embeddings. Use this tool to regenerate embeddings in manual update mode",
+}
+
+# Tools management related
+TOOLS = {
+    "command_help": "Manage tools related commands",
+    "update_embeddings_help": "Update MCP tool embeddings",
+    "force_help": "Force update all tool embeddings, ignoring current configuration",
+    "list_help": "List all available MCP tools",
 }
 
 # History command related

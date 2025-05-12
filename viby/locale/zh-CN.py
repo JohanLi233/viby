@@ -143,6 +143,20 @@ MCP = {
     "tool_result": "工具调用结果",
     "shell_tool_description": "在用户系统上执行shell命令",
     "shell_tool_param_command": "要执行的shell命令",
+    # 工具检索
+    "tool_retrieval_description": "根据用户查询搜索最相关的MCP工具，返回工具名称、描述、参数和相似度得分",
+    "tool_retrieval_param_query": "搜索查询文本，描述需要的工具功能或用户需求",
+    "tool_retrieval_param_top_k": "返回的最相关工具数量，默认为5",
+    # 更新嵌入
+    "update_tool_embeddings_description": "更新工具嵌入向量。在手动更新模式下使用此工具重新生成嵌入",
+}
+
+# 工具管理相关
+TOOLS = {
+    "command_help": "管理工具相关命令",
+    "update_embeddings_help": "更新MCP工具的嵌入向量",
+    "force_help": "强制更新所有工具的嵌入向量，忽略当前配置",
+    "list_help": "列出所有可用的MCP工具",
 }
 
 # 历史命令相关

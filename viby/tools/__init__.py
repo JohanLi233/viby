@@ -1,30 +1,23 @@
 """
-Viby内置工具集
+Viby 工具模块
 
-此模块提供了Viby的内置工具定义，遵循FastMCP工具标准
+注册和管理各种工具，包括CLI工具、LLM工具、Web工具等
 """
 
-from viby.tools.shell_tool import SHELL_TOOL
+from typing import Dict, Any, Callable
 
-# 工具规范:
-# {
-#     "name": "工具名称",
-#     "description": "工具描述" 或 lambda函数返回描述,
-#     "parameters": {
-#         "type": "object",
-#         "properties": {
-#             "参数名": {
-#                 "type": "参数类型(string/integer/boolean/etc)",
-#                 "description": "参数描述" 或 lambda函数返回描述
-#             },
-#             ...更多参数...
-#         },
-#         "required": ["必需参数名列表"]
-#     }
-# }
+# 导入工具模块 - 按需添加
+from viby.tools.shell_tool import SHELL_TOOL, execute_shell
+from viby.tools.tool_retrieval import TOOL_RETRIEVAL_TOOL, execute_tool_retrieval
 
-# 收集所有可用工具
+# 注册工具处理函数
+TOOL_EXECUTORS = {
+    "execute_shell": execute_shell,
+    "search_relevant_tools": execute_tool_retrieval,
+}
+
+# 所有可用的MCP工具定义
 AVAILABLE_TOOLS = {
-    "execute_shell": SHELL_TOOL
-    # 这里可以添加更多工具
+    "execute_shell": SHELL_TOOL,
+    "search_relevant_tools": TOOL_RETRIEVAL_TOOL,
 }

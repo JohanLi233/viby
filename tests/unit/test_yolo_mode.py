@@ -4,7 +4,7 @@
 
 from unittest.mock import patch
 
-from viby.llm.nodes.handlers.shell_handler import (
+from viby.tools.shell_tool import (
     set_yolo_mode,
     is_yolo_mode_enabled,
     _is_unsafe_command,
@@ -64,10 +64,10 @@ def test_unsafe_command_detection():
 
 @patch("viby.locale.text_manager")
 @patch("viby.utils.history.logger")
-@patch("viby.llm.nodes.handlers.shell_handler.is_yolo_mode_enabled")
-@patch("viby.llm.nodes.handlers.shell_handler._execute_command")
-@patch("viby.llm.nodes.handlers.shell_handler.prompt")
-@patch("viby.llm.nodes.handlers.shell_handler.print")
+@patch("viby.tools.shell_tool.is_yolo_mode_enabled")
+@patch("viby.tools.shell_tool._execute_command")
+@patch("viby.tools.shell_tool.prompt")
+@patch("viby.tools.shell_tool.print")
 def test_handle_shell_command_yolo_safe(
     mock_print,
     mock_prompt,
@@ -100,10 +100,10 @@ def test_handle_shell_command_yolo_safe(
 
 @patch("viby.locale.text_manager")
 @patch("viby.utils.history.logger")
-@patch("viby.llm.nodes.handlers.shell_handler.is_yolo_mode_enabled")
-@patch("viby.llm.nodes.handlers.shell_handler._execute_command")
-@patch("viby.llm.nodes.handlers.shell_handler.prompt")
-@patch("viby.llm.nodes.handlers.shell_handler.print")
+@patch("viby.tools.shell_tool.is_yolo_mode_enabled")
+@patch("viby.tools.shell_tool._execute_command")
+@patch("viby.tools.shell_tool.prompt")
+@patch("viby.tools.shell_tool.print")
 def test_handle_shell_command_yolo_unsafe(
     mock_print,
     mock_prompt,
@@ -138,10 +138,10 @@ def test_handle_shell_command_yolo_unsafe(
 
 @patch("viby.locale.text_manager")
 @patch("viby.utils.history.logger")
-@patch("viby.llm.nodes.handlers.shell_handler.is_yolo_mode_enabled")
-@patch("viby.llm.nodes.handlers.shell_handler._execute_command")
-@patch("viby.llm.nodes.handlers.shell_handler.prompt")
-@patch("viby.llm.nodes.handlers.shell_handler.print")
+@patch("viby.tools.shell_tool.is_yolo_mode_enabled")
+@patch("viby.tools.shell_tool._execute_command")
+@patch("viby.tools.shell_tool.prompt")
+@patch("viby.tools.shell_tool.print")
 def test_handle_shell_command_yolo_rm_f(
     mock_print,
     mock_prompt,
@@ -176,10 +176,10 @@ def test_handle_shell_command_yolo_rm_f(
 
 @patch("viby.locale.text_manager")
 @patch("viby.utils.history.logger")
-@patch("viby.llm.nodes.handlers.shell_handler.is_yolo_mode_enabled")
-@patch("viby.llm.nodes.handlers.shell_handler._execute_command")
-@patch("viby.llm.nodes.handlers.shell_handler.prompt")
-@patch("viby.llm.nodes.handlers.shell_handler.print")
+@patch("viby.tools.shell_tool.is_yolo_mode_enabled")
+@patch("viby.tools.shell_tool._execute_command")
+@patch("viby.tools.shell_tool.prompt")
+@patch("viby.tools.shell_tool.print")
 def test_handle_shell_command_no_yolo(
     mock_print,
     mock_prompt,
