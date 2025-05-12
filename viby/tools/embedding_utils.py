@@ -171,7 +171,7 @@ class ToolEmbeddingManager:
         parameters = tool_def.get("parameters", {})
         properties = parameters.get("properties", {})
         required = parameters.get("required", [])
-        
+
         for param_name, param_info in properties.items():
             param_type = param_info.get("type", "unknown")
             param_desc = param_info.get("description", "")
@@ -282,16 +282,16 @@ class ToolEmbeddingManager:
             if name not in self.tool_info:
                 logger.warning(f"工具 {name} 在tool_info中不存在，跳过")
                 continue
-                
+
             tool_info = self.tool_info[name]
             definition = tool_info.get("definition", {})
-            
+
             # 构建结果
             tool_result = {
                 "name": name,
                 "score": score,
                 "definition": definition,
-                "server_name": definition.get("server_name", "unknown")
+                "server_name": definition.get("server_name", "unknown"),
             }
             result.append(tool_result)
 

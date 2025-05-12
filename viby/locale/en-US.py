@@ -267,6 +267,7 @@ AGENT = {
         "You may call different tools multiple times until the user's problem is fully solved.\n"
         "For example, if the user asks about the current directory project, first run pwd, then ls, and if there is a README or other important file, read it before giving a complete answer.\n"
         "You have the ability to operate the computer like a user, including accessing websites and resources (e.g., use curl to check the weather)."
+        "You can also search for available tools, and the tools retrieved are all available."
         "Always strive to solve the user's needs efficiently and thoroughly."
     )
 }

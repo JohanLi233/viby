@@ -30,6 +30,8 @@ Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解
 - **管道集成** - 处理来自其他命令的数据（例如，`git diff | viby "写一个提交消息"`）
 - **MCP 工具** - 通过模型上下文协议集成扩展能力
 
+![Viby 终端演示](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/terminal-demo.png)
+
 ## 🔧 安装
 
 ```sh

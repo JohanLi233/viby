@@ -50,7 +50,7 @@ class PromptNode(Node):
             else:
                 # 如果禁用了工具搜索，直接添加所有MCP工具
                 tools_dict = list_tools(server_name)
-                
+
                 # 将MCP工具和对应的服务器名称添加到列表中
                 for srv_name, tools in tools_dict.items():
                     for tool in tools:

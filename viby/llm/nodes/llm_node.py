@@ -172,20 +172,36 @@ class LLMNode(Node):
                             try:
                                 # 尝试从工具返回消息中解析工具列表
                                 tool_results = eval(message.get("content", "[]"))
-                                if isinstance(tool_results, list) and len(tool_results) > 0:
+                                if (
+                                    isinstance(tool_results, list)
+                                    and len(tool_results) > 0
+                                ):
                                     # 查找当前工具
                                     for tool_result in tool_results:
-                                        if isinstance(tool_result, dict) and tool_result.get("name") == tool_name:
+                                        if (
+                                            isinstance(tool_result, dict)
+                                            and tool_result.get("name") == tool_name
+                                        ):
                                             # 找到工具，获取服务器名称
-                                            selected_server = tool_result.get("server_name")
+                                            selected_server = tool_result.get(
+                                                "server_name"
+                                            )
                                             # 更新工具服务器映射以便将来使用
                                             if selected_server:
-                                                tool_servers[tool_name] = selected_server
+                                                tool_servers[tool_name] = (
+                                                    selected_server
+                                                )
                                                 shared["tool_servers"] = tool_servers
                                             break
                                 break
                             except Exception as parse_err:
-                                print(get_text("MCP", "parsing_error", f"解析工具结果失败: {parse_err}"))
+                                print(
+                                    get_text(
+                                        "MCP",
+                                        "parsing_error",
+                                        f"解析工具结果失败: {parse_err}",
+                                    )
+                                )
 
             print(tool_name, selected_server, arguments)
 

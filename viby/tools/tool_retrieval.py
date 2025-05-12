@@ -26,6 +26,7 @@ def get_embedding_manager() -> ToolEmbeddingManager:
 
 # 公共工具收集函数，避免各处重复实现
 
+
 def collect_mcp_tools() -> Dict[str, Dict[str, Any]]:
     """收集启用状态下的所有 MCP 工具，返回标准格式的工具字典。"""
     from viby.config import Config
@@ -47,18 +48,18 @@ def collect_mcp_tools() -> Dict[str, Dict[str, Any]]:
                     "server_name": server_name,
                 }
     except Exception as exc:
-        logger.error("获取 MCP 工具失败: %s", exc)
+        logger.error(get_text("MCP", "tools_error").replace("{0}", str(exc)))
     return tools
 
 
 def search_tools(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
     """
     根据查询搜索相关工具定义
-    
+
     Args:
         query: 查询文本
         top_k: 最大返回结果数量
-        
+
     Returns:
         匹配的工具定义列表，按相关性排序
     """
@@ -66,7 +67,7 @@ def search_tools(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
 
     # 检查是否有工具嵌入缓存
     if not manager.tool_embeddings:
-        logger.warning("未找到工具嵌入缓存，请先运行 'viby tools embed' 初始化")
+        logger.warning(get_text("MCP", "no_embeddings_cache"))
         return []
 
     # 执行相似度搜索并直接返回相似工具信息
@@ -81,7 +82,10 @@ def execute_update_embeddings(params: Dict[str, Any]) -> Dict[str, Any]:
         # 收集工具定义
         tools_dict = collect_mcp_tools()
         if not tools_dict:
-            return {"success": False, "message": "没有可用的MCP工具或MCP功能未启用"}
+            return {
+                "success": False, 
+                "message": get_text("MCP", "no_tools_or_mcp_disabled", "没有可用的MCP工具或MCP功能未启用")
+            }
         
         # 更新嵌入
         manager = get_embedding_manager()
@@ -89,12 +93,15 @@ def execute_update_embeddings(params: Dict[str, Any]) -> Dict[str, Any]:
         
         return {
             "success": updated,
-            "message": "已成功更新MCP工具嵌入向量" if updated else "MCP工具嵌入向量已是最新，无需更新",
+            "message": get_text("MCP", "embeddings_updated", "已成功更新MCP工具嵌入向量") if updated else get_text("MCP", "embeddings_up_to_date", "MCP工具嵌入向量已是最新，无需更新"),
             "tool_count": len(tools_dict),
         }
     except Exception as e:
-        logger.error("更新MCP工具嵌入向量失败: %s", e, exc_info=True)
-        return {"success": False, "error": f"更新失败: {str(e)}"}
+        logger.error(get_text("MCP", "update_embeddings_failed", "更新MCP工具嵌入向量失败: %s"), e, exc_info=True)
+        return {
+            "success": False, 
+            "error": get_text("MCP", "update_error", "更新失败: {0}").format(str(e))
+        }
 
 
 # 工具检索工具定义 - 符合FastMCP标准
@@ -133,11 +140,11 @@ def execute_tool_retrieval(params: Dict[str, Any]) -> Dict[str, Any]:
     top_k = params.get("top_k", 5)
 
     if not query:
-        return {"error": "查询文本不能为空"}
+        return {"error": get_text("MCP", "empty_query", "查询文本不能为空")}
 
     try:
-        tools = search_tools(query, top_k)
-        return tools
+        # 直接返回搜索结果，不添加额外包装
+        return search_tools(query, top_k)
     except Exception as e:
-        logger.error("工具检索失败: %s", e, exc_info=True)
-        return {"error": f"工具检索失败: {str(e)}"}
+        logger.error(get_text("MCP", "tool_search_failed", "工具检索失败: %s"), e, exc_info=True)
+        return {"error": get_text("MCP", "tool_search_error", "工具检索失败: {0}").format(str(e))}

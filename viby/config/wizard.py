@@ -344,19 +344,23 @@ def run_config_wizard(config):
             "\n"
             + get_text("CONFIG_WIZARD", "mcp_config_info").format(config.config_dir)
         )
-        
+
         # 工具搜索设置
         enable_tool_search_prompt = get_text(
-            "CONFIG_WIZARD", 
-            "enable_tool_search_prompt", 
-            "启用MCP工具搜索功能（根据查询智能选择相关工具）"
+            "CONFIG_WIZARD",
+            "enable_tool_search_prompt",
+            "启用MCP工具搜索功能（根据查询智能选择相关工具）",
         )
         enable_tool_search_choices = [
             get_text("CONFIG_WIZARD", "yes"),
             get_text("CONFIG_WIZARD", "no"),
         ]
-        enable_tool_search = number_choice(enable_tool_search_choices, enable_tool_search_prompt)
-        config.enable_tool_search = enable_tool_search == get_text("CONFIG_WIZARD", "yes")
+        enable_tool_search = number_choice(
+            enable_tool_search_choices, enable_tool_search_prompt
+        )
+        config.enable_tool_search = enable_tool_search == get_text(
+            "CONFIG_WIZARD", "yes"
+        )
 
     # Yolo模式设置
     enable_yolo_prompt = get_text("CONFIG_WIZARD", "enable_yolo_mode_prompt")
