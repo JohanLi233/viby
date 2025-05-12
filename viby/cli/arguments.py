@@ -4,13 +4,12 @@ Command line argument parsing for viby
 
 import argparse
 import sys
-from typing import Tuple, Dict, Any, Type, Optional
+from typing import Tuple
 import importlib.metadata
 import pathlib
 import os
 
 from viby.locale import get_text
-
 
 
 def get_version_string() -> str:
@@ -187,25 +186,27 @@ def get_parser() -> argparse.ArgumentParser:
 
     # === 快捷键命令 ===
     _ = subparsers.add_parser("shortcuts", help=get_text("SHORTCUTS", "command_help"))
-    
+
     # === 工具管理命令 ===
     tools_parser = subparsers.add_parser(
         "tools", help=get_text("TOOLS", "command_help", "管理工具相关命令")
     )
     tools_subparsers = tools_parser.add_subparsers(
-        dest="tools_subcommand", help=get_text("TOOLS", "subcommand_help", "工具管理子命令")
+        dest="tools_subcommand",
+        help=get_text("TOOLS", "subcommand_help", "工具管理子命令"),
     )
-    
+
     # 更新嵌入向量子命令
-    update_embed_parser = tools_subparsers.add_parser(
-        "update-embeddings", help=get_text("TOOLS", "update_embeddings_help", "更新MCP工具的嵌入向量")
+    tools_subparsers.add_parser(
+        "embed",
+        help=get_text("TOOLS", "update_embeddings_help", "更新MCP工具的嵌入向量"),
     )
-    
+
     # 列出工具子命令
-    list_tools_parser = tools_subparsers.add_parser(
+    tools_subparsers.add_parser(
         "list", help=get_text("TOOLS", "list_help", "列出所有可用的MCP工具")
     )
-    
+
     return parser
 
 

@@ -4,8 +4,6 @@ Viby 工具模块
 注册和管理各种工具，包括CLI工具、LLM工具、Web工具等
 """
 
-from typing import Dict, Any, Callable
-
 # 导入工具模块 - 按需添加
 from viby.tools.shell_tool import SHELL_TOOL, execute_shell
 from viby.tools.tool_retrieval import TOOL_RETRIEVAL_TOOL, execute_tool_retrieval

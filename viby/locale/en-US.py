@@ -87,6 +87,13 @@ CONFIG_WIZARD = {
     "enable_mcp_prompt": "Enable MCP tools",
     "mcp_config_info": "MCP configuration folder: {0}",
     "enable_yolo_mode_prompt": "Enable YOLO mode (auto-execute safe shell commands)",
+    "enable_tool_search_prompt": "Enable MCP tool search feature (intelligently select relevant tools based on query)",
+    # Add embedding model configuration related text
+    "embedding_model_header": "--- Embedding Model Configuration ---",
+    "embedding_model_name_prompt": "Embedding Model Name",
+    "embedding_cache_dir_prompt": "Embedding Model Cache Directory (optional, leave blank for default)",
+    "embedding_update_frequency_prompt": "Tool Embedding Update Frequency",
+    "embedding_update_choices": "On change, Manual",
 }
 
 # Shell command related
@@ -147,15 +154,16 @@ MCP = {
     "tool_retrieval_param_query": "Search query text describing needed tool functionality or user needs",
     "tool_retrieval_param_top_k": "Number of most relevant tools to return, default is 5",
     # Update embeddings
-    "update_tool_embeddings_description": "Update tool embeddings. Use this tool to regenerate embeddings in manual update mode",
+    "update_tool_embeddings_description": "Update tool embeddings. Regenerates all tool embeddings",
 }
 
 # Tools management related
 TOOLS = {
     "command_help": "Manage tools related commands",
     "update_embeddings_help": "Update MCP tool embeddings",
-    "force_help": "Force update all tool embeddings, ignoring current configuration",
     "list_help": "List all available MCP tools",
+    "subcommand_help": "Tool management subcommands",
+    "subcommand_required": "A tool subcommand must be specified (e.g., embed, list)",
 }
 
 # History command related

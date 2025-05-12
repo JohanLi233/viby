@@ -23,8 +23,10 @@ def _is_interactive(console: Console) -> bool:
 # math converter for LaTeX rendering
 MATH_CONVERTER = converter()
 
+
 def _process_latex_tokens(text: str) -> str:
     """Convert LaTeX math ($...$ and $$...$$) to unicode using flatlatex."""
+
     # convert display math $$...$$
     def _convert_display(m):
         expr = m.group(1)
@@ -32,7 +34,9 @@ def _process_latex_tokens(text: str) -> str:
             return MATH_CONVERTER.convert(expr)
         except Exception:
             return m.group(0)
+
     text = re.sub(r"\$\$(.+?)\$\$", _convert_display, text, flags=re.DOTALL)
+
     # convert inline math $...$
     def _convert_inline(m):
         expr = m.group(1)
@@ -40,6 +44,7 @@ def _process_latex_tokens(text: str) -> str:
             return MATH_CONVERTER.convert(expr)
         except Exception:
             return m.group(0)
+
     text = re.sub(r"\$(.+?)\$", _convert_inline, text)
     return text
 
@@ -81,7 +86,9 @@ def render_markdown_stream(
             content_so_far = "".join(accumulated)
 
             # 处理 <think> 标记以确保独立成行并用特殊样式显示
-            processed_content = _process_think_tokens(_process_latex_tokens(content_so_far))
+            processed_content = _process_think_tokens(
+                _process_latex_tokens(content_so_far)
+            )
 
             if enhance_links:
                 processed_content = process_markdown_links(processed_content)

@@ -35,6 +35,8 @@ Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解
 ```sh
 # 从 PyPI 安装
 pip install viby
+# 或者
+uv tool install viby
 ```
 
 ### 替代安装方式

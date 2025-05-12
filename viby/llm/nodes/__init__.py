@@ -13,7 +13,7 @@ from viby.llm.nodes.execute_tool_node import ExecuteToolNode
 __all__ = [
     "DummyNode",
     "LLMNode",
-    "PromptNode", 
+    "PromptNode",
     "ChatInputNode",
     "ExecuteToolNode",
 ]

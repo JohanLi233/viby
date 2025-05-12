@@ -23,8 +23,8 @@ class ModelProfileConfig:
 @dataclass
 class EmbeddingModelConfig:
     """嵌入模型配置类"""
-    
-    model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"  # 默认嵌入模型
+
+    model_name: str = "BAAI/bge-m3"  # 默认嵌入模型
     cache_dir: Optional[str] = None  # 模型缓存目录
     update_frequency: str = "on_change"  # 更新频率: on_change, manual
 
@@ -48,10 +48,11 @@ class Config:
         self.enable_mcp: bool = True
         self.mcp_config_folder: Optional[str] = None
         self.enable_yolo_mode: bool = False  # yolo模式默认关闭
+        self.enable_tool_search: bool = True  # 启用工具搜索功能
 
         # 自动消息压缩配置
         self.autocompact: AutoCompactConfig = AutoCompactConfig()
-        
+
         # 嵌入模型配置
         self.embedding: EmbeddingModelConfig = EmbeddingModelConfig()
 
@@ -92,7 +93,9 @@ class Config:
         """将对象转换为字典，处理嵌套对象"""
         if hasattr(obj, "__dict__"):
             # 对ModelProfileConfig和AutoCompactConfig，保留所有字段，即使是None
-            if isinstance(obj, (ModelProfileConfig, AutoCompactConfig, EmbeddingModelConfig)):
+            if isinstance(
+                obj, (ModelProfileConfig, AutoCompactConfig, EmbeddingModelConfig)
+            ):
                 return {k: self._to_dict(v) for k, v in obj.__dict__.items()}
             else:
                 return {
@@ -161,7 +164,7 @@ class Config:
                     self.autocompact.keep_last_exchanges = autocompact_data.get(
                         "keep_last_exchanges", self.autocompact.keep_last_exchanges
                     )
-                
+
                 # 加载嵌入模型配置
                 embedding_data = config_data.get("embedding")
                 if embedding_data and isinstance(embedding_data, dict):
@@ -184,6 +187,9 @@ class Config:
                 )
                 self.enable_yolo_mode = bool(
                     config_data.get("enable_yolo_mode", self.enable_yolo_mode)
+                )
+                self.enable_tool_search = bool(
+                    config_data.get("enable_tool_search", self.enable_tool_search)
                 )
 
         except Exception as e:
@@ -220,6 +226,7 @@ class Config:
             "enable_mcp": self.enable_mcp,
             "mcp_config_folder": self.mcp_config_folder,
             "enable_yolo_mode": self.enable_yolo_mode,
+            "enable_tool_search": self.enable_tool_search,
         }
 
         try:
@@ -277,5 +284,5 @@ class Config:
         return {
             "model_name": self.embedding.model_name,
             "cache_dir": self.embedding.cache_dir,
-            "update_frequency": self.embedding.update_frequency
+            "update_frequency": self.embedding.update_frequency,
         }

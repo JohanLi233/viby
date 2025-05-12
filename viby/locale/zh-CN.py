@@ -88,6 +88,13 @@ CONFIG_WIZARD = {
     "enable_mcp_prompt": "启用MCP工具",
     "mcp_config_info": "MCP配置文件夹：{0}",
     "enable_yolo_mode_prompt": "启用YOLO模式（自动执行安全的shell命令）",
+    "enable_tool_search_prompt": "启用MCP工具搜索功能（根据查询智能选择相关工具）",
+    # 添加嵌入模型相关配置文本
+    "embedding_model_header": "--- 嵌入模型配置 ---",
+    "embedding_model_name_prompt": "嵌入模型名称",
+    "embedding_cache_dir_prompt": "嵌入模型缓存目录 (可选, 留空则使用默认)",
+    "embedding_update_frequency_prompt": "工具嵌入向量更新频率",
+    "embedding_update_choices": "有变化时, 手动",
 }
 
 # Shell 命令相关
@@ -148,15 +155,16 @@ MCP = {
     "tool_retrieval_param_query": "搜索查询文本，描述需要的工具功能或用户需求",
     "tool_retrieval_param_top_k": "返回的最相关工具数量，默认为5",
     # 更新嵌入
-    "update_tool_embeddings_description": "更新工具嵌入向量。在手动更新模式下使用此工具重新生成嵌入",
+    "update_tool_embeddings_description": "更新工具嵌入向量。重新生成所有工具的嵌入",
 }
 
 # 工具管理相关
 TOOLS = {
     "command_help": "管理工具相关命令",
     "update_embeddings_help": "更新MCP工具的嵌入向量",
-    "force_help": "强制更新所有工具的嵌入向量，忽略当前配置",
     "list_help": "列出所有可用的MCP工具",
+    "subcommand_help": "工具管理子命令",
+    "subcommand_required": "必须指定工具子命令 (例如, embed, list)",
 }
 
 # 历史命令相关

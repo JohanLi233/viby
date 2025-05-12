@@ -160,6 +160,35 @@ class LLMNode(Node):
             tool_servers = shared.get("tool_servers", {})
             selected_server = tool_servers.get(tool_name)
 
+            # 检查是否是从search_relevant_tools返回的工具
+            # 如果是从工具搜索返回的结果，搜索结果中包含server_name
+            if not selected_server and tool_name != "search_relevant_tools":
+                # 检查最近的工具搜索结果
+                last_response = shared.get("response", "")
+                if "search_relevant_tools" in last_response:
+                    # 在消息历史中查找上一次工具调用返回的工具列表
+                    for message in reversed(shared.get("messages", [])):
+                        if message.get("role") == "tool":
+                            try:
+                                # 尝试从工具返回消息中解析工具列表
+                                tool_results = eval(message.get("content", "[]"))
+                                if isinstance(tool_results, list) and len(tool_results) > 0:
+                                    # 查找当前工具
+                                    for tool_result in tool_results:
+                                        if isinstance(tool_result, dict) and tool_result.get("name") == tool_name:
+                                            # 找到工具，获取服务器名称
+                                            selected_server = tool_result.get("server_name")
+                                            # 更新工具服务器映射以便将来使用
+                                            if selected_server:
+                                                tool_servers[tool_name] = selected_server
+                                                shared["tool_servers"] = tool_servers
+                                            break
+                                break
+                            except Exception as parse_err:
+                                print(get_text("MCP", "parsing_error", f"解析工具结果失败: {parse_err}"))
+
+            print(tool_name, selected_server, arguments)
+
             if not selected_server:
                 print(get_text("MCP", "parsing_error", f"Tool '{tool_name}' not found"))
                 return "continue"

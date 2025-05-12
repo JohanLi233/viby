@@ -79,41 +79,37 @@ SHELL_TOOL = {
     },
 }
 
+
 def execute_shell(params: Dict[str, Any]) -> Dict[str, Any]:
     """
     执行shell命令工具处理函数
-    
+
     Args:
         params: 包含command参数的字典
-    
+
     Returns:
         执行结果
     """
     command = params.get("command", "")
     if not command:
-        return {
-            "success": False,
-            "error": "命令不能为空"
-        }
-    
+        return {"success": False, "error": "命令不能为空"}
+
     try:
         # 调用shell处理器执行命令
         result = handle_shell_command(command)
-        
+
         # 转换结果为MCP工具格式
         return {
             "success": result.get("status") == "executed",
             "code": result.get("code", 1),
             "output": result.get("output", ""),
             "error": result.get("error", ""),
-            "command": command
+            "command": command,
         }
     except Exception as e:
         logger.error(f"执行shell命令失败: {e}", exc_info=True)
-        return {
-            "success": False,
-            "error": f"执行失败: {str(e)}"
-        }
+        return {"success": False, "error": f"执行失败: {str(e)}"}
+
 
 def set_yolo_mode(enabled: bool) -> bool:
     """

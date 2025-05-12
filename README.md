@@ -36,6 +36,8 @@ Viby is a powerful AI agent that lives in your terminal, designed to solve virtu
 ```sh
 # Install from PyPI
 pip install viby
+# OR
+uv tool install viby
 ```
 
 ### Alternative Installation
