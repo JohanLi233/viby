@@ -99,17 +99,17 @@ def print_markdown(content, style=None):
         style: 可选的样式（error, warning, success等），用于简单文本着色
     """
     console = Console()
-    
+
     # 使用样式直接打印
     if style in ["error", "warning", "success"]:
         style_map = {
             "error": "bold red",
             "warning": "bold yellow",
-            "success": "bold green"
+            "success": "bold green",
         }
         console.print(f"[{style_map[style]}]{content}[/{style_map[style]}]")
         return
-    
+
     # 使用Markdown渲染
     md_text = format_markdown(content)
     console.print(Markdown(md_text, justify="left"))

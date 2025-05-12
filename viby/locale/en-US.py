@@ -87,6 +87,13 @@ CONFIG_WIZARD = {
     "enable_mcp_prompt": "Enable MCP tools",
     "mcp_config_info": "MCP configuration folder: {0}",
     "enable_yolo_mode_prompt": "Enable YOLO mode (auto-execute safe shell commands)",
+    "enable_tool_search_prompt": "Enable MCP tool search feature (intelligently select relevant tools based on query)",
+    # Add embedding model configuration related text
+    "embedding_model_header": "--- Embedding Model Configuration ---",
+    "embedding_model_name_prompt": "Embedding Model Name",
+    "embedding_cache_dir_prompt": "Embedding Model Cache Directory (optional, leave blank for default)",
+    "embedding_update_frequency_prompt": "Tool Embedding Update Frequency",
+    "embedding_update_choices": "On change, Manual",
 }
 
 # Shell command related
@@ -135,13 +142,28 @@ CHAT = {
 MCP = {
     "tools_error": "\nError: Failed to get MCP tools: {0}",
     "parsing_error": "❌ Error parsing LLM response: {0}",
-    "execution_error": "\n❌ Tool execution error: {0}",
+    "execution_error": "\n❌ Error executing tool: {0}",
     "error_message": "Error executing tool: {0}",
     "result": "✅ Result: {0}",
-    "executing_tool": "## Executing Tool Call",
-    "tool_result": "Tool Call Result",
-    "shell_tool_description": "Execute a shell command on the user's system.",
+    "executing_tool": "## Executing tool call",
+    "tool_result": "Tool call result",
+    "shell_tool_description": "Execute a shell command on the user's system",
     "shell_tool_param_command": "The shell command to execute",
+    # Tool retrieval
+    "tool_retrieval_description": "Search for most relevant MCP tools based on user query, returning tool names, descriptions, parameters, and similarity scores",
+    "tool_retrieval_param_query": "Search query text describing needed tool functionality or user needs",
+    "tool_retrieval_param_top_k": "Number of most relevant tools to return, default is 5",
+    # Update embeddings
+    "update_tool_embeddings_description": "Update tool embeddings. Regenerates all tool embeddings",
+}
+
+# Tools management related
+TOOLS = {
+    "command_help": "Manage tools related commands",
+    "update_embeddings_help": "Update MCP tool embeddings",
+    "list_help": "List all available MCP tools",
+    "subcommand_help": "Tool management subcommands",
+    "subcommand_required": "A tool subcommand must be specified (e.g., embed, list)",
 }
 
 # History command related
@@ -245,6 +267,7 @@ AGENT = {
         "You may call different tools multiple times until the user's problem is fully solved.\n"
         "For example, if the user asks about the current directory project, first run pwd, then ls, and if there is a README or other important file, read it before giving a complete answer.\n"
         "You have the ability to operate the computer like a user, including accessing websites and resources (e.g., use curl to check the weather)."
+        "You can also search for available tools, and the tools retrieved are all available."
         "Always strive to solve the user's needs efficiently and thoroughly."
     )
 }

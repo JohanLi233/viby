@@ -31,11 +31,15 @@ Viby is a powerful AI agent that lives in your terminal, designed to solve virtu
 - **Pipeline Integration** - Process data from other commands (e.g., `git diff | viby "write a commit message"`)
 - **MCP Tools** - Extended capabilities through Model Context Protocol integration
 
+![Viby Terminal Demo](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/terminal-demo.png)
+
 ## 🔧 Installation
 
 ```sh
 # Install from PyPI
 pip install viby
+# OR
+uv tool install viby
 ```
 
 ### Alternative Installation
@@ -134,6 +138,7 @@ help me analysis my readme file  # Now press Ctrl+Q
 ```
 
 Supported shells:
+
 - Bash
 - Zsh
 - Fish

@@ -179,6 +179,28 @@ def configure_model_profile(profile, model_type, config):
     return profile
 
 
+def configure_embedding_model(config):
+    """配置嵌入模型"""
+    # 显示嵌入模型配置标题
+    print()
+    print(get_text("CONFIG_WIZARD", "embedding_model_header"))
+
+    # 嵌入模型名称
+    model_prompt = get_text("CONFIG_WIZARD", "embedding_model_name_prompt")
+    model_name = get_input(model_prompt, config.embedding.model_name)
+    config.embedding.model_name = model_name
+
+    # 模型缓存目录
+    cache_prompt = get_text("CONFIG_WIZARD", "embedding_cache_dir_prompt")
+    cache_dir = get_input(
+        cache_prompt, config.embedding.cache_dir or "", allow_pass_keyword=True
+    )
+    config.embedding.cache_dir = (
+        None if not cache_dir or cache_dir == PASS_SENTINEL else cache_dir
+    )
+    return config
+
+
 def run_config_wizard(config):
     """配置向导主函数"""
     # 初始化文本管理器，加载初始语言文本
@@ -235,6 +257,11 @@ def run_config_wizard(config):
     # --- 快速模型配置 ---
     print_header(get_text("CONFIG_WIZARD", "fast_model_header"))
     config.fast_model = configure_model_profile(config.fast_model, "fast", config)
+    print_separator()
+
+    # --- 嵌入模型配置 ---
+    print_header(get_text("CONFIG_WIZARD", "embedding_model_header", "嵌入模型配置"))
+    config = configure_embedding_model(config)
     print_separator()
 
     # --- 自动压缩配置 ---
@@ -316,6 +343,23 @@ def run_config_wizard(config):
         print(
             "\n"
             + get_text("CONFIG_WIZARD", "mcp_config_info").format(config.config_dir)
+        )
+
+        # 工具搜索设置
+        enable_tool_search_prompt = get_text(
+            "CONFIG_WIZARD",
+            "enable_tool_search_prompt",
+            "启用MCP工具搜索功能（根据查询智能选择相关工具）",
+        )
+        enable_tool_search_choices = [
+            get_text("CONFIG_WIZARD", "yes"),
+            get_text("CONFIG_WIZARD", "no"),
+        ]
+        enable_tool_search = number_choice(
+            enable_tool_search_choices, enable_tool_search_prompt
+        )
+        config.enable_tool_search = enable_tool_search == get_text(
+            "CONFIG_WIZARD", "yes"
         )
 
     # Yolo模式设置

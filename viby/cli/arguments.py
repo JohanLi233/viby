@@ -186,6 +186,27 @@ def get_parser() -> argparse.ArgumentParser:
 
     # === 快捷键命令 ===
     _ = subparsers.add_parser("shortcuts", help=get_text("SHORTCUTS", "command_help"))
+
+    # === 工具管理命令 ===
+    tools_parser = subparsers.add_parser(
+        "tools", help=get_text("TOOLS", "command_help", "管理工具相关命令")
+    )
+    tools_subparsers = tools_parser.add_subparsers(
+        dest="tools_subcommand",
+        help=get_text("TOOLS", "subcommand_help", "工具管理子命令"),
+    )
+
+    # 更新嵌入向量子命令
+    tools_subparsers.add_parser(
+        "embed",
+        help=get_text("TOOLS", "update_embeddings_help", "更新MCP工具的嵌入向量"),
+    )
+
+    # 列出工具子命令
+    tools_subparsers.add_parser(
+        "list", help=get_text("TOOLS", "list_help", "列出所有可用的MCP工具")
+    )
+
     return parser
 
 
@@ -196,11 +217,12 @@ def parse_arguments() -> argparse.Namespace:
         解析后的参数命名空间，额外属性 prompt_args 为剩余位置参数
     """
     parser = get_parser()
-    # 如果调用 history 子命令，使用 parse_args 来支持子命令解析
     import sys
 
     raw = sys.argv[1:]
-    if raw and raw[0] == "history":
+    # 如果调用 history、shortcuts 或 tools 等子命令，使用 parse_args 来支持子命令解析
+    if raw and raw[0] in ["history", "shortcuts", "tools"]:
+        # 对于所有子命令，直接进行完整解析
         return parser.parse_args()
     # 否则，解析已知参数并收集剩余位置参数为 prompt_args
     args, unknown = parser.parse_known_args()

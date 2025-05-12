@@ -12,8 +12,12 @@ class PromptNode(Node):
         """Retrieve tools from the MCP server"""
         result = {"tools": []}
 
+        # 获取配置
+        config = Config()
+
+        # 准备viby内置工具
         viby_tools = []
-        for _, tool_def in AVAILABLE_TOOLS.items():
+        for tool_name, tool_def in AVAILABLE_TOOLS.items():
             if callable(tool_def["description"]):
                 tool_def["description"] = tool_def["description"]()
 
@@ -21,28 +25,37 @@ class PromptNode(Node):
                 if callable(param_def["description"]):
                     param_def["description"] = param_def["description"]()
 
+            # 检查是否是搜索工具，如果工具搜索功能被禁用，则不添加搜索工具
+            if tool_name == "search_relevant_tools" and not config.enable_tool_search:
+                continue
+
             viby_tools.append({"server_name": "viby", "tool": tool_def})
 
         # 初始化结果，先只包含viby工具
         all_tools = viby_tools
         tool_servers = {tool["tool"]["name"]: "viby" for tool in viby_tools}
 
-        # 如果启用了MCP，添加MCP工具
-        config = Config()
+        # 如果启用了MCP，处理MCP工具
         if not config.enable_mcp:
             result["tools"] = all_tools
             result["tool_servers"] = tool_servers
             return result
 
         try:
-            # 直接获取工具字典
-            tools_dict = list_tools(server_name)
+            # 检查工具搜索模式
+            if config.enable_tool_search:
+                # 如果启用了工具搜索，不直接添加MCP工具，让大模型通过search_relevant_tools工具来获取
+                # 已经在viby工具中包含了search_relevant_tools工具，所以不需要额外操作
+                pass
+            else:
+                # 如果禁用了工具搜索，直接添加所有MCP工具
+                tools_dict = list_tools(server_name)
 
-            # 将MCP工具和对应的服务器名称添加到列表中
-            for srv_name, tools in tools_dict.items():
-                for tool in tools:
-                    all_tools.append({"server_name": srv_name, "tool": tool})
-                    tool_servers[tool.name] = srv_name
+                # 将MCP工具和对应的服务器名称添加到列表中
+                for srv_name, tools in tools_dict.items():
+                    for tool in tools:
+                        all_tools.append({"server_name": srv_name, "tool": tool})
+                        tool_servers[tool.name] = srv_name
 
             result["tools"] = all_tools
             result["tool_servers"] = tool_servers

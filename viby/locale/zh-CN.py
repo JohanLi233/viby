@@ -88,6 +88,13 @@ CONFIG_WIZARD = {
     "enable_mcp_prompt": "启用MCP工具",
     "mcp_config_info": "MCP配置文件夹：{0}",
     "enable_yolo_mode_prompt": "启用YOLO模式（自动执行安全的shell命令）",
+    "enable_tool_search_prompt": "启用MCP工具搜索功能（根据查询智能选择相关工具）",
+    # 添加嵌入模型相关配置文本
+    "embedding_model_header": "--- 嵌入模型配置 ---",
+    "embedding_model_name_prompt": "嵌入模型名称",
+    "embedding_cache_dir_prompt": "嵌入模型缓存目录 (可选, 留空则使用默认)",
+    "embedding_update_frequency_prompt": "工具嵌入向量更新频率",
+    "embedding_update_choices": "有变化时, 手动",
 }
 
 # Shell 命令相关
@@ -143,6 +150,21 @@ MCP = {
     "tool_result": "工具调用结果",
     "shell_tool_description": "在用户系统上执行shell命令",
     "shell_tool_param_command": "要执行的shell命令",
+    # 工具检索
+    "tool_retrieval_description": "根据用户查询搜索最相关的MCP工具，返回工具名称、描述、参数和相似度得分",
+    "tool_retrieval_param_query": "搜索查询文本，描述需要的工具功能或用户需求",
+    "tool_retrieval_param_top_k": "返回的最相关工具数量，默认为5",
+    # 更新嵌入
+    "update_tool_embeddings_description": "更新工具嵌入向量。重新生成所有工具的嵌入",
+}
+
+# 工具管理相关
+TOOLS = {
+    "command_help": "管理工具相关命令",
+    "update_embeddings_help": "更新MCP工具的嵌入向量",
+    "list_help": "列出所有可用的MCP工具",
+    "subcommand_help": "工具管理子命令",
+    "subcommand_required": "必须指定工具子命令 (例如, embed, list)",
 }
 
 # 历史命令相关
@@ -245,7 +267,8 @@ AGENT = {
         '<tool_call>{{"name": "工具名称", "arguments": {{"参数1": "值1", "参数2": "值2"}}}}</tool_call>\n'
         "你可多次调用不同的的工具，直到彻底解决用户问题。但每次只能调用一个工具。\n"
         "例如，用户询问当前目录项目内容，你应先执行 pwd，再执行 ls，若有 README 等文件需进一步阅读后再完整答复。\n"
-        "你具备像用户操作电脑一样的能力，可访问网站和各类资源（如查询天气可用 curl）。"
+        "你具备像用户操作电脑一样的能力，可访问网站和各类资源（如查询天气可用 curl）。\n"
+        "你还可以搜索使用什么工具，搜索到的工具都是可用的\n"
         "保证始终以高效、全面的流程彻底解决用户需求。"
     )
 }
