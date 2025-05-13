@@ -30,9 +30,6 @@ class EmbeddingManager:
     def __init__(self, cache_dir: Optional[str] = None):
         """
         初始化工具embedding管理器
-
-        Args:
-            cache_dir: embedding缓存目录，默认为~/.config/viby/tool_embeddings
         """
         self.model = None  # 延迟加载模型
         self.tool_embeddings: Dict[str, np.ndarray] = {}
@@ -44,15 +41,9 @@ class EmbeddingManager:
         config = Config()
         self.embedding_config = config.get_embedding_config()
 
-        # 设置缓存目录
-        if cache_dir is None:
-            cache_dir = self.embedding_config.get("cache_dir")
-            if cache_dir is None:
-                self.cache_dir = Path.home() / ".config" / "viby" / "tool_embeddings"
-            else:
-                self.cache_dir = Path(cache_dir)
-        else:
-            self.cache_dir = Path(cache_dir)
+        # 简化缓存目录逻辑
+        cache_path = cache_dir or self.embedding_config.get("cache_dir")
+        self.cache_dir = Path(cache_path) if cache_path else Path.home() / ".config" / "viby" / "tool_embeddings"
 
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.embedding_file = self.cache_dir / "tool_embeddings.npz"
@@ -106,7 +97,7 @@ class EmbeddingManager:
                 with open(self.tool_info_file, "r", encoding="utf-8") as f:
                     self.tool_info = json.load(f)
 
-                logger.info(
+                logger.debug(
                     f"从缓存加载了 {len(self.tool_embeddings)} 个工具的embeddings"
                 )
         except Exception as e:
@@ -172,45 +163,32 @@ class EmbeddingManager:
             logger.error(f"保存embeddings到缓存失败: {e}", exc_info=True)
             # 即使保存失败，也不应该中断整个流程
 
+    def _safe_call(self, value, context: str, fallback=""):
+        """安全调用可调用对象或返回值，出错时记录警告并返回fallback"""
+        try:
+            return value() if callable(value) else value
+        except Exception as e:
+            logger.warning(f"{context}时出错: {e}")
+            return fallback
+
     def _get_tool_description_text(self, tool_name: str, tool_def: Dict) -> str:
         """
-        生成工具的描述文本，包含工具名称、描述和参数信息 - 仅处理标准MCP格式
-
-        Args:
-            tool_name: 工具名称
-            tool_def: 工具定义字典
-
-        Returns:
-            包含工具完整信息的文本
+        生成工具的描述文本，包含工具名称、描述和参数信息
         """
         # 获取工具描述
-        description = tool_def.get("description", "")
-        if callable(description):
-            try:
-                description = description()
-            except Exception as e:
-                logger.warning(f"获取工具 {tool_name} 的描述时出错: {e}")
-                description = ""
+        description = self._safe_call(tool_def.get("description", ""), f"获取工具 {tool_name} 描述")
 
         # 构建基本文本
         text = f"工具名称: {tool_name}\n描述: {description}\n参数:\n"
 
-        # 添加参数信息 - 标准MCP工具格式
+        # 添加参数信息
         parameters = tool_def.get("parameters", {})
         properties = parameters.get("properties", {})
         required = parameters.get("required", [])
 
         for param_name, param_info in properties.items():
             param_type = param_info.get("type", "unknown")
-            param_desc = param_info.get("description", "")
-            if callable(param_desc):
-                try:
-                    param_desc = param_desc()
-                except Exception as e:
-                    logger.warning(
-                        f"获取工具 {tool_name} 参数 {param_name} 的描述时出错: {e}"
-                    )
-                    param_desc = ""
+            param_desc = self._safe_call(param_info.get("description", ""), f"获取工具 {tool_name} 参数 {param_name} 描述")
 
             is_required = "是" if param_name in required else "否"
             text += (
@@ -243,10 +221,8 @@ class EmbeddingManager:
         logger.info(f"准备更新 {len(processed_tools)} 个工具的嵌入")
 
         # 确保嵌入模型加载
-        try:
-            self._load_model()
-        except Exception as e:
-            logger.error(f"嵌入模型加载失败: {e}")
+        if not self._load_model():
+            logger.error("嵌入模型加载失败")
             return False
 
         # 生成文本和嵌入
@@ -280,14 +256,21 @@ class EmbeddingManager:
         Returns:
             按服务名称分组的工具列表字典，格式为 {server_name: [Tool对象, ...], ...}
         """
-        self._load_model()
+        # 确保模型可用
+        if not self._load_model():
+            logger.error("加载模型失败")
+            return {}
 
         if not self.tool_embeddings:
             logger.warning("没有可用的工具embeddings，请先调用update_tool_embeddings")
             return {}
 
         # 生成查询embedding
-        query_embedding = self.model.encode(query, convert_to_numpy=True)
+        try:
+            query_embedding = self.model.encode(query, convert_to_numpy=True)
+        except Exception as e:
+            logger.error(f"查询嵌入生成失败: {e}")
+            return {}
 
         # 计算所有工具与查询的相似度
         similarities = {}

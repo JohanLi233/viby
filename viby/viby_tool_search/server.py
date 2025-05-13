@@ -38,19 +38,9 @@ def run_server():
     # 创建FastAPI应用
     app = FastAPI(title="Viby Embedding Server")
 
-    # 确保工具嵌入目录存在
-
-    tool_embeddings_dir = Path.home() / ".config" / "viby" / "tool_embeddings"
-    tool_embeddings_dir.mkdir(parents=True, exist_ok=True)
-    logger.info(f"确保工具嵌入目录存在: {tool_embeddings_dir}")
-
     # 创建并预热模型
     embedding_manager = EmbeddingManager()
     embedding_manager._load_model()  # 预加载模型
-
-    # 确保嵌入文件目录结构完整
-    embedding_manager.cache_dir.mkdir(parents=True, exist_ok=True)
-    logger.info(f"确保嵌入管理器缓存目录存在: {embedding_manager.cache_dir}")
 
     # 记录PID
     pid_file = get_pid_file_path()
@@ -95,7 +85,6 @@ def run_server():
         try:
             # 确保缓存目录存在
             embedding_manager.cache_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"确保缓存目录存在: {embedding_manager.cache_dir}")
 
             # 收集并检查MCP工具
             tools_by_server = list_tools()

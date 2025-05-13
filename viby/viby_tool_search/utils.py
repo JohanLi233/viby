@@ -58,21 +58,8 @@ def get_mcp_tools_from_cache() -> Dict[str, List]:
 
             server_grouped_tools[server_name].append(tool)
 
-        # 如果成功获取工具信息
-        tool_count = sum(len(tools) for tools in server_grouped_tools.values())
-        message = (
-            get_text("TOOLS", "tools_loaded_from_cache", "工具信息已从缓存加载")
-            + f" ({tool_count}个)"
-        )
-        print(message)
     except Exception as e:
         # 如果无法读取缓存，返回错误信息
         logger.warning(f"从缓存读取工具信息失败: {e}")
-        message = (
-            get_text("TOOLS", "cache_read_failed")
-            + "\n"
-            + get_text("TOOLS", "suggest_update_embeddings")
-        )
-        print(message)
 
     return server_grouped_tools
