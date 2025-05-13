@@ -168,24 +168,23 @@ TOOLS = {
     # 嵌入向量更新
     "embeddings_update_title": "嵌入更新",
     "updating_embeddings": "正在更新所有工具嵌入向量",
-    "mcp_not_enabled": "MCP功能未启用，无法更新MCP工具嵌入向量",
+    "mcp_not_enabled": "MCP功能未启用，请在配置中启用后再试",
     "collecting_tools": "正在获取MCP工具列表",
-    "no_tools_found": "未找到可用的MCP工具",
+    "no_tools_found": "没有找到可用的MCP工具",
     "start_updating_embeddings": "开始更新 {tool_count} 个MCP工具的嵌入向量...",
     "loading_embedding_model": "正在下载和加载嵌入模型，这可能需要一些时间...",
     "clearing_cache": "正在清空现有缓存，重新生成嵌入向量...",
-    "embeddings_update_success": "MCP工具嵌入向量更新成功！",
-    "updated_tools_table_title": "已更新工具",
+    "embedding_model_load_failed": "嵌入模型加载失败，无法生成嵌入向量",
+    "embeddings_already_updated": "嵌入向量已是最新，无需更新",
+    "embeddings_update_success": "工具嵌入向量已成功更新",
+    "error_updating_embeddings": "更新嵌入向量时出错",
+    "embeddings_update_failed": "更新嵌入向量失败",
+    "updated_tools_table_title": "已更新的工具列表",
     "tool_name_column": "工具名称",
-    "description_column": "描述",
-    "description_unavailable": "[无法获取描述]",
-    "embedding_model_load_failed": "嵌入模型下载或加载失败，请确保网络连接正常并重试",
-    "embeddings_already_updated": "MCP工具嵌入向量已是最新，无需更新",
-    "error_updating_embeddings": "更新MCP工具嵌入向量时出错",
-    "embeddings_update_failed": "更新MCP工具嵌入向量失败",
-    # 工具列表
-    "available_tools_table_title": "MCP可用工具",
+    "description_column": "说明",
     "param_count_column": "参数数量",
+    "description_unavailable": "[描述不可用]",
+    "available_tools_table_title": "可用的MCP工具",
     "error_listing_tools": "列出工具时出错",
     "tools_listing_failed": "列出工具失败",
     # 嵌入服务器
@@ -211,8 +210,26 @@ TOOLS = {
     "embed_server_running": "嵌入模型服务器正在运行",
     "embed_server_status_unknown": "嵌入模型服务器状态未知",
     "embed_server_status_check_failed": "嵌入模型服务器状态检查失败",
-    "error_checking_server": "检查服务器状态时出错",
     "embed_server_uptime": "运行时间",
+    # 新增键值对
+    "using_embedding_server": "使用嵌入模型服务器更新嵌入向量",
+    "embeddings_update_via_server_failed": "通过服务器更新嵌入向量失败",
+    "trying_local_update": "尝试使用本地更新方式",
+    "using_local_update": "使用本地方式更新嵌入向量",
+    "start_server_suggestion": "请使用 'yb tools embed start' 命令启动嵌入服务器，然后再试",
+    "retrieving_from_server": "从嵌入模型服务器获取工具信息",
+    "reading_from_cache": "从本地缓存读取工具信息",
+    "no_cached_tools": "没有找到已缓存的工具信息",
+    "suggest_update_embeddings": "请先使用 'yb tools embed' 命令更新工具嵌入向量",
+    "fallback_collect_tools": "无法从缓存读取，尝试直接收集工具",
+    # 新增字符串
+    "successfully_collected": "成功收集工具数据",
+    "fallback_to_cached": "无法直接收集工具，尝试从缓存读取",
+    "cache_read_failed": "从缓存读取工具信息失败",
+    "total_tools": "工具总数",
+    "tools_loaded_from_cache": "工具信息已从缓存加载",
+    "listing_tools": "列出可用工具",
+    "tools_list_title": "工具列表",
 }
 
 # 历史命令相关
@@ -317,6 +334,7 @@ AGENT = {
         "例如，用户询问当前目录项目内容，你应先执行 pwd，再执行 ls，若有 README 等文件需进一步阅读后再完整答复。\n"
         "你具备像用户操作电脑一样的能力，可访问网站和各类资源（如查询天气可用 curl）。\n"
         "你还可以搜索使用什么工具，搜索到的工具都是可用的\n"
+        "有的时候，用户的需求会和搜索到的工具强相关，可以优先尝试搜索一下有什么可用工具\n"
         "保证始终以高效、全面的流程彻底解决用户需求。"
     )
 }

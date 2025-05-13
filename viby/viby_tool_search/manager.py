@@ -4,16 +4,12 @@ Embedding生成和相似度搜索工具
 用于MCP工具检索系统的embedding相关功能
 """
 
-import os
 import json
 import numpy as np
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 import logging
-
-# 避免在没有GPU时出现警告
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +120,10 @@ class ToolEmbeddingManager:
                 serializable_info["definition"] = info.get("definition", {})
                 serializable_tool_info[name] = serializable_info
 
+            # 记录即将保存的工具数量和名称
+            logger.info(f"即将保存 {len(serializable_tool_info)} 个工具信息到缓存")
+            logger.info(f"工具列表: {sorted(list(serializable_tool_info.keys()))}")
+
             # 保存工具信息
             with open(self.tool_info_file, "w", encoding="utf-8") as f:
                 json.dump(serializable_tool_info, f, ensure_ascii=False, indent=2)
@@ -133,15 +133,33 @@ class ToolEmbeddingManager:
                 "last_update": datetime.now().isoformat(),
                 "model_name": self.embedding_config.get("model_name", "BAAI/bge-m3"),
                 "tool_count": len(self.tool_embeddings),
+                "tool_names": sorted(list(self.tool_embeddings.keys())),
             }
             with open(self.meta_file, "w", encoding="utf-8") as f:
                 json.dump(meta, f, ensure_ascii=False, indent=2)
+
+            # 验证保存后的文件
+            try:
+                with open(self.tool_info_file, "r", encoding="utf-8") as f:
+                    saved_data = json.load(f)
+                saved_count = len(saved_data)
+                if saved_count != len(serializable_tool_info):
+                    logger.warning(
+                        f"警告: 保存的工具数量不匹配! 预期: {len(serializable_tool_info)}, 实际: {saved_count}"
+                    )
+                    missing = set(serializable_tool_info.keys()) - set(
+                        saved_data.keys()
+                    )
+                    if missing:
+                        logger.warning(f"缺失的工具: {missing}")
+            except Exception as e:
+                logger.warning(f"验证保存的工具信息时出错: {e}")
 
             logger.info(
                 f"已将 {len(self.tool_embeddings)} 个工具的embeddings保存到缓存"
             )
         except Exception as e:
-            logger.warning(f"保存embeddings到缓存失败: {e}")
+            logger.error(f"保存embeddings到缓存失败: {e}", exc_info=True)
             # 即使保存失败，也不应该中断整个流程
 
     def _get_tool_description_text(self, tool_name: str, tool_def: Dict) -> str:
@@ -212,6 +230,9 @@ class ToolEmbeddingManager:
             return False
 
         # 获取需要更新的工具列表
+        logger.info(f"请求更新 {len(tools)} 个工具的embeddings")
+        logger.debug(f"工具列表: {sorted(list(tools.keys()))}")
+
         tools_to_update = {}
         for name, definition in tools.items():
             tool_text = self._get_tool_description_text(name, definition)
@@ -229,13 +250,45 @@ class ToolEmbeddingManager:
 
         try:
             # 批量生成embeddings
-            texts = [info["text"] for info in tools_to_update.values()]
+            tools_list = list(tools_to_update.items())
+            name_list = [name for name, _ in tools_list]
+            texts = [info["text"] for _, info in tools_list]
+
+            logger.debug(f"开始生成 {len(texts)} 个工具的嵌入向量")
             embeddings = self.model.encode(texts, convert_to_numpy=True)
+            logger.debug(f"成功生成 {len(embeddings)} 个嵌入向量")
+
+            # 检查编码是否完整
+            if len(embeddings) != len(texts):
+                logger.warning(
+                    f"警告: 嵌入向量数量({len(embeddings)})与工具数量({len(texts)})不匹配!"
+                )
 
             # 更新工具embeddings和信息
-            for i, (name, info) in enumerate(tools_to_update.items()):
-                self.tool_embeddings[name] = embeddings[i]
-                self.tool_info[name] = info
+            for i, name in enumerate(name_list):
+                if i < len(embeddings):  # 确保索引在范围内
+                    self.tool_embeddings[name] = embeddings[i]
+                    self.tool_info[name] = tools_to_update[name]
+                else:
+                    logger.warning(f"工具 {name} 没有对应的嵌入向量，跳过")
+
+            # 确保所有工具都已更新
+            missing_tools = set(tools.keys()) - set(self.tool_embeddings.keys())
+            if missing_tools:
+                logger.warning(f"警告: 以下工具未生成嵌入向量: {missing_tools}")
+                # 尝试单独为这些工具生成嵌入向量
+                for name in missing_tools:
+                    try:
+                        if name in tools_to_update:
+                            text = tools_to_update[name]["text"]
+                            single_embedding = self.model.encode(
+                                text, convert_to_numpy=True
+                            )
+                            self.tool_embeddings[name] = single_embedding
+                            self.tool_info[name] = tools_to_update[name]
+                            logger.info(f"已单独为工具 {name} 生成嵌入向量")
+                    except Exception as e:
+                        logger.error(f"为工具 {name} 单独生成嵌入向量失败: {e}")
 
             self._save_embeddings_to_cache()
             return True
@@ -295,4 +348,4 @@ class ToolEmbeddingManager:
             }
             result.append(tool_result)
 
-        return result
+        return result 
