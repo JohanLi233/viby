@@ -8,10 +8,11 @@ import logging
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+from typing import Dict, Any, Tuple
 
 from viby.locale import get_text
 from viby.config import Config
-from viby.viby_tool_search.retrieval import collect_mcp_tools
+from viby.mcp.client import list_tools
 from viby.viby_tool_search.server import (
     start_embedding_server,
     stop_embedding_server,
@@ -20,9 +21,53 @@ from viby.viby_tool_search.server import (
     update_tools_remote,
     is_server_running,
 )
+from viby.viby_tool_search.embedding_manager import EmbeddingManager
 
 logger = logging.getLogger(__name__)
 console = Console()
+
+def get_tools_for_listing() -> Tuple[Dict[str, Any], str, bool]:
+    """
+    获取所有工具信息用于列表显示，优先从缓存中读取
+
+    Returns:
+        dict: 包含工具信息的字典，格式为 {tool_name: tool_definition}
+        str: 消息（成功、警告或建议）
+        bool: 是否成功获取工具信息
+    """
+    config = Config()
+    if not config.enable_mcp:
+        return {}, get_text("TOOLS", "mcp_not_enabled"), False
+    
+    tools_dict = {}
+    message = ""
+    success = True
+    
+    # 首先尝试从缓存中读取
+    try:
+        # 创建embedding管理器实例以访问缓存
+        manager = EmbeddingManager()
+        
+        # 检查是否有缓存的工具信息
+        if not manager.tool_info:
+            message = get_text("TOOLS", "no_cached_tools") + "\n" + get_text("TOOLS", "suggest_update_embeddings")
+            return {}, message, False
+        
+        # 使用缓存的工具信息
+        for name, info in manager.tool_info.items():
+            tools_dict[name] = info.get("definition", {})
+        
+        # 如果成功获取工具信息
+        tool_count = len(manager.tool_info)
+        message = get_text("TOOLS", "tools_loaded_from_cache", "工具信息已从缓存加载") + f" ({tool_count}个)"
+        success = True
+    except Exception as e:
+        # 如果无法读取缓存，返回错误信息
+        logger.warning(f"从缓存读取工具信息失败: {e}")
+        message = get_text("TOOLS", "cache_read_failed") + "\n" + get_text("TOOLS", "suggest_update_embeddings")
+        success = False
+    
+    return tools_dict, message, success
 
 
 class EmbedServerCommand:
@@ -85,9 +130,13 @@ class EmbedServerCommand:
 
             # 收集MCP工具（公用函数）
             console.print(f"{get_text('TOOLS', 'collecting_tools')}...")
-            tools_dict = collect_mcp_tools()
+            tools_dict = list_tools()
 
-            tool_count = len(tools_dict)
+            # 计算工具总数（现在需要计算所有类别下的工具总数）
+            tool_count = 0
+            for category, tools_list in tools_dict.items():
+                tool_count += len(tools_list)
+                
             if tool_count == 0:
                 console.print(
                     f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]"
@@ -120,19 +169,26 @@ class EmbedServerCommand:
                     )
                     table.add_column(get_text("TOOLS", "description_column"))
 
-                    for tool_name, tool in tools_dict.items():
-                        description = tool.get("description", "")
-                        if callable(description):
-                            try:
-                                description = description()
-                            except Exception:
-                                description = get_text(
-                                    "TOOLS", "description_unavailable"
-                                )
-                        table.add_row(
-                            tool_name,
-                            description[:60] + ("..." if len(description) > 60 else ""),
-                        )
+                    # 遍历所有类别和工具
+                    for server_name, tools_list in tools_dict.items():
+                        for tool in tools_list:
+                            # 从Tool对象获取名称和描述
+                            tool_name = tool.name if hasattr(tool, 'name') else "未知工具"
+                            description = tool.description if hasattr(tool, 'description') else ""
+                            
+                            # 处理callable描述
+                            if callable(description):
+                                try:
+                                    description = description()
+                                except Exception:
+                                    description = get_text(
+                                        "TOOLS", "description_unavailable"
+                                    )
+                            
+                            table.add_row(
+                                tool_name,
+                                description[:60] + ("..." if len(description) > 60 else ""),
+                            )
 
                     console.print(table)
                     return 0

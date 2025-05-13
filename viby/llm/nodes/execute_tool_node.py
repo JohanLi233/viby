@@ -58,52 +58,6 @@ class ExecuteToolNode(Node):
         if not (selected_server == "viby" and tool_name == "execute_shell"):
             print_markdown(str(exec_res))
 
-        # 处理search_relevant_tools结果并更新工具-服务器映射
-        if tool_name == "search_relevant_tools":
-            tool_servers = shared.get("tool_servers", {})
-            tools_list = shared.get("tools", [])
-
-            # search_relevant_tools直接返回工具列表
-            tools_to_process = exec_res
-
-            # 如果返回值是字典且包含tools字段（旧格式），则使用其tools字段
-            if isinstance(exec_res, dict) and "tools" in exec_res:
-                tools_to_process = exec_res.get("tools", [])
-
-            # 如果返回值是列表（新格式），则直接使用
-            elif isinstance(exec_res, list):
-                tools_to_process = exec_res
-
-            # 处理工具列表
-            for tool_info in tools_to_process:
-                if not isinstance(tool_info, dict):
-                    continue
-
-                t_name = tool_info.get("name")
-                srv_name = tool_info.get("server_name")
-
-                if not t_name or not srv_name:
-                    continue
-
-                # 更新服务器映射
-                tool_servers[t_name] = srv_name
-
-                # 同时将工具定义追加到 tools 列表，方便后续在 system_prompt 中引用
-                definition = (
-                    tool_info.get("definition")
-                    or tool_info.get("tool")
-                    or {
-                        "name": t_name,
-                        "description": tool_info.get("description", ""),
-                        "parameters": tool_info.get("parameters", {}),
-                    }
-                )
-
-                tools_list.append({"server_name": srv_name, "tool": definition})
-
-            shared["tool_servers"] = tool_servers
-            shared["tools"] = tools_list
-
         # 检查是否是shell命令的特殊状态
         if isinstance(exec_res, dict) and "status" in exec_res:
             # 如果是复制到剪贴板(y)或取消操作(q)，不需要再调用LLM

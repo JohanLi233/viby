@@ -278,9 +278,6 @@ def search_tools_remote(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         if response.status_code == 200:
             results = response.json()
             logger.debug(f"搜索成功，找到 {len(results)} 个相关工具")
-            if results:
-                tool_names = [tool.get("name", "<未知>") for tool in results]
-                logger.debug(f"找到的工具: {tool_names}")
             return results
         else:
             logger.error(

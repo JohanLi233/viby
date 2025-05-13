@@ -42,20 +42,24 @@ class PromptNode(Node):
             return result
 
         try:
+            # 先获取所有MCP工具的服务器信息，不管工具搜索是否启用
+            tools_dict = list_tools(server_name)
+            
+            # 将所有MCP工具对应的服务器名称添加到tool_servers字典
+            for srv_name, tools in tools_dict.items():
+                for tool in tools:
+                    tool_servers[tool.name] = srv_name
+            
             # 检查工具搜索模式
             if config.enable_tool_search:
-                # 如果启用了工具搜索，不直接添加MCP工具，让大模型通过search_relevant_tools工具来获取
-                # 已经在viby工具中包含了search_relevant_tools工具，所以不需要额外操作
+                # 如果启用了工具搜索，不直接添加MCP工具到all_tools列表
+                # 但是我们已经将服务器信息添加到tool_servers字典中
                 pass
             else:
-                # 如果禁用了工具搜索，直接添加所有MCP工具
-                tools_dict = list_tools(server_name)
-
-                # 将MCP工具和对应的服务器名称添加到列表中
+                # 如果禁用了工具搜索，将MCP工具添加到all_tools列表
                 for srv_name, tools in tools_dict.items():
                     for tool in tools:
                         all_tools.append({"server_name": srv_name, "tool": tool})
-                        tool_servers[tool.name] = srv_name
 
             result["tools"] = all_tools
             result["tool_servers"] = tool_servers

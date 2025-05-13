@@ -10,8 +10,17 @@ from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 import logging
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
+
+# 定义Tool类，与标准格式保持一致
+@dataclass
+class Tool:
+    name: str
+    description: str
+    inputSchema: Dict[str, Any]
+    annotations: Optional[Any] = None
 
 
 class EmbeddingManager:
@@ -209,16 +218,39 @@ class EmbeddingManager:
 
         return text
 
-    def update_tool_embeddings(self, tools: Dict[str, Dict]):
+    def update_tool_embeddings(self, tools):
         """
-        更新工具embeddings - 假设所有工具都是标准MCP格式
-
+        更新工具embeddings
+        
         Args:
-            tools: 工具定义字典，格式为 {tool_name: tool_definition, ...}
+            tools: 标准格式: Dict[str, List[Tool]] - {server_name: [Tool对象, ...], ...}
 
         Returns:
             bool: 是否成功更新了embeddings
         """
+        # 处理标准工具数据格式
+        processed_tools = {}
+        try:
+            # 遍历所有服务名称和工具列表
+            for server_name, tools_list in tools.items():
+                for tool in tools_list:
+                    # 获取工具名称和定义
+                    if hasattr(tool, 'name'):
+                        tool_name = tool.name
+                        # 创建工具定义对象
+                        tool_def = {
+                            "description": tool.description if hasattr(tool, 'description') else "",
+                            "parameters": tool.inputSchema if hasattr(tool, 'inputSchema') else {},
+                            "server_name": server_name
+                        }
+                        processed_tools[tool_name] = tool_def
+                    else:
+                        logger.warning(f"跳过没有名称的工具: {tool}")
+            logger.info(f"处理了 {len(processed_tools)} 个工具")
+        except Exception as e:
+            logger.error(f"处理工具数据时出错: {e}")
+            return False
+        
         # 确保模型已完全加载
         try:
             self._load_model()
@@ -230,18 +262,18 @@ class EmbeddingManager:
             return False
 
         # 获取需要更新的工具列表
-        logger.info(f"请求更新 {len(tools)} 个工具的embeddings")
-        logger.debug(f"工具列表: {sorted(list(tools.keys()))}")
+        logger.info(f"请求更新 {len(processed_tools)} 个工具的embeddings")
+        logger.debug(f"工具列表: {sorted(list(processed_tools.keys()))}")
 
         tools_to_update = {}
-        for name, definition in tools.items():
+        for name, definition in processed_tools.items():
             tool_text = self._get_tool_description_text(name, definition)
             current_info = {"definition": definition, "text": tool_text}
             tools_to_update[name] = current_info
 
         # 清理不存在的工具
         for name in list(self.tool_embeddings.keys()):
-            if name not in tools:
+            if name not in processed_tools:
                 del self.tool_embeddings[name]
                 if name in self.tool_info:
                     del self.tool_info[name]
@@ -273,7 +305,7 @@ class EmbeddingManager:
                     logger.warning(f"工具 {name} 没有对应的嵌入向量，跳过")
 
             # 确保所有工具都已更新
-            missing_tools = set(tools.keys()) - set(self.tool_embeddings.keys())
+            missing_tools = set(processed_tools.keys()) - set(self.tool_embeddings.keys())
             if missing_tools:
                 logger.warning(f"警告: 以下工具未生成嵌入向量: {missing_tools}")
                 # 尝试单独为这些工具生成嵌入向量
@@ -296,7 +328,7 @@ class EmbeddingManager:
             logger.error(f"生成嵌入向量失败: {e}")
             return False
 
-    def search_similar_tools(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    def search_similar_tools(self, query: str, top_k: int = 5) -> Dict[str, List[Tool]]:
         """
         搜索与查询最相关的工具
 
@@ -305,13 +337,13 @@ class EmbeddingManager:
             top_k: 返回的最相关工具数量
 
         Returns:
-            相关工具列表，每个工具包含名称、描述、参数、相似度得分等信息
+            按服务名称分组的工具列表字典，格式为 {server_name: [Tool对象, ...], ...}
         """
         self._load_model()
 
         if not self.tool_embeddings:
             logger.warning("没有可用的工具embeddings，请先调用update_tool_embeddings")
-            return []
+            return {}
 
         # 生成查询embedding
         query_embedding = self.model.encode(query, convert_to_numpy=True)
@@ -327,9 +359,10 @@ class EmbeddingManager:
 
         # 按相似度降序排序
         sorted_tools = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
-
-        # 获取top_k个工具
-        result = []
+        
+        # 获取top_k个工具并按服务器名称分组
+        result_dict = {}
+        
         for name, score in sorted_tools[:top_k]:
             # 从缓存的工具信息中获取定义
             if name not in self.tool_info:
@@ -338,14 +371,21 @@ class EmbeddingManager:
 
             tool_info = self.tool_info[name]
             definition = tool_info.get("definition", {})
+            
+            # 获取服务器名称
+            server_name = definition.get("server_name", "unknown")
+            
+            # 创建Tool对象
+            tool = Tool(
+                name=name,
+                description=definition.get("description", ""),
+                inputSchema=definition.get("parameters", {}),
+            )
+            
+            # 将工具添加到对应的服务器分组
+            if server_name not in result_dict:
+                result_dict[server_name] = []
+            
+            result_dict[server_name].append(tool)
 
-            # 构建结果
-            tool_result = {
-                "name": name,
-                "score": score,
-                "definition": definition,
-                "server_name": definition.get("server_name", "unknown"),
-            }
-            result.append(tool_result)
-
-        return result 
+        return result_dict

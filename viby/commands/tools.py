@@ -12,9 +12,8 @@ from rich.table import Table
 
 from viby.locale import get_text
 from viby.config import Config
-from viby.viby_tool_search.retrieval import collect_mcp_tools
 from viby.viby_tool_search.commands import EmbedServerCommand
-from viby.viby_tool_search import get_tools_for_listing
+from viby.viby_tool_search.commands import get_tools_for_listing
 
 logger = logging.getLogger(__name__)
 console = Console()

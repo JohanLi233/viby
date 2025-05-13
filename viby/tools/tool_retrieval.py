@@ -51,7 +51,6 @@ def execute_tool_retrieval(params: Dict[str, Any]) -> Dict[str, Any]:
         return {"error": get_text("MCP", "empty_query", "查询文本不能为空")}
 
     try:
-        # 直接返回搜索结果，不添加额外包装
         return search_similar_tools(query, top_k)
     except Exception as e:
         logger.error(
