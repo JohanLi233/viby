@@ -5,6 +5,7 @@
 """
 
 import logging
+import textwrap
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -72,27 +73,33 @@ class ToolsCommand:
             )
 
             # 使用viby_tool_search模块获取工具信息
-            tools_dict, message, success, tool_count = get_tools_for_listing()
-            
-            # 如果获取工具失败，直接显示错误信息并返回
-            if not success:
-                if "MCP" in message:
-                    console.print(f"[bold red]{message}[/bold red]")
+            try:
+                # 获取工具信息（移除未使用的tool_count变量）
+                tools_dict, message, success = get_tools_for_listing()
+                
+                # 统一处理消息显示逻辑
+                if message:
+                    style = "red" if not success and "MCP" in message else "yellow" if not success else "green"
+                    prefix = "✓ " if style == "green" else ""
+                    console.print(f"[bold {style}]{prefix}{message}[/bold {style}]")
+                    
+                # 如果获取失败并且是MCP错误，返回错误码
+                if not success and "MCP" in message:
                     return 1
-                else:
-                    console.print(f"[bold yellow]{message}[/bold yellow]")
+                    
+                # 如果没有工具或获取失败但非MCP错误，显示提示并返回成功
+                if not success or not tools_dict:
+                    if not message or "no_tools_found" not in message:
+                        console.print(
+                            f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]"
+                        )
                     return 0
-            
-            # 如果有消息，显示它
-            if message:
-                console.print(f"[bold green]✓[/bold green] {message}")
-            
-            # 检查最终是否有工具可以显示
-            if not tools_dict:
+            except Exception as e:
                 console.print(
-                    f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]"
+                    f"[bold red]{get_text('TOOLS', 'error_listing_tools')}: {str(e)}[/bold red]"
                 )
-                return 0
+                logger.exception(get_text("TOOLS", "tools_listing_failed"))
+                return 1
 
             # 显示工具信息表格
             table = Table(title=get_text("TOOLS", "available_tools_table_title"))
@@ -114,9 +121,12 @@ class ToolsCommand:
                 parameters = tool.get("parameters", {})
                 param_count = len(parameters.get("properties", {}))
 
+                # 使用textwrap简化描述截断
+                short_desc = textwrap.shorten(description, width=60, placeholder="...")
+
                 table.add_row(
                     name,
-                    description[:60] + ("..." if len(description) > 60 else ""),
+                    short_desc,
                     str(param_count),
                 )
 

@@ -244,13 +244,12 @@ def get_tools_for_listing():
         dict: 包含工具信息的字典，格式为 {tool_name: tool_definition}
         str: 消息（成功、警告或建议）
         bool: 是否成功获取工具信息
-        int: 获取到的工具数量
     """
     from viby.config import Config
     
     config = Config()
     if not config.enable_mcp:
-        return {}, get_text("TOOLS", "mcp_not_enabled"), False, 0
+        return {}, get_text("TOOLS", "mcp_not_enabled"), False
     
     tools_dict = {}
     message = ""
@@ -264,7 +263,7 @@ def get_tools_for_listing():
         # 检查是否有缓存的工具信息
         if not manager.tool_info:
             message = get_text("TOOLS", "no_cached_tools") + "\n" + get_text("TOOLS", "suggest_update_embeddings")
-            return {}, message, False, 0
+            return {}, message, False
         
         # 使用缓存的工具信息
         for name, info in manager.tool_info.items():
@@ -280,4 +279,4 @@ def get_tools_for_listing():
         message = get_text("TOOLS", "cache_read_failed") + "\n" + get_text("TOOLS", "suggest_update_embeddings")
         success = False
     
-    return tools_dict, message, success, len(tools_dict) 
+    return tools_dict, message, success 
