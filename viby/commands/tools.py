@@ -13,7 +13,7 @@ from rich.table import Table
 from viby.locale import get_text
 from viby.config import Config
 from viby.viby_tool_search.commands import EmbedServerCommand
-from viby.viby_tool_search.commands import get_tools_for_listing
+from viby.viby_tool_search import get_mcp_tools_from_cache
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -74,7 +74,7 @@ class ToolsCommand:
             # 使用viby_tool_search模块获取工具信息
             try:
                 # 获取工具信息（移除未使用的tool_count变量）
-                tools_dict, message, success = get_tools_for_listing()
+                tools_dict, message, success = get_mcp_tools_from_cache()
                 
                 # 统一处理消息显示逻辑
                 if message:
@@ -108,7 +108,10 @@ class ToolsCommand:
 
             # 按名称排序工具
             for name in sorted(tools_dict.keys()):
-                tool = tools_dict[name]
+                tool_info = tools_dict[name]
+                # 获取工具的完整定义，适配新的数据结构
+                tool = tool_info.get("definition", tool_info) 
+                
                 description = tool.get("description", "")
                 if callable(description):
                     try:

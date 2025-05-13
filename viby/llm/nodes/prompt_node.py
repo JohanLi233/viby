@@ -1,6 +1,7 @@
 from pocketflow import Node
 from viby.locale import get_text
 from viby.mcp import list_tools
+from viby.viby_tool_search import get_mcp_tools_from_cache
 from viby.config import Config
 from viby.tools import AVAILABLE_TOOLS
 import platform
@@ -44,6 +45,9 @@ class PromptNode(Node):
         try:
             # 先获取所有MCP工具的服务器信息，不管工具搜索是否启用
             tools_dict = list_tools(server_name)
+            print(tools_dict)
+            print(111111111111111111111111)
+            print(get_mcp_tools_from_cache())
             
             # 将所有MCP工具对应的服务器名称添加到tool_servers字典
             for srv_name, tools in tools_dict.items():

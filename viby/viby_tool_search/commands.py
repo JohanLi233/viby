@@ -26,7 +26,7 @@ from viby.viby_tool_search.embedding_manager import EmbeddingManager
 logger = logging.getLogger(__name__)
 console = Console()
 
-def get_tools_for_listing() -> Tuple[Dict[str, Any], str, bool]:
+def get_mcp_tools_from_cache() -> Tuple[Dict[str, Any], str, bool]:
     """
     获取所有工具信息用于列表显示，优先从缓存中读取
 
@@ -53,9 +53,8 @@ def get_tools_for_listing() -> Tuple[Dict[str, Any], str, bool]:
             message = get_text("TOOLS", "no_cached_tools") + "\n" + get_text("TOOLS", "suggest_update_embeddings")
             return {}, message, False
         
-        # 使用缓存的工具信息
-        for name, info in manager.tool_info.items():
-            tools_dict[name] = info.get("definition", {})
+        # 使用缓存的工具信息 - 直接使用完整的工具信息而不是只提取definition
+        tools_dict = manager.tool_info
         
         # 如果成功获取工具信息
         tool_count = len(manager.tool_info)
