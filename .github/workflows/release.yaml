@@ -1,5 +1,9 @@
 name: release
 
+permissions:
+  contents: read
+  packages: read
+
 on:
   push:
     tags:
@@ -72,6 +76,7 @@ jobs:
     needs: [details, check_pypi]
     runs-on: ubuntu-latest
     permissions:
+      contents: write
       contents: read
     steps:
       - uses: actions/checkout@v2
