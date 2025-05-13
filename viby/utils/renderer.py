@@ -125,11 +125,11 @@ def _process_think_tokens(text: str) -> str:
     # 检查文本是否以 <think> 开头
     if text.startswith("<think>"):
         # 移除开头的 <think> 标签并在适当位置添加格式化的标签
-        text = text.replace("<think>", "`<think>`\n", 1)
+        text = text.replace("<think>", "`<think>`\n\n")
 
     # 检查文本是否包含 </think> 结尾标签
     if "</think>" in text:
         # 将 </think> 替换为格式化的标签
-        text = text.replace("</think>", "\n`</think>`", 1)
+        text = text.replace("</think>", "\n`</think>`\n\n")
 
     return text
