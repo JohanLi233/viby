@@ -228,7 +228,12 @@ class ModelManager:
         api_key = model_config.get("api_key", "")
 
         try:
-            client = create_openai_client(api_key, base_url)
+            client = create_openai_client(
+                api_key,
+                base_url,
+                http_referer="https://github.com/JohanLi233/viby",
+                app_title="Viby",
+            )
 
             # 准备请求参数
             params = {
