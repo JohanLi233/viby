@@ -1,7 +1,7 @@
 from pocketflow import Node
 from viby.locale import get_text
 from viby.mcp import list_tools
-from viby.viby_tool_search.commands import get_mcp_tools_from_cache
+from viby.viby_tool_search.utils import get_mcp_tools_from_cache
 from viby.config import Config
 from viby.tools import AVAILABLE_TOOLS
 import platform

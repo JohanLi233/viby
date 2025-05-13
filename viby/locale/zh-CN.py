@@ -183,6 +183,7 @@ TOOLS = {
     "tool_name_column": "工具名称",
     "description_column": "说明",
     "param_count_column": "参数数量",
+    "server_column": "服务器",
     "description_unavailable": "[描述不可用]",
     "available_tools_table_title": "可用的MCP工具",
     "error_listing_tools": "列出工具时出错",

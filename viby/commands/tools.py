@@ -13,7 +13,7 @@ from rich.table import Table
 from viby.locale import get_text
 from viby.config import Config
 from viby.viby_tool_search.commands import EmbedServerCommand
-from viby.viby_tool_search import get_mcp_tools_from_cache
+from viby.viby_tool_search.utils import get_mcp_tools_from_cache
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -73,11 +73,11 @@ class ToolsCommand:
 
             # 使用viby_tool_search模块获取工具信息
             try:
-                # 获取工具信息
-                tools_dict = get_mcp_tools_from_cache()
+                # 获取工具信息 - 现在返回的是按服务器分组的工具列表
+                server_tools_dict = get_mcp_tools_from_cache()
 
                 # 如果没有工具，显示提示并返回成功
-                if not tools_dict:
+                if not server_tools_dict:
                     console.print(
                         f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]"
                     )
@@ -94,23 +94,27 @@ class ToolsCommand:
             table.add_column(get_text("TOOLS", "tool_name_column"), style="cyan")
             table.add_column(get_text("TOOLS", "description_column"))
             table.add_column(get_text("TOOLS", "param_count_column"), justify="right")
+            table.add_column(get_text("TOOLS", "server_column"), style="dim")
 
+            # 创建展平的工具列表，以便按名称排序
+            all_tools = []
+            for server_name, tools in server_tools_dict.items():
+                for tool in tools:
+                    all_tools.append((tool.name, tool, server_name))
+            
             # 按名称排序工具
-            for name in sorted(tools_dict.keys()):
-                tool_info = tools_dict[name]
-                # 获取工具的完整定义，适配新的数据结构
-                tool = tool_info.get("definition", tool_info)
-
-                description = tool.get("description", "")
+            for name, tool, server_name in sorted(all_tools, key=lambda x: x[0]):
+                description = tool.description if hasattr(tool, 'description') else ""
                 if callable(description):
                     try:
                         description = description()
                     except Exception:
                         description = get_text("TOOLS", "description_unavailable")
 
-                # 使用标准的工具参数格式
-                parameters = tool.get("parameters", {})
-                param_count = len(parameters.get("properties", {}))
+                # 获取参数数量
+                parameters = tool.inputSchema if hasattr(tool, 'inputSchema') else {}
+                param_properties = parameters.get("properties", {}) if isinstance(parameters, dict) else {}
+                param_count = len(param_properties)
 
                 # 使用textwrap简化描述截断
                 short_desc = textwrap.shorten(description, width=60, placeholder="...")
@@ -119,13 +123,15 @@ class ToolsCommand:
                     name,
                     short_desc,
                     str(param_count),
+                    server_name,
                 )
 
             console.print(table)
 
             # 显示总工具数量
+            total_tools = sum(len(tools) for tools in server_tools_dict.values())
             console.print(
-                f"\n{get_text('TOOLS', 'total_tools')}: [bold cyan]{len(tools_dict)}[/bold cyan]"
+                f"\n{get_text('TOOLS', 'total_tools')}: [bold cyan]{total_tools}[/bold cyan]"
             )
             return 0
 
