@@ -20,9 +20,9 @@
   <a href="https://github.com/JohanLi233/viby/blob/main/README.zh-CN.md">中文</a>
 </p>
 
-<!-- ## 🚀 Overview
+## 🚀 Overview
 
-Viby is a powerful AI agent that lives in your terminal, designed to solve virtually any task you throw at it. Whether you need code assistance, shell commands, information retrieval, or creative content - Viby vibes with your needs and delivers solutions instantly. -->
+Viby is a powerful AI agent that lives in your terminal, designed to solve virtually any task you throw at it. Whether you need code assistance, shell commands, information retrieval, or creative content - Viby vibes with your needs and delivers solutions instantly.
 
 ## ✨ Features
 
@@ -30,6 +30,10 @@ Viby is a powerful AI agent that lives in your terminal, designed to solve virtu
 - **Automatic Shell Command Generation** - Get optimized shell commands when needed
 - **Pipeline Integration** - Process data from other commands (e.g., `git diff | viby "write a commit message"`)
 - **MCP Tools** - Extended capabilities through Model Context Protocol integration
+- **Smart Tool Discovery** - Automatically finds and uses the most relevant tools within configured MCP servers
+- **History Management** - Complete interaction history with search, export, and management
+- **Command Embeddings** - Semantic search in tools using embedded vectors for accurate tool selection
+- **Multi-language Support** - Full interface in English and Chinese with easy language switching
 
 ![Viby Terminal Demo](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png)
 
@@ -113,6 +117,35 @@ yb "$(git status) Which files should I commit first?"
 
 # View code files
 yb "$(cat main.py) How can I improve this code?"
+```
+
+### Smart Tool Discovery
+
+```sh
+# Viby will automatically discover and use relevant tools
+yb "What's the weather in San Francisco?"
+# -> [Viby identifies and uses weather tools]
+# -> The current weather in San Francisco is 68°F and partly cloudy...
+
+# Managing tool embeddings from configured MCP servers
+yb tools embed
+# -> Updates tools' semantic embeddings for better tool discovery
+```
+
+### History Management
+
+```sh
+# View recent interactions
+yb history list
+
+# Search your history
+yb history search "python"
+
+# Export your interaction history
+yb history export history.json
+
+# View command history
+yb history shell
 ```
 
 ### Automatically Use MCP Tools When Needed

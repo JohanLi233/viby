@@ -56,46 +56,51 @@ class ToolsCommand:
             # 直接更新嵌入
             console.print(
                 Panel.fit(
-                    "正在更新所有工具嵌入向量",
-                    title="嵌入更新",
+                    get_text("TOOLS", "updating_embeddings"),
+                    title=get_text("TOOLS", "embeddings_update_title"),
                 )
             )
 
             # 检查MCP是否启用
             if not self.config.enable_mcp:
                 console.print(
-                    "[bold red]MCP功能未启用，无法更新MCP工具嵌入向量[/bold red]"
+                    f"[bold red]{get_text('TOOLS', 'mcp_not_enabled')}[/bold red]"
                 )
                 return 1
 
             # 收集MCP工具（公用函数）
-            console.print("正在获取MCP工具列表...")
+            console.print(f"{get_text('TOOLS', 'collecting_tools')}...")
             tools_dict = collect_mcp_tools()
 
             tool_count = len(tools_dict)
             if tool_count == 0:
-                console.print("[bold yellow]未找到可用的MCP工具[/bold yellow]")
+                console.print(f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]")
                 return 0
 
             console.print(
-                f"开始更新 [bold cyan]{tool_count}[/bold cyan] 个MCP工具的嵌入向量..."
+                get_text('TOOLS', 'start_updating_embeddings').format(tool_count=f"[bold cyan]{tool_count}[/bold cyan]")
             )
 
             # 获取嵌入管理器并更新
             manager = get_embedding_manager()
 
             console.print(
-                "[bold yellow]正在下载和加载嵌入模型，这可能需要一些时间...[/bold yellow]"
+                f"[bold yellow]{get_text('TOOLS', 'loading_embedding_model')}[/bold yellow]"
+            )
+            # 先清空现有缓存，强制重新生成嵌入向量
+            manager.tool_embeddings = {}
+            console.print(
+                f"[bold yellow]{get_text('TOOLS', 'clearing_cache')}[/bold yellow]"
             )
             updated = manager.update_tool_embeddings(tools_dict)
 
             if updated:
-                console.print("[bold green]✓[/bold green] MCP工具嵌入向量更新成功！")
+                console.print(f"[bold green]✓[/bold green] {get_text('TOOLS', 'embeddings_update_success')}")
 
                 # 显示工具信息表格
-                table = Table(title="已更新工具")
-                table.add_column("工具名称", style="cyan")
-                table.add_column("描述")
+                table = Table(title=get_text('TOOLS', 'updated_tools_table_title'))
+                table.add_column(get_text('TOOLS', 'tool_name_column'), style="cyan")
+                table.add_column(get_text('TOOLS', 'description_column'))
 
                 for tool_name, tool in tools_dict.items():
                     description = tool.get("description", "")
@@ -103,7 +108,7 @@ class ToolsCommand:
                         try:
                             description = description()
                         except Exception:
-                            description = "[无法获取描述]"
+                            description = get_text('TOOLS', 'description_unavailable')
                     table.add_row(
                         tool_name,
                         description[:60] + ("..." if len(description) > 60 else ""),
@@ -115,19 +120,19 @@ class ToolsCommand:
                 if manager.model is None and not manager.tool_embeddings:
                     # 没有缓存且模型为空，确实是模型加载失败
                     console.print(
-                        "[bold red]❌ 嵌入模型下载或加载失败，请确保网络连接正常并重试[/bold red]"
+                        f"[bold red]❌ {get_text('TOOLS', 'embedding_model_load_failed')}[/bold red]"
                     )
                 else:
                     # 有缓存或模型不为空，不是模型加载失败，而是不需要更新
                     console.print(
-                        "[bold yellow]!MCP工具嵌入向量已是最新，无需更新[/bold yellow]"
+                        f"[bold yellow]!{get_text('TOOLS', 'embeddings_already_updated')}[/bold yellow]"
                     )
 
             return 0
 
         except Exception as e:
-            console.print(f"[bold red]更新MCP工具嵌入向量时出错: {str(e)}[/bold red]")
-            logger.exception("更新MCP工具嵌入向量失败")
+            console.print(f"[bold red]{get_text('TOOLS', 'error_updating_embeddings')}: {str(e)}[/bold red]")
+            logger.exception(get_text('TOOLS', 'embeddings_update_failed'))
             return 1
 
     def list_tools(self) -> int:
@@ -135,10 +140,10 @@ class ToolsCommand:
         try:
             from viby.tools import AVAILABLE_TOOLS
 
-            table = Table(title="MCP可用工具")
-            table.add_column("工具名称", style="cyan")
-            table.add_column("描述")
-            table.add_column("参数数量", justify="right")
+            table = Table(title=get_text('TOOLS', 'available_tools_table_title'))
+            table.add_column(get_text('TOOLS', 'tool_name_column'), style="cyan")
+            table.add_column(get_text('TOOLS', 'description_column'))
+            table.add_column(get_text('TOOLS', 'param_count_column'), justify="right")
 
             for name, tool in AVAILABLE_TOOLS.items():
                 description = tool.get("description", "")
@@ -146,7 +151,7 @@ class ToolsCommand:
                     try:
                         description = description()
                     except Exception:
-                        description = "[无法获取描述]"
+                        description = get_text('TOOLS', 'description_unavailable')
 
                 # 使用标准的工具参数格式
                 parameters = tool.get("parameters", {})
@@ -162,6 +167,6 @@ class ToolsCommand:
             return 0
 
         except Exception as e:
-            console.print(f"[bold red]列出工具时出错: {str(e)}[/bold red]")
-            logger.exception("列出工具失败")
+            console.print(f"[bold red]{get_text('TOOLS', 'error_listing_tools')}: {str(e)}[/bold red]")
+            logger.exception(get_text('TOOLS', 'tools_listing_failed'))
             return 1

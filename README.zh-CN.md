@@ -29,6 +29,10 @@ Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解
 - **自动Shell命令生成** - 在需要时自动获取优化的 Shell 命令
 - **管道集成** - 处理来自其他命令的数据（例如，`git diff | viby "写一个提交消息"`）
 - **MCP 工具** - 通过模型上下文协议集成扩展能力
+- **智能工具发现** - 自动在配置的MCP服务器中查找并使用最相关的工具来回答您的查询
+- **历史记录管理** - 查看、搜索和导出您的交互历史
+- **Shell 命令历史** - 通过 Viby 直接访问您的 shell 命令历史
+- **多语言支持** - 支持英文和中文界面，可轻松切换语言
 
 ![Viby 终端演示](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png)
 
@@ -112,6 +116,35 @@ yb "$(git status) 我应该先提交哪些文件？"
 
 # 查看代码文件
 yb "$(cat main.py) 如何改进这段代码？"
+```
+
+### 智能工具发现
+
+```sh
+# Viby 会自动发现并使用相关工具
+yb "旧金山的天气怎么样？"
+# -> [Viby 识别并使用天气工具]
+# -> 旧金山当前天气是20°C，多云...
+
+# 管理来自已配置MCP服务器的工具嵌入向量
+yb tools embed
+# -> 更新工具的语义嵌入向量以实现更好的工具发现
+```
+
+### 历史记录管理
+
+```sh
+# 查看最近的交互
+yb history list
+
+# 搜索历史记录
+yb history search "python"
+
+# 导出交互历史
+yb history export history.json
+
+# 查看命令历史
+yb history shell
 ```
 
 ### 自动使用 MCP 工具

@@ -14,10 +14,11 @@
 - [Shell Command Generation](#shell-command-generation)
 - [Model Selection](#model-selection)
 - [Shell Command Magic Integration](#shell-command-magic-integration)
+- [Smart Tool Discovery](#smart-tool-discovery)
 - [Using MCP Tools](#using-mcp-tools)
+- [History Management](#history-management)
 - [Keyboard Shortcuts](#keyboard-shortcuts)
 - [Configuration](#configuration)
-- [History Management](#history-management)
 - [Additional Tips and Tricks](#additional-tips-and-tricks)
 
 ## Introduction
@@ -198,6 +199,53 @@ yb --fast "Convert 42°C to Fahrenheit"
 ```
 
 The fast model uses a smaller, quicker model with settings optimized for speed.
+
+## Smart Tool Discovery
+
+Viby includes an intelligent tool discovery system that automatically finds and uses the most relevant tools within your configured MCP servers to answer your queries:
+
+### Automatic Tool Selection
+
+```bash
+# Weather information
+yb "What's the weather like in Tokyo today?"
+# -> [Viby automatically identifies this as a weather query and uses appropriate tools]
+
+# Unit conversion
+yb "Convert 5 kilometers to miles"
+# -> [Viby uses conversion tools without you needing to specify]
+
+# Currency conversion
+yb "What's 100 USD in Euros?"
+# -> [Viby uses currency conversion tools]
+```
+
+### Managing Tool Embeddings
+
+Viby uses embedding vectors to semantically match your queries with appropriate tools from your configured MCP servers. You can manage these embeddings:
+
+```bash
+# Update tool embeddings (run after adding new tools)
+yb tools embed
+
+# View available tools
+yb tools list
+
+# Get information about a specific tool
+yb tools info tool_name
+```
+
+### Tool Categories
+
+Viby organizes tools into different categories for better discovery:
+
+- **Information Retrieval**: Weather, news, search, etc.
+- **Computation**: Math, currency conversion, unit conversion
+- **System**: File operations, network tasks
+- **Development**: Code generation, debugging, analysis
+- **Utility**: Time, date, random generators
+
+The tool discovery system automatically improves over time as it learns from your usage patterns.
 
 ## Shell Command Magic Integration
 

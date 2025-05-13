@@ -165,6 +165,29 @@ TOOLS = {
     "list_help": "列出所有可用的MCP工具",
     "subcommand_help": "工具管理子命令",
     "subcommand_required": "必须指定工具子命令 (例如, embed, list)",
+    # 嵌入向量更新
+    "embeddings_update_title": "嵌入更新",
+    "updating_embeddings": "正在更新所有工具嵌入向量",
+    "mcp_not_enabled": "MCP功能未启用，无法更新MCP工具嵌入向量",
+    "collecting_tools": "正在获取MCP工具列表",
+    "no_tools_found": "未找到可用的MCP工具",
+    "start_updating_embeddings": "开始更新 {tool_count} 个MCP工具的嵌入向量...",
+    "loading_embedding_model": "正在下载和加载嵌入模型，这可能需要一些时间...",
+    "clearing_cache": "正在清空现有缓存，重新生成嵌入向量...",
+    "embeddings_update_success": "MCP工具嵌入向量更新成功！",
+    "updated_tools_table_title": "已更新工具",
+    "tool_name_column": "工具名称",
+    "description_column": "描述",
+    "description_unavailable": "[无法获取描述]",
+    "embedding_model_load_failed": "嵌入模型下载或加载失败，请确保网络连接正常并重试",
+    "embeddings_already_updated": "MCP工具嵌入向量已是最新，无需更新",
+    "error_updating_embeddings": "更新MCP工具嵌入向量时出错",
+    "embeddings_update_failed": "更新MCP工具嵌入向量失败",
+    # 工具列表
+    "available_tools_table_title": "MCP可用工具",
+    "param_count_column": "参数数量",
+    "error_listing_tools": "列出工具时出错",
+    "tools_listing_failed": "列出工具失败",
 }
 
 # 历史命令相关

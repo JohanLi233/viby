@@ -164,6 +164,29 @@ TOOLS = {
     "list_help": "List all available MCP tools",
     "subcommand_help": "Tool management subcommands",
     "subcommand_required": "A tool subcommand must be specified (e.g., embed, list)",
+    # Embedding update
+    "embeddings_update_title": "Embeddings Update",
+    "updating_embeddings": "Updating all tool embeddings",
+    "mcp_not_enabled": "MCP is not enabled, cannot update MCP tool embeddings",
+    "collecting_tools": "Collecting MCP tool list",
+    "no_tools_found": "No available MCP tools found",
+    "start_updating_embeddings": "Starting to update embeddings for {tool_count} MCP tools...",
+    "loading_embedding_model": "Downloading and loading embedding model, this may take some time...",
+    "clearing_cache": "Clearing existing cache, regenerating embeddings...",
+    "embeddings_update_success": "MCP tool embeddings updated successfully!",
+    "updated_tools_table_title": "Updated Tools",
+    "tool_name_column": "Tool Name",
+    "description_column": "Description",
+    "description_unavailable": "[Description unavailable]",
+    "embedding_model_load_failed": "Embedding model download or loading failed, please ensure your network connection is working and try again",
+    "embeddings_already_updated": "MCP tool embeddings are already up to date, no update needed",
+    "error_updating_embeddings": "Error updating MCP tool embeddings",
+    "embeddings_update_failed": "Failed to update MCP tool embeddings",
+    # Tools listing
+    "available_tools_table_title": "Available MCP Tools",
+    "param_count_column": "Parameter Count",
+    "error_listing_tools": "Error listing tools",
+    "tools_listing_failed": "Failed to list tools",
 }
 
 # History command related
