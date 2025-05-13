@@ -196,10 +196,40 @@ def get_parser() -> argparse.ArgumentParser:
         help=get_text("TOOLS", "subcommand_help", "工具管理子命令"),
     )
 
-    # 更新嵌入向量子命令
-    tools_subparsers.add_parser(
+    # 嵌入向量管理
+    embed_parser = tools_subparsers.add_parser(
         "embed",
         help=get_text("TOOLS", "update_embeddings_help", "更新MCP工具的嵌入向量"),
+    )
+
+    # 添加嵌入向量子命令
+    embed_subparsers = embed_parser.add_subparsers(
+        dest="embed_subcommand",
+        help=get_text("TOOLS", "embed_subcommand_help", "嵌入向量管理子命令"),
+    )
+
+    # 更新嵌入向量子命令
+    embed_subparsers.add_parser(
+        "update",
+        help=get_text("TOOLS", "embed_update_help", "更新MCP工具的嵌入向量"),
+    )
+
+    # 启动嵌入服务器子命令
+    embed_subparsers.add_parser(
+        "start",
+        help=get_text("TOOLS", "embed_start_help", "启动嵌入模型服务"),
+    )
+
+    # 停止嵌入服务器子命令
+    embed_subparsers.add_parser(
+        "stop",
+        help=get_text("TOOLS", "embed_stop_help", "停止嵌入模型服务"),
+    )
+
+    # 查看嵌入服务器状态子命令
+    embed_subparsers.add_parser(
+        "status",
+        help=get_text("TOOLS", "embed_status_help", "查看嵌入模型服务状态"),
     )
 
     # 列出工具子命令
