@@ -68,43 +68,68 @@ class EmbedServerCommand:
     def update_embeddings(self) -> int:
         """更新MCP工具的嵌入向量"""
         try:
-            console.print(Panel.fit(
-                get_text("TOOLS", "updating_embeddings"),
-                title=get_text("TOOLS", "embeddings_update_title")
-            ))
+            console.print(
+                Panel.fit(
+                    get_text("TOOLS", "updating_embeddings"),
+                    title=get_text("TOOLS", "embeddings_update_title"),
+                )
+            )
             if not self.config.enable_mcp:
-                console.print(f"[bold red]{get_text('TOOLS', 'mcp_not_enabled')}[/bold red]")
+                console.print(
+                    f"[bold red]{get_text('TOOLS', 'mcp_not_enabled')}[/bold red]"
+                )
                 return 1
             tools_dict = list_tools()
             tool_count = sum(len(lst) for lst in tools_dict.values())
             if tool_count == 0:
-                console.print(f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]")
+                console.print(
+                    f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]"
+                )
                 return 0
-            console.print(get_text("TOOLS", "start_updating_embeddings")
-                          .format(tool_count=f"[bold cyan]{tool_count}[/bold cyan]"))
+            console.print(
+                get_text("TOOLS", "start_updating_embeddings").format(
+                    tool_count=f"[bold cyan]{tool_count}[/bold cyan]"
+                )
+            )
             if not is_server_running():
-                console.print(f"[bold yellow]{get_text('TOOLS', 'embedding_server_not_running')}[/bold yellow]")
-                console.print(f"[bold yellow]{get_text('TOOLS', 'start_server_suggestion')}[/bold yellow]")
+                console.print(
+                    f"[bold yellow]{get_text('TOOLS', 'embedding_server_not_running')}[/bold yellow]"
+                )
+                console.print(
+                    f"[bold yellow]{get_text('TOOLS', 'start_server_suggestion')}[/bold yellow]"
+                )
                 return 1
-            console.print(f"[bold yellow]{get_text('TOOLS', 'using_embedding_server')}[/bold yellow]")
+            console.print(
+                f"[bold yellow]{get_text('TOOLS', 'using_embedding_server')}[/bold yellow]"
+            )
             updated = update_tools()
             if updated:
-                console.print(f"[bold green]✓[/bold green] {get_text('TOOLS', 'embeddings_update_success')}")
+                console.print(
+                    f"[bold green]✓[/bold green] {get_text('TOOLS', 'embeddings_update_success')}"
+                )
                 self._display_tools_table(tools_dict)
                 return 0
-            console.print(f"[bold yellow]!{get_text('TOOLS', 'embeddings_update_via_server_failed')}[/bold yellow]")
-            console.print(f"[bold yellow]{get_text('TOOLS', 'start_server_suggestion')}[/bold yellow]")
+            console.print(
+                f"[bold yellow]!{get_text('TOOLS', 'embeddings_update_via_server_failed')}[/bold yellow]"
+            )
+            console.print(
+                f"[bold yellow]{get_text('TOOLS', 'start_server_suggestion')}[/bold yellow]"
+            )
             return 1
         except Exception as e:
-            console.print(f"[bold red]{get_text('TOOLS', 'error_updating_embeddings')}: {e}[/bold red]")
+            console.print(
+                f"[bold red]{get_text('TOOLS', 'error_updating_embeddings')}: {e}[/bold red]"
+            )
             logger.exception(get_text("TOOLS", "embeddings_update_failed"))
             return 1
 
     def _print_panel(self, key: str, default: str):
-        console.print(Panel.fit(
-            get_text("TOOLS", key, default),
-            title=get_text("TOOLS", "embed_server_title", "嵌入模型服务"),
-        ))
+        console.print(
+            Panel.fit(
+                get_text("TOOLS", key, default),
+                title=get_text("TOOLS", "embed_server_title", "嵌入模型服务"),
+            )
+        )
 
     def _display_tools_table(self, tools_dict):
         table = Table(title=get_text("TOOLS", "updated_tools_table_title"))

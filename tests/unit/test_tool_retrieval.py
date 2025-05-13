@@ -98,8 +98,9 @@ class TestToolRetrieval(unittest.TestCase):
         # 模拟Config和EmbeddingManager
         with (
             patch("viby.config.Config") as mock_config_class,
-            patch("viby.viby_tool_search.utils.EmbeddingManager") as mock_embedding_manager,
-            patch("viby.viby_tool_search.utils.print") as mock_print,
+            patch(
+                "viby.viby_tool_search.utils.EmbeddingManager"
+            ) as mock_embedding_manager,
         ):
             # 模拟MCP启用
             mock_config_instance = MagicMock()
@@ -117,11 +118,11 @@ class TestToolRetrieval(unittest.TestCase):
                         "name": "tool1",
                         "description": "Tool 1 description",
                         "parameters": {"type": "object"},
-                        "server_name": "server1"
+                        "server_name": "server1",
                     }
                 }
             }
-            
+
             mock_manager_instance.tool_info = mock_tool_info
 
             # 测试正常收集工具
@@ -134,9 +135,10 @@ class TestToolRetrieval(unittest.TestCase):
         # 模拟Config和EmbeddingManager抛出异常
         with (
             patch("viby.config.Config") as mock_config_class,
-            patch("viby.viby_tool_search.utils.EmbeddingManager") as mock_embedding_manager,
+            patch(
+                "viby.viby_tool_search.utils.EmbeddingManager"
+            ) as mock_embedding_manager,
             patch("viby.viby_tool_search.utils.logger") as mock_logger,
-            patch("viby.viby_tool_search.utils.print") as mock_print,
         ):
             # 模拟MCP启用
             mock_config_instance = MagicMock()
@@ -164,7 +166,7 @@ class TestToolRetrieval(unittest.TestCase):
         mock_logger.debug = MagicMock()
         mock_logger.error = MagicMock()
         mock_logger.warning = MagicMock()
-        
+
         # 模拟requests.post的结果
         mock_response = MagicMock()
         mock_response.status_code = 200
@@ -186,7 +188,7 @@ class TestToolRetrieval(unittest.TestCase):
             }
         ]
         mock_requests.post.return_value = mock_response
-        
+
         # 确保requests.Timeout是BaseException子类的异常
         mock_requests.Timeout = requests.Timeout
         mock_requests.ConnectionError = requests.ConnectionError

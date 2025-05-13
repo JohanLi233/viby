@@ -60,6 +60,8 @@ def get_mcp_tools_from_cache() -> Dict[str, List]:
 
     except Exception as e:
         # 如果无法读取缓存，返回错误信息
-        logger.warning(f"从缓存读取工具信息失败: {e}")
+        logger.warning(
+            f"{get_text('TOOLS', 'cache_read_failed', '从缓存读取工具信息失败')}: {e}"
+        )
 
     return server_grouped_tools

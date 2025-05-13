@@ -15,6 +15,9 @@ import subprocess
 from typing import Dict, Any, List, Optional, NamedTuple
 import requests
 
+# 导入locale模块
+from viby.locale import get_text
+
 # 从common模块导入共享常量和函数
 from viby.viby_tool_search.common import (
     DEFAULT_PORT,
@@ -90,7 +93,9 @@ def get_server_status() -> Dict[str, Any]:
         status["running"] = is_server_running()
         return status
     except Exception as e:
-        logger.error(f"读取状态文件失败: {e}")
+        logger.error(
+            f"{get_text('TOOLS', 'read_status_failed', '读取状态文件失败')}: {e}"
+        )
         return default_status
 
 
@@ -126,16 +131,26 @@ def check_server_status() -> ServerStatusResult:
 
                     uptime_parts = []
                     if days > 0:
-                        uptime_parts.append(f"{int(days)}天")
+                        uptime_parts.append(
+                            f"{int(days)}{get_text('TOOLS', 'days', '天')}"
+                        )
                     if hours > 0 or days > 0:
-                        uptime_parts.append(f"{int(hours)}小时")
+                        uptime_parts.append(
+                            f"{int(hours)}{get_text('TOOLS', 'hours', '小时')}"
+                        )
                     if minutes > 0 or hours > 0 or days > 0:
-                        uptime_parts.append(f"{int(minutes)}分钟")
-                    uptime_parts.append(f"{int(seconds)}秒")
+                        uptime_parts.append(
+                            f"{int(minutes)}{get_text('TOOLS', 'minutes', '分钟')}"
+                        )
+                    uptime_parts.append(
+                        f"{int(seconds)}{get_text('TOOLS', 'seconds', '秒')}"
+                    )
 
                     uptime = " ".join(uptime_parts)
                 except Exception as e:
-                    logger.warning(f"计算运行时间失败: {e}")
+                    logger.warning(
+                        f"{get_text('TOOLS', 'calc_uptime_failed', '计算运行时间失败')}: {e}"
+                    )
 
             return ServerStatusResult(
                 status=EmbeddingServerStatus.RUNNING,
@@ -148,7 +163,9 @@ def check_server_status() -> ServerStatusResult:
         else:
             return ServerStatusResult(status=EmbeddingServerStatus.STOPPED)
     except Exception as e:
-        logger.error(f"检查服务器状态失败: {e}")
+        logger.error(
+            f"{get_text('TOOLS', 'check_status_failed', '检查服务器状态失败')}: {e}"
+        )
         return ServerStatusResult(status=EmbeddingServerStatus.UNKNOWN, error=str(e))
 
 
@@ -161,7 +178,11 @@ def start_embedding_server() -> ServerOperationResult:
     if is_server_running():
         status = get_server_status()
         return ServerOperationResult(
-            False, pid=status.get("pid"), error="嵌入模型服务器已在运行中"
+            False,
+            pid=status.get("pid"),
+            error=get_text(
+                "TOOLS", "server_already_running", "嵌入模型服务器已在运行中"
+            ),
         )
     try:
         proc = subprocess.Popen(
@@ -183,9 +204,16 @@ def start_embedding_server() -> ServerOperationResult:
             wait_count += check_interval
 
         # 超时仍未启动
-        return ServerOperationResult(False, error="启动嵌入模型服务器失败: 服务未响应")
+        return ServerOperationResult(
+            False,
+            error=get_text(
+                "TOOLS", "server_start_timeout", "启动嵌入模型服务器失败: 服务未响应"
+            ),
+        )
     except Exception as e:
-        logger.error(f"启动服务器失败: {e}")
+        logger.error(
+            f"{get_text('TOOLS', 'server_start_error', '启动服务器失败')}: {e}"
+        )
         return ServerOperationResult(False, error=str(e))
 
 
@@ -196,7 +224,10 @@ def stop_embedding_server() -> ServerOperationResult:
         操作结果
     """
     if not is_server_running():
-        return ServerOperationResult(success=False, error="嵌入模型服务器未运行")
+        return ServerOperationResult(
+            success=False,
+            error=get_text("TOOLS", "server_not_running", "嵌入模型服务器未运行"),
+        )
     try:
         requests.post(f"http://localhost:{DEFAULT_PORT}/shutdown", timeout=100)
     except requests.RequestException:
@@ -229,11 +260,19 @@ def search_similar_tools(query: str, top_k: int = 5) -> Dict[str, List]:
     """
     if not is_server_running():
         # 如果服务未运行，返回空列表
-        logger.warning("嵌入模型服务未运行，无法搜索工具")
+        logger.warning(
+            get_text(
+                "TOOLS",
+                "embedding_server_not_running",
+                "嵌入模型服务未运行，无法搜索工具",
+            )
+        )
         return {}
 
     try:
-        logger.debug(f"向嵌入服务器发送搜索请求: query='{query}', top_k={top_k}")
+        logger.debug(
+            f"{get_text('TOOLS', 'sending_search_request', '向嵌入服务器发送搜索请求')}: query='{query}', top_k={top_k}"
+        )
         response = requests.post(
             f"http://localhost:{DEFAULT_PORT}/search",
             json={"query": query, "top_k": top_k},
@@ -242,21 +281,26 @@ def search_similar_tools(query: str, top_k: int = 5) -> Dict[str, List]:
 
         if response.status_code == 200:
             results = response.json()
-            logger.debug(f"搜索成功，找到 {len(results)} 个相关工具")
+            logger.debug(
+                f"{get_text('TOOLS', 'search_success', '搜索成功，找到')} {len(results)} {get_text('TOOLS', 'related_tools', '个相关工具')}"
+            )
             return results
         else:
             logger.error(
-                f"搜索工具失败: 状态码={response.status_code}, 响应={response.text}"
+                f"{get_text('TOOLS', 'search_failed', '搜索工具失败')}: {get_text('TOOLS', 'status_code', '状态码')}={response.status_code}, {get_text('TOOLS', 'response', '响应')}={response.text}"
             )
             return {}
     except requests.Timeout:
-        logger.error("搜索请求超时")
+        logger.error(get_text("TOOLS", "search_timeout", "搜索请求超时"))
         return {}
     except requests.ConnectionError:
-        logger.error("连接嵌入服务器失败")
+        logger.error(get_text("TOOLS", "connect_server_failed", "连接嵌入服务器失败"))
         return {}
     except Exception as e:
-        logger.error(f"调用嵌入模型服务失败: {str(e)}", exc_info=True)
+        logger.error(
+            f"{get_text('TOOLS', 'call_server_failed', '调用嵌入模型服务失败')}: {str(e)}",
+            exc_info=True,
+        )
         return {}
 
 
@@ -269,7 +313,13 @@ def update_tools() -> bool:
     """
     if not is_server_running():
         # 如果服务未运行，返回False
-        logger.warning("嵌入模型服务未运行，无法更新工具")
+        logger.warning(
+            get_text(
+                "TOOLS",
+                "embedding_server_not_running_cannot_update",
+                "嵌入模型服务未运行，无法更新工具",
+            )
+        )
         return False
 
     try:
@@ -283,8 +333,12 @@ def update_tools() -> bool:
             result = response.json()
             return result.get("success", False)
         else:
-            logger.error(f"更新工具失败: {response.status_code} {response.text}")
+            logger.error(
+                f"{get_text('TOOLS', 'update_failed', '更新工具失败')}: {response.status_code} {response.text}"
+            )
             return False
     except Exception as e:
-        logger.error(f"调用嵌入模型服务失败: {e}")
+        logger.error(
+            f"{get_text('TOOLS', 'call_server_failed', '调用嵌入模型服务失败')}: {e}"
+        )
         return False

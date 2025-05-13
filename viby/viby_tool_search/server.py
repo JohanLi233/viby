@@ -11,13 +11,13 @@ import logging
 import time
 import sys
 import uvicorn
-from pathlib import Path
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from datetime import datetime
 
 from viby.viby_tool_search.embedding_manager import EmbeddingManager
 from viby.mcp import list_tools
+from viby.locale import get_text
 from viby.viby_tool_search.common import (
     DEFAULT_PORT,
     get_pid_file_path,
@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
+
 
 def run_server():
     """运行FastAPI服务器"""
@@ -68,7 +69,10 @@ def run_server():
     @app.post("/search")
     async def search(request: SearchRequest):
         if not request.query:
-            raise HTTPException(status_code=400, detail="查询文本不能为空")
+            raise HTTPException(
+                status_code=400,
+                detail=get_text("TOOLS", "query_cannot_be_empty", "查询文本不能为空"),
+            )
 
         try:
             results = embedding_manager.search_similar_tools(
@@ -76,7 +80,7 @@ def run_server():
             )
             return results
         except Exception as e:
-            logger.error(f"搜索失败: {e}")
+            logger.error(f"{get_text('TOOLS', 'search_failed', '搜索失败')}: {e}")
             raise HTTPException(status_code=500, detail=str(e))
 
     # 更新工具端点
@@ -90,12 +94,17 @@ def run_server():
             tools_by_server = list_tools()
             total_tools = sum(len(tools) for tools in tools_by_server.values())
             if total_tools == 0:
-                logger.warning("没有可用的MCP工具")
-                return {"success": False, "message": "没有可用的MCP工具"}
+                logger.warning(get_text("TOOLS", "no_mcp_tools", "没有可用的MCP工具"))
+                return {
+                    "success": False,
+                    "message": get_text("TOOLS", "no_mcp_tools", "没有可用的MCP工具"),
+                }
 
             # 更新嵌入向量
             updated = embedding_manager.update_tool_embeddings(tools_by_server)
-            logger.info(f"嵌入向量更新{'成功' if updated else '失败'}")
+            logger.info(
+                f"{get_text('TOOLS', 'embedding_update', '嵌入向量更新')}{get_text('TOOLS', 'success' if updated else 'failed', '成功' if updated else '失败')}"
+            )
 
             # 更新状态文件（如果需要）
             if updated:
@@ -104,17 +113,27 @@ def run_server():
                     try:
                         with open(status_file, "r+") as f:
                             status = json.load(f)
-                            status["tools_count"] = len(embedding_manager.tool_embeddings)
+                            status["tools_count"] = len(
+                                embedding_manager.tool_embeddings
+                            )
                             status["last_update"] = datetime.now().isoformat()
                             f.seek(0)
                             json.dump(status, f)
                             f.truncate()
                     except Exception as e:
-                        logger.error(f"更新状态文件失败: {e}")
+                        logger.error(
+                            f"{get_text('TOOLS', 'update_status_failed', '更新状态文件失败')}: {e}"
+                        )
 
-            return {"success": updated, "tool_count": total_tools, "server_count": len(tools_by_server)}
+            return {
+                "success": updated,
+                "tool_count": total_tools,
+                "server_count": len(tools_by_server),
+            }
         except Exception as e:
-            logger.error("更新工具失败", exc_info=True)
+            logger.error(
+                get_text("TOOLS", "update_tools_failed", "更新工具失败"), exc_info=True
+            )
             raise HTTPException(status_code=500, detail=str(e))
 
     # 关闭服务器端点
@@ -126,7 +145,9 @@ def run_server():
     @app.post("/shutdown")
     async def shutdown(background_tasks: BackgroundTasks):
         background_tasks.add_task(shutdown_server)
-        return {"message": "服务器正在关闭..."}
+        return {
+            "message": get_text("TOOLS", "server_shutting_down", "服务器正在关闭...")
+        }
 
     # 启动服务器
     uvicorn.run(app, host="localhost", port=DEFAULT_PORT)

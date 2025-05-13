@@ -101,10 +101,10 @@ class ToolsCommand:
             for server_name, tools in server_tools_dict.items():
                 for tool in tools:
                     all_tools.append((tool.name, tool, server_name))
-            
+
             # 按名称排序工具
             for name, tool, server_name in sorted(all_tools, key=lambda x: x[0]):
-                description = tool.description if hasattr(tool, 'description') else ""
+                description = tool.description if hasattr(tool, "description") else ""
                 if callable(description):
                     try:
                         description = description()
@@ -112,8 +112,12 @@ class ToolsCommand:
                         description = get_text("TOOLS", "description_unavailable")
 
                 # 获取参数数量
-                parameters = tool.inputSchema if hasattr(tool, 'inputSchema') else {}
-                param_properties = parameters.get("properties", {}) if isinstance(parameters, dict) else {}
+                parameters = tool.inputSchema if hasattr(tool, "inputSchema") else {}
+                param_properties = (
+                    parameters.get("properties", {})
+                    if isinstance(parameters, dict)
+                    else {}
+                )
                 param_count = len(param_properties)
 
                 # 使用textwrap简化描述截断
