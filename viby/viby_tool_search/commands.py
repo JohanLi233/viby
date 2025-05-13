@@ -8,40 +8,40 @@ import logging
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from typing import Dict, Any, Tuple
+from typing import Dict, List
 
 from viby.locale import get_text
 from viby.config import Config
 from viby.mcp.client import list_tools
-from viby.viby_tool_search.server import (
+from viby.viby_tool_search.client import (
     start_embedding_server,
     stop_embedding_server,
     check_server_status,
     EmbeddingServerStatus,
-    update_tools_remote,
     is_server_running,
+    update_tools
 )
-from viby.viby_tool_search.embedding_manager import EmbeddingManager
+from viby.viby_tool_search.embedding_manager import EmbeddingManager, Tool
 
 logger = logging.getLogger(__name__)
 console = Console()
 
-def get_mcp_tools_from_cache() -> Tuple[Dict[str, Any], str, bool]:
+def get_mcp_tools_from_cache() -> Dict[str, List]:
     """
     获取所有工具信息用于列表显示，优先从缓存中读取
-
+    
+    直接返回与list_tools()相同格式的按服务器分组的工具列表
+    
     Returns:
-        dict: 包含工具信息的字典，格式为 {tool_name: tool_definition}
-        str: 消息（成功、警告或建议）
-        bool: 是否成功获取工具信息
+        Dict[str, List]: 按服务器名称分组的工具列表，格式为 {server_name: [Tool对象, ...], ...}
     """
     config = Config()
     if not config.enable_mcp:
-        return {}, get_text("TOOLS", "mcp_not_enabled"), False
+        print(get_text("TOOLS", "mcp_not_enabled"))
+        return {}
     
-    tools_dict = {}
-    message = ""
-    success = True
+    # 初始化服务器分组的工具字典
+    server_grouped_tools = {}
     
     # 首先尝试从缓存中读取
     try:
@@ -51,22 +51,39 @@ def get_mcp_tools_from_cache() -> Tuple[Dict[str, Any], str, bool]:
         # 检查是否有缓存的工具信息
         if not manager.tool_info:
             message = get_text("TOOLS", "no_cached_tools") + "\n" + get_text("TOOLS", "suggest_update_embeddings")
-            return {}, message, False
+            print(message)
+            return {}
         
-        # 使用缓存的工具信息 - 直接使用完整的工具信息而不是只提取definition
-        tools_dict = manager.tool_info
+        # 将工具转换为按服务器名称分组的格式
+        for tool_name, tool_info in manager.tool_info.items():
+            definition = tool_info.get("definition", {})
+            server_name = definition.get("server_name", "unknown")
+            
+            # 创建Tool对象
+            tool = Tool(
+                name=tool_name,
+                description=definition.get("description", ""),
+                inputSchema=definition.get("parameters", {}),
+                annotations=None
+            )
+            
+            # 添加到对应的服务器分组
+            if server_name not in server_grouped_tools:
+                server_grouped_tools[server_name] = []
+                
+            server_grouped_tools[server_name].append(tool)
         
         # 如果成功获取工具信息
-        tool_count = len(manager.tool_info)
+        tool_count = sum(len(tools) for tools in server_grouped_tools.values())
         message = get_text("TOOLS", "tools_loaded_from_cache", "工具信息已从缓存加载") + f" ({tool_count}个)"
-        success = True
+        print(message)
     except Exception as e:
         # 如果无法读取缓存，返回错误信息
         logger.warning(f"从缓存读取工具信息失败: {e}")
         message = get_text("TOOLS", "cache_read_failed") + "\n" + get_text("TOOLS", "suggest_update_embeddings")
-        success = False
+        print(message)
     
-    return tools_dict, message, success
+    return server_grouped_tools
 
 
 class EmbedServerCommand:
@@ -154,7 +171,7 @@ class EmbedServerCommand:
                     f"[bold yellow]{get_text('TOOLS', 'using_embedding_server')}[/bold yellow]"
                 )
                 # 使用远程服务器更新嵌入向量
-                updated = update_tools_remote()
+                updated = update_tools()
 
                 if updated:
                     console.print(

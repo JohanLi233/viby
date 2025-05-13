@@ -73,25 +73,14 @@ class ToolsCommand:
 
             # 使用viby_tool_search模块获取工具信息
             try:
-                # 获取工具信息（移除未使用的tool_count变量）
-                tools_dict, message, success = get_mcp_tools_from_cache()
+                # 获取工具信息
+                tools_dict = get_mcp_tools_from_cache()
                 
-                # 统一处理消息显示逻辑
-                if message:
-                    style = "red" if not success and "MCP" in message else "yellow" if not success else "green"
-                    prefix = "✓ " if style == "green" else ""
-                    console.print(f"[bold {style}]{prefix}{message}[/bold {style}]")
-                    
-                # 如果获取失败并且是MCP错误，返回错误码
-                if not success and "MCP" in message:
-                    return 1
-                    
-                # 如果没有工具或获取失败但非MCP错误，显示提示并返回成功
-                if not success or not tools_dict:
-                    if not message or "no_tools_found" not in message:
-                        console.print(
-                            f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]"
-                        )
+                # 如果没有工具，显示提示并返回成功
+                if not tools_dict:
+                    console.print(
+                        f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]"
+                    )
                     return 0
             except Exception as e:
                 console.print(

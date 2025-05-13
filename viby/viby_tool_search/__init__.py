@@ -5,5 +5,3 @@ MCP工具检索与嵌入服务模块
 """
 
 __version__ = "0.1.0"
-
-from .commands import get_mcp_tools_from_cache

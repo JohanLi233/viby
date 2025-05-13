@@ -5,10 +5,10 @@ MCP工具检索工具
 """
 
 import logging
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 from viby.locale import get_text
-from viby.viby_tool_search.retrieval import search_similar_tools
+from viby.viby_tool_search.client import search_similar_tools
 
 logger = logging.getLogger(__name__)
 

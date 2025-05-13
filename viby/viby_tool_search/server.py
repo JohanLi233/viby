@@ -8,50 +8,24 @@ import os
 import json
 import signal
 import logging
-import subprocess
 import time
-import requests
 import sys
-import enum
 import uvicorn
 from pathlib import Path
-from typing import Optional, Dict, List, Any, NamedTuple
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from datetime import datetime
 
 from viby.viby_tool_search.embedding_manager import EmbeddingManager
+from viby.mcp import list_tools
+from viby.viby_tool_search.common import (
+    DEFAULT_PORT,
+    get_pid_file_path,
+    get_status_file_path
+)
 
 # 配置日志
 logger = logging.getLogger(__name__)
-
-# 默认服务端口
-DEFAULT_PORT = 8765
-
-
-# 服务器状态枚举
-class EmbeddingServerStatus(enum.Enum):
-    RUNNING = "running"
-    STOPPED = "stopped"
-    UNKNOWN = "unknown"
-
-
-# 服务器状态结果类
-class ServerStatusResult(NamedTuple):
-    status: EmbeddingServerStatus
-    pid: Optional[int] = None
-    url: Optional[str] = None
-    uptime: Optional[str] = None
-    start_time: Optional[str] = None
-    tools_count: Optional[int] = None
-    error: Optional[str] = None
-
-
-# 服务器操作结果类
-class ServerOperationResult(NamedTuple):
-    success: bool
-    pid: Optional[int] = None
-    error: Optional[str] = None
 
 
 # 请求模型
@@ -59,274 +33,8 @@ class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
 
-
-class UpdateRequest(BaseModel):
-    tools: Optional[Dict[str, Dict]] = None
-
-
 class ShutdownRequest(BaseModel):
     pass
-
-
-# 统一缓存目录
-def get_cache_dir() -> Path:
-    cache_dir = Path.home() / ".config" / "viby" / "embedding_server"
-    cache_dir.mkdir(parents=True, exist_ok=True)
-    return cache_dir
-
-
-def get_pid_file_path() -> Path:
-    """获取PID文件路径"""
-    return get_cache_dir() / "embed_server.pid"
-
-
-def get_status_file_path() -> Path:
-    """获取状态文件路径"""
-    return get_cache_dir() / "status.json"
-
-
-def is_server_running() -> bool:
-    """
-    检查嵌入服务器是否正在运行
-
-    返回:
-        是否运行
-    """
-    try:
-        response = requests.get(f"http://localhost:{DEFAULT_PORT}/health", timeout=100)
-        return response.status_code == 200
-    except requests.RequestException:
-        return False
-
-
-def get_server_status() -> Dict[str, Any]:
-    """
-    获取服务器状态
-
-    返回:
-        状态信息字典
-    """
-    status_file = get_status_file_path()
-    default_status = {
-        "running": False,
-        "pid": None,
-        "port": DEFAULT_PORT,
-        "start_time": None,
-        "tools_count": 0,
-    }
-
-    if not status_file.exists():
-        return default_status
-
-    try:
-        with open(status_file, "r") as f:
-            status = json.load(f)
-        # 更新并返回运行状态
-        status["running"] = is_server_running()
-        return status
-    except Exception as e:
-        logger.error(f"读取状态文件失败: {e}")
-        return default_status
-
-
-def check_server_status() -> ServerStatusResult:
-    """
-    检查嵌入服务器状态
-
-    返回:
-        服务器状态结果
-    """
-    try:
-        is_running = is_server_running()
-        if is_running:
-            status_data = get_server_status()
-            pid = status_data.get("pid")
-            port = status_data.get("port", DEFAULT_PORT)
-            start_time = status_data.get("start_time")
-            tools_count = status_data.get("tools_count", 0)
-
-            # 计算运行时间
-            uptime = None
-            if start_time:
-                try:
-                    start_timestamp = time.mktime(
-                        time.strptime(start_time, "%Y-%m-%d %H:%M:%S")
-                    )
-                    uptime_seconds = time.time() - start_timestamp
-
-                    # 格式化运行时间
-                    days, remainder = divmod(uptime_seconds, 86400)
-                    hours, remainder = divmod(remainder, 3600)
-                    minutes, seconds = divmod(remainder, 60)
-
-                    uptime_parts = []
-                    if days > 0:
-                        uptime_parts.append(f"{int(days)}天")
-                    if hours > 0 or days > 0:
-                        uptime_parts.append(f"{int(hours)}小时")
-                    if minutes > 0 or hours > 0 or days > 0:
-                        uptime_parts.append(f"{int(minutes)}分钟")
-                    uptime_parts.append(f"{int(seconds)}秒")
-
-                    uptime = " ".join(uptime_parts)
-                except Exception as e:
-                    logger.warning(f"计算运行时间失败: {e}")
-
-            return ServerStatusResult(
-                status=EmbeddingServerStatus.RUNNING,
-                pid=pid,
-                url=f"http://localhost:{port}",
-                uptime=uptime,
-                start_time=start_time,
-                tools_count=tools_count,
-            )
-        else:
-            return ServerStatusResult(status=EmbeddingServerStatus.STOPPED)
-    except Exception as e:
-        logger.error(f"检查服务器状态失败: {e}")
-        return ServerStatusResult(status=EmbeddingServerStatus.UNKNOWN, error=str(e))
-
-
-def start_embedding_server() -> ServerOperationResult:
-    """
-    启动嵌入模型服务器
-    返回:
-        操作结果
-    """
-    if is_server_running():
-        status = get_server_status()
-        return ServerOperationResult(
-            False, pid=status.get("pid"), error="嵌入模型服务器已在运行中"
-        )
-    try:
-        proc = subprocess.Popen(
-            [sys.executable, "-m", "viby.viby_tool_search.server", "--server"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            start_new_session=True,
-        )
-
-        # 使用轮询方式检查服务器是否启动，最多等待10秒
-        max_wait_time = 100  # 最大等待时间（秒）
-        check_interval = 1  # 每次检查的间隔时间（秒）
-        wait_count = 0
-
-        while wait_count < max_wait_time:
-            if is_server_running():
-                return ServerOperationResult(True, pid=proc.pid)
-            time.sleep(check_interval)
-            wait_count += check_interval
-
-        # 超时仍未启动
-        return ServerOperationResult(False, error="启动嵌入模型服务器失败: 服务未响应")
-    except Exception as e:
-        logger.error(f"启动服务器失败: {e}")
-        return ServerOperationResult(False, error=str(e))
-
-
-def stop_embedding_server() -> ServerOperationResult:
-    """
-    停止嵌入模型服务器
-    返回:
-        操作结果
-    """
-    if not is_server_running():
-        return ServerOperationResult(success=False, error="嵌入模型服务器未运行")
-    try:
-        requests.post(f"http://localhost:{DEFAULT_PORT}/shutdown", timeout=100)
-    except requests.RequestException:
-        pass
-    pid = None
-    pid_file = get_pid_file_path()
-    if pid_file.exists():
-        try:
-            pid = int(pid_file.read_text().strip())
-            os.kill(pid, signal.SIGTERM)
-        except (ValueError, OSError, PermissionError):
-            pass
-        pid_file.unlink()
-    status_file = get_status_file_path()
-    if status_file.exists():
-        status_file.unlink()
-    return ServerOperationResult(success=True, pid=pid)
-
-
-def search_tools_remote(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
-    """
-    远程调用嵌入服务器搜索工具
-
-    Args:
-        query: 搜索查询
-        top_k: 返回的最大结果数
-
-    Returns:
-        相关工具列表
-    """
-    if not is_server_running():
-        # 如果服务未运行，返回空列表
-        logger.warning("嵌入模型服务未运行，无法搜索工具")
-        return []
-
-    try:
-        logger.debug(f"向嵌入服务器发送搜索请求: query='{query}', top_k={top_k}")
-        response = requests.post(
-            f"http://localhost:{DEFAULT_PORT}/search",
-            json={"query": query, "top_k": top_k},
-            timeout=30,  # 增加超时时间，避免复杂查询超时
-        )
-
-        if response.status_code == 200:
-            results = response.json()
-            logger.debug(f"搜索成功，找到 {len(results)} 个相关工具")
-            return results
-        else:
-            logger.error(
-                f"搜索工具失败: 状态码={response.status_code}, 响应={response.text}"
-            )
-            return []
-    except requests.Timeout:
-        logger.error("搜索请求超时")
-        return []
-    except requests.ConnectionError:
-        logger.error("连接嵌入服务器失败")
-        return []
-    except Exception as e:
-        logger.error(f"调用嵌入模型服务失败: {str(e)}", exc_info=True)
-        return []
-
-
-def update_tools_remote(tools_dict: Optional[Dict[str, Dict]] = None) -> bool:
-    """
-    远程调用嵌入服务器更新工具嵌入向量
-
-    Args:
-        tools_dict: 工具定义字典，如果为None，服务器将自行收集工具
-
-    Returns:
-        是否成功更新
-    """
-    if not is_server_running():
-        # 如果服务未运行，返回False
-        logger.warning("嵌入模型服务未运行，无法更新工具")
-        return False
-
-    try:
-        # 调用服务器的更新端点
-        response = requests.post(
-            f"http://localhost:{DEFAULT_PORT}/update",
-            json={} if tools_dict is None else {"tools": tools_dict},
-            timeout=300,  # 更新可能需要更长时间
-        )
-
-        if response.status_code == 200:
-            result = response.json()
-            return result.get("success", False)
-        else:
-            logger.error(f"更新工具失败: {response.status_code} {response.text}")
-            return False
-    except Exception as e:
-        logger.error(f"调用嵌入模型服务失败: {e}")
-        return False
 
 
 def run_server():
@@ -335,7 +43,6 @@ def run_server():
     app = FastAPI(title="Viby Embedding Server")
 
     # 确保工具嵌入目录存在
-    from pathlib import Path
 
     tool_embeddings_dir = Path.home() / ".config" / "viby" / "tool_embeddings"
     tool_embeddings_dir.mkdir(parents=True, exist_ok=True)
@@ -388,8 +95,7 @@ def run_server():
 
     # 更新工具端点
     @app.post("/update")
-    async def update_tools(request: UpdateRequest = None):
-        from viby.viby_tool_search.retrieval import collect_mcp_tools
+    async def update_tools():
         import os
         from pathlib import Path
 
@@ -415,19 +121,26 @@ def run_server():
                 except Exception as perm_err:
                     logger.error(f"修复权限失败: {perm_err}")
 
-            # 如果请求中包含工具字典，则使用传入的工具
-            # 否则服务器自行收集工具
-            if request and request.tools:
-                tools_dict = request.tools
-                logger.info(f"使用传入的工具数据，工具数量: {len(tools_dict)}")
-            else:
-                logger.info("开始收集MCP工具...")
-                tools_dict = collect_mcp_tools()
-                logger.info(f"成功收集了 {len(tools_dict)} 个MCP工具")
-
-            if not tools_dict:
+            # 收集MCP工具 - 注意这行的缩进，之前的代码缩进错误
+            logger.info("开始收集MCP工具...")
+            # list_tools() 返回格式是 {server_name: [...tools]}
+            tools_by_server = list_tools()
+            logger.info(f"成功收集了 {len(tools_by_server)} 个MCP服务器的工具")
+            
+            # 检查返回的数据结构
+            for server_name, tools in tools_by_server.items():
+                logger.info(f"服务器 {server_name}: {len(tools)} 个工具")
+            
+            # 判断是否有工具
+            total_tools = sum(len(tools) for tools in tools_by_server.values())
+            if total_tools == 0:
                 logger.warning("没有可用的MCP工具或MCP功能未启用")
                 return {"success": False, "message": "没有可用的MCP工具或MCP功能未启用"}
+            
+            logger.info(f"工具总数: {total_tools}")
+            
+            # 这里直接将按服务器分组的工具传给embedding_manager
+            tools_dict = tools_by_server
 
             # 输出详细的工具信息用于调试
             logger.debug(f"收集到的工具列表: {list(tools_dict.keys())}")
@@ -479,46 +192,25 @@ def run_server():
                 with open(embedding_manager.tool_info_file, "r", encoding="utf-8") as f:
                     saved_data = json.load(f)
 
+                # 计算所有工具名称
+                all_tool_names = []
+                for server_name, tools_list in tools_dict.items():
+                    for tool in tools_list:
+                        if isinstance(tool, dict) and "name" in tool:
+                            all_tool_names.append(tool["name"])
+                
                 # 比较工具数量
-                missing_tools = set(tools_dict.keys()) - set(saved_data.keys())
+                missing_tools = set(all_tool_names) - set(saved_data.keys())
                 verification_result["verified"] = len(missing_tools) == 0
                 verification_result["missing_tools"] = list(missing_tools)
+                
+                # 记录实际保存和期望的工具数量
+                verification_result["saved_count"] = len(saved_data)
+                verification_result["expected_count"] = len(all_tool_names)
 
-                # 如果有缺失的工具，记录到日志
-                if missing_tools:
-                    logger.warning(f"在缓存中缺少以下工具: {missing_tools}")
-
-                    # 尝试手动补充缺失的工具
-                    try:
-                        for name in missing_tools:
-                            if name in tools_dict:
-                                # 获取工具定义
-                                tool_def = tools_dict[name]
-                                # 手动构建工具信息
-                                tool_text = (
-                                    embedding_manager._get_tool_description_text(
-                                        name, tool_def
-                                    )
-                                )
-                                # 添加到缓存中
-                                saved_data[name] = {
-                                    "text": tool_text,
-                                    "definition": tool_def,
-                                }
-
-                        # 重新保存更新后的文件
-                        with open(
-                            embedding_manager.tool_info_file, "w", encoding="utf-8"
-                        ) as f:
-                            json.dump(saved_data, f, ensure_ascii=False, indent=2)
-
-                        logger.info(f"已手动补充 {len(missing_tools)} 个缺失的工具")
-                        verification_result["fixed"] = True
-                    except Exception as e:
-                        logger.error(f"手动补充缺失工具失败: {e}")
-                        verification_result["fixed"] = False
             except Exception as e:
                 logger.error(f"验证工具更新结果时出错: {e}")
+                verification_result["error"] = str(e)
 
             # 如果更新了嵌入向量，还需要更新状态文件
             if updated:
@@ -541,12 +233,13 @@ def run_server():
                 "message": "已成功更新MCP工具嵌入向量"
                 if updated
                 else "MCP工具嵌入向量已是最新，无需更新",
-                "tool_count": len(tools_dict),
-                "tools": list(tools_dict.keys()),  # 返回工具名称列表以便于调试
+                "tool_count": len(all_tool_names),
+                "server_count": len(tools_dict),
+                "tools": all_tool_names,  # 返回工具名称列表以便于调试
                 "verification": verification_result,
             }
             logger.info(
-                f"更新结果: {result['message']}, 工具数量: {result['tool_count']}"
+                f"更新结果: {result['message']}, 服务器: {result['server_count']}, 工具: {result['tool_count']}"
             )
             return result
         except Exception as e:
