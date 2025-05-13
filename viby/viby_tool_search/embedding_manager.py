@@ -229,111 +229,45 @@ class EmbeddingManager:
         Returns:
             bool: 是否成功更新了embeddings
         """
-        # 处理标准工具数据格式
-        processed_tools = {}
-        try:
-            # 遍历所有服务名称和工具列表
-            for server_name, tools_list in tools.items():
-                for tool in tools_list:
-                    # 获取工具名称和定义
-                    if hasattr(tool, "name"):
-                        tool_name = tool.name
-                        # 创建工具定义对象
-                        tool_def = {
-                            "description": tool.description
-                            if hasattr(tool, "description")
-                            else "",
-                            "parameters": tool.inputSchema
-                            if hasattr(tool, "inputSchema")
-                            else {},
-                            "server_name": server_name,
-                        }
-                        processed_tools[tool_name] = tool_def
-                    else:
-                        logger.warning(f"跳过没有名称的工具: {tool}")
-            logger.info(f"处理了 {len(processed_tools)} 个工具")
-        except Exception as e:
-            logger.error(f"处理工具数据时出错: {e}")
-            return False
+        # 构建工具定义映射
+        processed_tools = {
+            tool.name: {
+                "description": getattr(tool, "description", ""),
+                "parameters": getattr(tool, "inputSchema", {}),
+                "server_name": server_name,
+            }
+            for server_name, tools_list in tools.items()
+            for tool in tools_list
+            if hasattr(tool, "name")
+        }
+        logger.info(f"准备更新 {len(processed_tools)} 个工具的嵌入")
 
-        # 确保模型已完全加载
+        # 确保嵌入模型加载
         try:
             self._load_model()
-            if self.model is None:
-                logger.error("嵌入模型加载失败，无法继续更新embeddings")
-                return False
         except Exception as e:
             logger.error(f"嵌入模型加载失败: {e}")
             return False
 
-        # 获取需要更新的工具列表
-        logger.info(f"请求更新 {len(processed_tools)} 个工具的embeddings")
-        logger.debug(f"工具列表: {sorted(list(processed_tools.keys()))}")
-
-        tools_to_update = {}
-        for name, definition in processed_tools.items():
-            tool_text = self._get_tool_description_text(name, definition)
-            current_info = {"definition": definition, "text": tool_text}
-            tools_to_update[name] = current_info
-
-        # 清理不存在的工具
-        for name in list(self.tool_embeddings.keys()):
-            if name not in processed_tools:
-                del self.tool_embeddings[name]
-                if name in self.tool_info:
-                    del self.tool_info[name]
-
-        logger.info(f"需要更新 {len(tools_to_update)} 个工具的embeddings")
-
+        # 生成文本和嵌入
+        names, texts = zip(*[
+            (name, self._get_tool_description_text(name, definition))
+            for name, definition in processed_tools.items()
+        ]) if processed_tools else ([], [])
         try:
-            # 批量生成embeddings
-            tools_list = list(tools_to_update.items())
-            name_list = [name for name, _ in tools_list]
-            texts = [info["text"] for _, info in tools_list]
-
-            logger.debug(f"开始生成 {len(texts)} 个工具的嵌入向量")
-            embeddings = self.model.encode(texts, convert_to_numpy=True)
-            logger.debug(f"成功生成 {len(embeddings)} 个嵌入向量")
-
-            # 检查编码是否完整
-            if len(embeddings) != len(texts):
-                logger.warning(
-                    f"警告: 嵌入向量数量({len(embeddings)})与工具数量({len(texts)})不匹配!"
-                )
-
-            # 更新工具embeddings和信息
-            for i, name in enumerate(name_list):
-                if i < len(embeddings):  # 确保索引在范围内
-                    self.tool_embeddings[name] = embeddings[i]
-                    self.tool_info[name] = tools_to_update[name]
-                else:
-                    logger.warning(f"工具 {name} 没有对应的嵌入向量，跳过")
-
-            # 确保所有工具都已更新
-            missing_tools = set(processed_tools.keys()) - set(
-                self.tool_embeddings.keys()
-            )
-            if missing_tools:
-                logger.warning(f"警告: 以下工具未生成嵌入向量: {missing_tools}")
-                # 尝试单独为这些工具生成嵌入向量
-                for name in missing_tools:
-                    try:
-                        if name in tools_to_update:
-                            text = tools_to_update[name]["text"]
-                            single_embedding = self.model.encode(
-                                text, convert_to_numpy=True
-                            )
-                            self.tool_embeddings[name] = single_embedding
-                            self.tool_info[name] = tools_to_update[name]
-                            logger.info(f"已单独为工具 {name} 生成嵌入向量")
-                    except Exception as e:
-                        logger.error(f"为工具 {name} 单独生成嵌入向量失败: {e}")
-
-            self._save_embeddings_to_cache()
-            return True
+            embeddings = self.model.encode(list(texts), convert_to_numpy=True)
         except Exception as e:
             logger.error(f"生成嵌入向量失败: {e}")
             return False
+
+        # 更新embeddings和info，忽略数量不匹配的情况
+        self.tool_embeddings = {n: embeddings[i] for i, n in enumerate(names) if i < len(embeddings)}
+        self.tool_info = {
+            n: {"definition": processed_tools[n], "text": texts[i]}
+            for i, n in enumerate(names) if i < len(embeddings)
+        }
+        self._save_embeddings_to_cache()
+        return True
 
     def search_similar_tools(self, query: str, top_k: int = 5) -> Dict[str, List[Tool]]:
         """
