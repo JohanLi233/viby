@@ -8,7 +8,6 @@ import logging
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-from typing import Dict, List
 
 from viby.locale import get_text
 from viby.config import Config
@@ -19,71 +18,11 @@ from viby.viby_tool_search.client import (
     check_server_status,
     EmbeddingServerStatus,
     is_server_running,
-    update_tools
+    update_tools,
 )
-from viby.viby_tool_search.embedding_manager import EmbeddingManager, Tool
 
 logger = logging.getLogger(__name__)
 console = Console()
-
-def get_mcp_tools_from_cache() -> Dict[str, List]:
-    """
-    获取所有工具信息用于列表显示，优先从缓存中读取
-    
-    直接返回与list_tools()相同格式的按服务器分组的工具列表
-    
-    Returns:
-        Dict[str, List]: 按服务器名称分组的工具列表，格式为 {server_name: [Tool对象, ...], ...}
-    """
-    config = Config()
-    if not config.enable_mcp:
-        print(get_text("TOOLS", "mcp_not_enabled"))
-        return {}
-    
-    # 初始化服务器分组的工具字典
-    server_grouped_tools = {}
-    
-    # 首先尝试从缓存中读取
-    try:
-        # 创建embedding管理器实例以访问缓存
-        manager = EmbeddingManager()
-        
-        # 检查是否有缓存的工具信息
-        if not manager.tool_info:
-            message = get_text("TOOLS", "no_cached_tools") + "\n" + get_text("TOOLS", "suggest_update_embeddings")
-            print(message)
-            return {}
-        
-        # 将工具转换为按服务器名称分组的格式
-        for tool_name, tool_info in manager.tool_info.items():
-            definition = tool_info.get("definition", {})
-            server_name = definition.get("server_name", "unknown")
-            
-            # 创建Tool对象
-            tool = Tool(
-                name=tool_name,
-                description=definition.get("description", ""),
-                inputSchema=definition.get("parameters", {}),
-                annotations=None
-            )
-            
-            # 添加到对应的服务器分组
-            if server_name not in server_grouped_tools:
-                server_grouped_tools[server_name] = []
-                
-            server_grouped_tools[server_name].append(tool)
-        
-        # 如果成功获取工具信息
-        tool_count = sum(len(tools) for tools in server_grouped_tools.values())
-        message = get_text("TOOLS", "tools_loaded_from_cache", "工具信息已从缓存加载") + f" ({tool_count}个)"
-        print(message)
-    except Exception as e:
-        # 如果无法读取缓存，返回错误信息
-        logger.warning(f"从缓存读取工具信息失败: {e}")
-        message = get_text("TOOLS", "cache_read_failed") + "\n" + get_text("TOOLS", "suggest_update_embeddings")
-        print(message)
-    
-    return server_grouped_tools
 
 
 class EmbedServerCommand:
@@ -152,7 +91,7 @@ class EmbedServerCommand:
             tool_count = 0
             for category, tools_list in tools_dict.items():
                 tool_count += len(tools_list)
-                
+
             if tool_count == 0:
                 console.print(
                     f"[bold yellow]{get_text('TOOLS', 'no_tools_found')}[/bold yellow]"
@@ -189,9 +128,13 @@ class EmbedServerCommand:
                     for server_name, tools_list in tools_dict.items():
                         for tool in tools_list:
                             # 从Tool对象获取名称和描述
-                            tool_name = tool.name if hasattr(tool, 'name') else "未知工具"
-                            description = tool.description if hasattr(tool, 'description') else ""
-                            
+                            tool_name = (
+                                tool.name if hasattr(tool, "name") else "未知工具"
+                            )
+                            description = (
+                                tool.description if hasattr(tool, "description") else ""
+                            )
+
                             # 处理callable描述
                             if callable(description):
                                 try:
@@ -200,10 +143,11 @@ class EmbedServerCommand:
                                     description = get_text(
                                         "TOOLS", "description_unavailable"
                                     )
-                            
+
                             table.add_row(
                                 tool_name,
-                                description[:60] + ("..." if len(description) > 60 else ""),
+                                description[:60]
+                                + ("..." if len(description) > 60 else ""),
                             )
 
                     console.print(table)
@@ -230,7 +174,7 @@ class EmbedServerCommand:
             console.print(
                 f"[bold red]{get_text('TOOLS', 'error_updating_embeddings')}: {str(e)}[/bold red]"
             )
-            logger.exception(get_text("TOOLS", 'embeddings_update_failed'))
+            logger.exception(get_text("TOOLS", "embeddings_update_failed"))
             return 1
 
     def start_embed_server(self) -> int:
@@ -376,4 +320,4 @@ class EmbedServerCommand:
                     "嵌入模型服务器状态检查失败",
                 )
             )
-            return 1 
+            return 1

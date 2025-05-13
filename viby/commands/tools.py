@@ -75,7 +75,7 @@ class ToolsCommand:
             try:
                 # 获取工具信息
                 tools_dict = get_mcp_tools_from_cache()
-                
+
                 # 如果没有工具，显示提示并返回成功
                 if not tools_dict:
                     console.print(
@@ -99,8 +99,8 @@ class ToolsCommand:
             for name in sorted(tools_dict.keys()):
                 tool_info = tools_dict[name]
                 # 获取工具的完整定义，适配新的数据结构
-                tool = tool_info.get("definition", tool_info) 
-                
+                tool = tool_info.get("definition", tool_info)
+
                 description = tool.get("description", "")
                 if callable(description):
                     try:

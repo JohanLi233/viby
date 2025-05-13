@@ -14,6 +14,7 @@ from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
+
 # 定义Tool类，与标准格式保持一致
 @dataclass
 class Tool:
@@ -221,7 +222,7 @@ class EmbeddingManager:
     def update_tool_embeddings(self, tools):
         """
         更新工具embeddings
-        
+
         Args:
             tools: 标准格式: Dict[str, List[Tool]] - {server_name: [Tool对象, ...], ...}
 
@@ -235,13 +236,17 @@ class EmbeddingManager:
             for server_name, tools_list in tools.items():
                 for tool in tools_list:
                     # 获取工具名称和定义
-                    if hasattr(tool, 'name'):
+                    if hasattr(tool, "name"):
                         tool_name = tool.name
                         # 创建工具定义对象
                         tool_def = {
-                            "description": tool.description if hasattr(tool, 'description') else "",
-                            "parameters": tool.inputSchema if hasattr(tool, 'inputSchema') else {},
-                            "server_name": server_name
+                            "description": tool.description
+                            if hasattr(tool, "description")
+                            else "",
+                            "parameters": tool.inputSchema
+                            if hasattr(tool, "inputSchema")
+                            else {},
+                            "server_name": server_name,
                         }
                         processed_tools[tool_name] = tool_def
                     else:
@@ -250,7 +255,7 @@ class EmbeddingManager:
         except Exception as e:
             logger.error(f"处理工具数据时出错: {e}")
             return False
-        
+
         # 确保模型已完全加载
         try:
             self._load_model()
@@ -305,7 +310,9 @@ class EmbeddingManager:
                     logger.warning(f"工具 {name} 没有对应的嵌入向量，跳过")
 
             # 确保所有工具都已更新
-            missing_tools = set(processed_tools.keys()) - set(self.tool_embeddings.keys())
+            missing_tools = set(processed_tools.keys()) - set(
+                self.tool_embeddings.keys()
+            )
             if missing_tools:
                 logger.warning(f"警告: 以下工具未生成嵌入向量: {missing_tools}")
                 # 尝试单独为这些工具生成嵌入向量
@@ -359,10 +366,10 @@ class EmbeddingManager:
 
         # 按相似度降序排序
         sorted_tools = sorted(similarities.items(), key=lambda x: x[1], reverse=True)
-        
+
         # 获取top_k个工具并按服务器名称分组
         result_dict = {}
-        
+
         for name, score in sorted_tools[:top_k]:
             # 从缓存的工具信息中获取定义
             if name not in self.tool_info:
@@ -371,21 +378,21 @@ class EmbeddingManager:
 
             tool_info = self.tool_info[name]
             definition = tool_info.get("definition", {})
-            
+
             # 获取服务器名称
             server_name = definition.get("server_name", "unknown")
-            
+
             # 创建Tool对象
             tool = Tool(
                 name=name,
                 description=definition.get("description", ""),
                 inputSchema=definition.get("parameters", {}),
             )
-            
+
             # 将工具添加到对应的服务器分组
             if server_name not in result_dict:
                 result_dict[server_name] = []
-            
+
             result_dict[server_name].append(tool)
 
         return result_dict

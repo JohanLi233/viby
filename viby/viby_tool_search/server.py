@@ -21,7 +21,7 @@ from viby.mcp import list_tools
 from viby.viby_tool_search.common import (
     DEFAULT_PORT,
     get_pid_file_path,
-    get_status_file_path
+    get_status_file_path,
 )
 
 # 配置日志
@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 class SearchRequest(BaseModel):
     query: str
     top_k: int = 5
+
 
 class ShutdownRequest(BaseModel):
     pass
@@ -126,19 +127,19 @@ def run_server():
             # list_tools() 返回格式是 {server_name: [...tools]}
             tools_by_server = list_tools()
             logger.info(f"成功收集了 {len(tools_by_server)} 个MCP服务器的工具")
-            
+
             # 检查返回的数据结构
             for server_name, tools in tools_by_server.items():
                 logger.info(f"服务器 {server_name}: {len(tools)} 个工具")
-            
+
             # 判断是否有工具
             total_tools = sum(len(tools) for tools in tools_by_server.values())
             if total_tools == 0:
                 logger.warning("没有可用的MCP工具或MCP功能未启用")
                 return {"success": False, "message": "没有可用的MCP工具或MCP功能未启用"}
-            
+
             logger.info(f"工具总数: {total_tools}")
-            
+
             # 这里直接将按服务器分组的工具传给embedding_manager
             tools_dict = tools_by_server
 
@@ -198,12 +199,12 @@ def run_server():
                     for tool in tools_list:
                         if isinstance(tool, dict) and "name" in tool:
                             all_tool_names.append(tool["name"])
-                
+
                 # 比较工具数量
                 missing_tools = set(all_tool_names) - set(saved_data.keys())
                 verification_result["verified"] = len(missing_tools) == 0
                 verification_result["missing_tools"] = list(missing_tools)
-                
+
                 # 记录实际保存和期望的工具数量
                 verification_result["saved_count"] = len(saved_data)
                 verification_result["expected_count"] = len(all_tool_names)
@@ -264,4 +265,4 @@ def run_server():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--server":
         # 启动作为独立服务器
-        run_server() 
+        run_server()

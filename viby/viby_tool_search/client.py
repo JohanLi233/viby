@@ -19,10 +19,11 @@ import requests
 from viby.viby_tool_search.common import (
     DEFAULT_PORT,
     get_pid_file_path,
-    get_status_file_path
+    get_status_file_path,
 )
 
 logger = logging.getLogger(__name__)
+
 
 # 服务器状态枚举
 class EmbeddingServerStatus(enum.Enum):
@@ -258,6 +259,7 @@ def search_similar_tools(query: str, top_k: int = 5) -> Dict[str, List]:
         logger.error(f"调用嵌入模型服务失败: {str(e)}", exc_info=True)
         return {}
 
+
 def update_tools() -> bool:
     """
     更新工具嵌入向量
@@ -285,4 +287,4 @@ def update_tools() -> bool:
             return False
     except Exception as e:
         logger.error(f"调用嵌入模型服务失败: {e}")
-        return False 
+        return False
