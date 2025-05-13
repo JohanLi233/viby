@@ -109,6 +109,8 @@ jobs:
     name: Release Approval
     needs: [setup_and_build, details]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     environment:
       name: release-approval
       url: https://github.com/${{ env.OWNER }}/${{ env.PACKAGE_NAME }}/releases
