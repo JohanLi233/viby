@@ -69,6 +69,8 @@ jobs:
   setup_and_build:
     needs: [details, check_pypi]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v2
 
