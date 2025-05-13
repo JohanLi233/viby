@@ -1,5 +1,9 @@
 name: release
 
+permissions:
+  contents: read
+  packages: read
+
 on:
   push:
     tags:
@@ -15,6 +19,8 @@ env:
 jobs:
   details:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       new_version: ${{ steps.release.outputs.new_version }}
       suffix: ${{ steps.release.outputs.suffix }}
@@ -69,6 +75,8 @@ jobs:
   setup_and_build:
     needs: [details, check_pypi]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v2
 
