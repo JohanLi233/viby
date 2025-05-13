@@ -9,22 +9,6 @@ from viby.tools.shell_tool import SHELL_TOOL, execute_shell
 from viby.tools.tool_retrieval import (
     TOOL_RETRIEVAL_TOOL,
     execute_tool_retrieval,
-    search_similar_tools,
-    search_tools,  # 兼容性别名
-    get_mcp_tool_matches,
-    collect_mcp_tools,
-    get_embedding_manager,
-)
-from viby.tools.embedding_utils import ToolEmbeddingManager
-
-# 嵌入服务器相关函数
-from viby.tools.embedding_server import (
-    is_server_running,
-    start_embedding_server,
-    stop_embedding_server,
-    check_server_status,
-    search_tools_remote,
-    EmbeddingServerStatus,
 )
 
 # 注册工具处理函数
@@ -45,18 +29,6 @@ __all__ = [
     "execute_shell",
     "TOOL_RETRIEVAL_TOOL",
     "execute_tool_retrieval",
-    "search_similar_tools",
-    "search_tools",
-    "get_mcp_tool_matches",
-    "collect_mcp_tools",
-    "get_embedding_manager",
-    "ToolEmbeddingManager",
-    "is_server_running",
-    "start_embedding_server",
-    "stop_embedding_server",
-    "check_server_status",
-    "search_tools_remote",
-    "EmbeddingServerStatus",
     "TOOL_EXECUTORS",
     "AVAILABLE_TOOLS",
 ]

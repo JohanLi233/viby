@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ToolEmbeddingManager:
+class EmbeddingManager:
     """工具embedding管理器，负责生成、存储和检索工具的embedding向量"""
 
     def __init__(self, cache_dir: Optional[str] = None):

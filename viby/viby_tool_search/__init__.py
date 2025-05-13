@@ -18,10 +18,9 @@ from viby.viby_tool_search.server import (
     ServerStatusResult,
     ServerOperationResult,
 )
-from viby.viby_tool_search.manager import ToolEmbeddingManager
+from viby.viby_tool_search.embedding_manager import EmbeddingManager
 from viby.viby_tool_search.retrieval import (
     search_similar_tools,
-    get_mcp_tool_matches,
     collect_mcp_tools,
     execute_update_embeddings,
     get_tools_for_listing,

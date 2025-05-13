@@ -20,7 +20,7 @@ from fastapi import FastAPI, BackgroundTasks, HTTPException
 from pydantic import BaseModel
 from datetime import datetime
 
-from viby.viby_tool_search.manager import ToolEmbeddingManager
+from viby.viby_tool_search.embedding_manager import EmbeddingManager
 
 # 配置日志
 logger = logging.getLogger(__name__)
@@ -345,7 +345,7 @@ def run_server():
     logger.info(f"确保工具嵌入目录存在: {tool_embeddings_dir}")
 
     # 创建并预热模型
-    embedding_manager = ToolEmbeddingManager()
+    embedding_manager = EmbeddingManager()
     embedding_manager._load_model()  # 预加载模型
 
     # 确保嵌入文件目录结构完整
