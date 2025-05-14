@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from viby.config.app_config import Config
+from viby.config import config
 from viby.utils.logging import get_logger
 
 # 设置日志记录器
@@ -20,14 +20,14 @@ logger = get_logger()
 class HistoryManager:
     """历史记录管理器，负责记录、存储和检索用户交互历史"""
 
-    def __init__(self, config: Optional[Config] = None):
+    def __init__(self):
         """
         初始化历史管理器
 
         Args:
-            config: 应用配置对象。如果未提供，将创建新的配置对象。
+            config: 应用配置对象。如果未提供，将使用全局单例配置。
         """
-        self.config = config or Config()
+        self.config = config
         self.db_path = self._get_db_path()
         self._init_db()
 

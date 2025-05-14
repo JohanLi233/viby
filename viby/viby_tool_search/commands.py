@@ -10,7 +10,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from viby.locale import get_text
-from viby.config import Config
+from viby.config import config
 from viby.mcp.client import list_tools
 from viby.viby_tool_search.client import (
     start_embedding_server,
@@ -38,7 +38,7 @@ class EmbedServerCommand:
 
     def __init__(self):
         """初始化嵌入服务器命令"""
-        self.config = Config()
+        self.config = config
 
     def execute(self, subcommand: str, args: any) -> int:
         """
@@ -286,11 +286,9 @@ class EmbedServerCommand:
             self._print_panel("downloading_embed_model", "下载嵌入模型")
 
             from sentence_transformers import SentenceTransformer
-            from viby.config import Config
 
             # 获取配置中的模型名称
-            config = Config()
-            embedding_config = config.get_embedding_config()
+            embedding_config = self.config.get_embedding_config()
             model_name = embedding_config.get("model_name", "paraphrase-multilingual-MiniLM-L12-v2")
             # 显示下载进度
             console.print(

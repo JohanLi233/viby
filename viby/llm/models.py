@@ -3,7 +3,7 @@ Model management for viby - handles interactions with LLM providers
 """
 
 from typing import Dict, Any, List
-from viby.config.app_config import Config
+from viby.config import config
 from viby.locale import get_text
 from viby.utils.history import HistoryManager
 from viby.utils.logging import get_logger
@@ -91,8 +91,7 @@ class TokenTracker:
 
 
 class ModelManager:
-    def __init__(self, config: Config, args=None):
-        self.config = config
+    def __init__(self, args=None):
         # 从命令行参数中获取是否使用 think model 和 fast model
         self.use_think_model = args.think if args and hasattr(args, "think") else False
         self.use_fast_model = args.fast if args and hasattr(args, "fast") else False
@@ -110,7 +109,7 @@ class ModelManager:
         # 上一次处理过的用户消息引用，用于检测新输入
         self.last_user_message_ref = None
         # 添加消息压缩管理器
-        self.compaction_manager = CompactionManager(config)
+        self.compaction_manager = CompactionManager()
 
     def get_response(self, messages):
         """
@@ -133,7 +132,7 @@ class ModelManager:
         # get_model_config will correctly select the profile or fall back
         # to the default_model if "fast" or "think" are requested but not
         # properly configured (e.g., name is empty in config.yaml).
-        model_config = self.config.get_model_config(model_type_to_use)
+        model_config = config.get_model_config(model_type_to_use)
 
         # 重置token跟踪器
         if self.track_tokens:

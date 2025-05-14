@@ -13,7 +13,7 @@ import importlib
 import argparse
 
 from viby.cli.arguments import parse_arguments, process_input
-from viby.config.app_config import Config
+from viby.config import config  
 from viby.utils.logging import setup_logging, get_logger
 from viby.locale import init_text_manager
 
@@ -145,9 +145,6 @@ def main() -> int:
         env_warnings = check_environment()
         if env_warnings:
             logger.warning(f"环境检查发现以下警告:\n{env_warnings}")
-
-        # 提前创建 config 以获取默认值
-        config = Config()
 
         # 初始化文本管理器，保证所有命令都能安全使用 get_text
         init_text_manager(config)
@@ -298,8 +295,6 @@ def main() -> int:
             # 懒加载配置向导
             run_config_wizard = lazy_load_wizard()
             run_config_wizard(config)
-            # 配置向导后重新加载配置
-            config = Config()  # 重新加载配置以确保更改生效
             init_text_manager(config)  # 如果语言等配置更改，重新初始化
 
         # 处理输入来源（组合命令行参数和管道输入）
@@ -313,7 +308,7 @@ def main() -> int:
             # 只有在需要时才导入模型管理器
             from viby.llm.models import ModelManager
 
-            model_manager = ModelManager(config, args)
+            model_manager = ModelManager(args)
 
             # 如果是聊天模式 (显式指定 --chat 或默认进入的交互模式)
             if getattr(args, "chat", False):

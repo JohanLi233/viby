@@ -14,6 +14,8 @@ from dataclasses import dataclass
 
 # 导入locale模块提供的get_text函数
 from viby.locale import get_text
+# 导入配置单例
+from viby.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -38,10 +40,7 @@ class EmbeddingManager:
         self.tool_embeddings: Dict[str, np.ndarray] = {}
         self.tool_info: Dict[str, Dict] = {}
 
-        # 从配置中获取设置
-        from viby.config import Config
-
-        config = Config()
+        # 使用全局配置单例
         self.embedding_config = config.get_embedding_config()
 
         # 简化缓存目录逻辑

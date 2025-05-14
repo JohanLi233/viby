@@ -11,7 +11,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 from viby.locale import get_text
-from viby.config import Config
+from viby.config import config
 from viby.viby_tool_search.commands import EmbedServerCommand
 from viby.viby_tool_search.utils import get_mcp_tools_from_cache
 
@@ -30,7 +30,7 @@ class ToolsCommand:
 
     def __init__(self):
         """初始化工具命令"""
-        self.config = Config()
+        self.config = config  # 使用单例config实例
         self.embed_server_command = EmbedServerCommand()
 
     def execute(self, subcommand: str, args: any) -> int:
