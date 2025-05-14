@@ -51,8 +51,10 @@ class ExecuteToolNode(Node):
 
     def post(self, shared, prep_res, exec_res):
         """Process the final result"""
-        tool_name, parameters, selected_server = prep_res
-        shared["messages"].append({"role": "tool", "content": str(exec_res)})
+        tool_name, _, selected_server = prep_res
+        shared["messages"].append(
+            {"role": "tool", "tool_call_id": "0", "content": str(exec_res)}
+        )
 
         # 打印工具执行结果，但跳过shell命令结果（shell结果已经在终端中显示了）
         if not (selected_server == "viby" and tool_name == "execute_shell"):

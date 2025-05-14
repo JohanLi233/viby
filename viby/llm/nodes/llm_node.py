@@ -162,7 +162,17 @@ class LLMNode(Node):
             if not selected_server:
                 print(get_text("MCP", "parsing_error", f"Tool '{tool_name}' not found"))
                 return "continue"
-
+            shared["messages"][-1]["tool_calls"] = [
+                {
+                    "id": "0",
+                    "type": "function",
+                    "function": {
+                        "name": tool_name,
+                        "arguments": json.dumps(arguments)
+                    }
+                }
+            ]
+            
             shared.update(
                 {
                     "tool_name": tool_name,
