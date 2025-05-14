@@ -1,7 +1,7 @@
 from typing import Dict, List
 from viby.viby_tool_search.embedding_manager import EmbeddingManager, Tool
 from viby.locale import get_text
-from viby.config import Config
+from viby.config import config
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,6 @@ def get_mcp_tools_from_cache() -> Dict[str, List]:
     Returns:
         Dict[str, List]: 按服务器名称分组的工具列表，格式为 {server_name: [Tool对象, ...], ...}
     """
-    config = Config()
     if not config.enable_mcp:
         print(get_text("TOOLS", "mcp_not_enabled"))
         return {}

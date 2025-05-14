@@ -14,6 +14,7 @@ from dataclasses import dataclass
 
 # 导入locale模块提供的get_text函数
 from viby.locale import get_text
+
 # 导入配置单例
 from viby.config import config
 
@@ -65,7 +66,9 @@ class EmbeddingManager:
                 from sentence_transformers import SentenceTransformer
 
                 # 从配置中获取模型名称
-                model_name = self.embedding_config.get("model_name", "paraphrase-multilingual-MiniLM-L12-v2")
+                model_name = self.embedding_config.get(
+                    "model_name", "paraphrase-multilingual-MiniLM-L12-v2"
+                )
                 logger.info(
                     f"{get_text('TOOLS', 'loading_embedding_model', '加载sentence-transformer模型')}: {model_name}..."
                 )
@@ -147,7 +150,9 @@ class EmbeddingManager:
             # 保存元数据
             meta = {
                 "last_update": datetime.now().isoformat(),
-                "model_name": self.embedding_config.get("model_name", "paraphrase-multilingual-MiniLM-L12-v2"),
+                "model_name": self.embedding_config.get(
+                    "model_name", "paraphrase-multilingual-MiniLM-L12-v2"
+                ),
                 "tool_count": len(self.tool_embeddings),
                 "tool_names": sorted(list(self.tool_embeddings.keys())),
             }

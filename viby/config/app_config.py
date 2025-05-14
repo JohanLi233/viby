@@ -39,10 +39,11 @@ class AutoCompactConfig:
 
 class Config:
     """viby 应用的配置管理器 (单例模式)"""
-    _instance: ClassVar[Optional['Config']] = None
+
+    _instance: ClassVar[Optional["Config"]] = None
 
     @classmethod
-    def get_instance(cls) -> 'Config':
+    def get_instance(cls) -> "Config":
         """获取Config的单例实例"""
         if cls._instance is None:
             cls._instance = Config()
@@ -56,10 +57,10 @@ class Config:
 
     def __init__(self):
         # 避免重复初始化
-        if hasattr(self, 'initialized'):
+        if hasattr(self, "initialized"):
             return
         self.initialized = True
-        
+
         # 全局设置
         self.api_timeout: int = 300
         self.language: str = "en-US"  # options: en-US, zh-CN

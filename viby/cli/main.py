@@ -13,7 +13,7 @@ import importlib
 import argparse
 
 from viby.cli.arguments import parse_arguments, process_input
-from viby.config import config  
+from viby.config import config
 from viby.utils.logging import setup_logging, get_logger
 from viby.locale import init_text_manager
 

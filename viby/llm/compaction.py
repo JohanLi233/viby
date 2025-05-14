@@ -2,7 +2,7 @@
 消息压缩模块 - 实现智能消息历史压缩功能
 """
 
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple
 import re
 
 # 导入配置单例

@@ -289,7 +289,9 @@ class EmbedServerCommand:
 
             # 获取配置中的模型名称
             embedding_config = self.config.get_embedding_config()
-            model_name = embedding_config.get("model_name", "paraphrase-multilingual-MiniLM-L12-v2")
+            model_name = embedding_config.get(
+                "model_name", "paraphrase-multilingual-MiniLM-L12-v2"
+            )
             # 显示下载进度
             console.print(
                 f"[yellow]{get_text('TOOLS', 'downloading_model', '正在下载嵌入模型')}: {model_name}[/yellow]"
