@@ -127,9 +127,22 @@ yb "What's the weather in San Francisco?"
 # -> [Viby identifies and uses weather tools]
 # -> The current weather in San Francisco is 68°F and partly cloudy...
 
-# Managing tool embeddings from configured MCP servers
-yb tools embed
-# -> Updates tools' semantic embeddings for better tool discovery
+# Embedding Model Management
+# First download the embedding model (required once before using embedding features)
+# Embed model configurable with yb --config
+yb tools embed download
+
+# Start the embedding server (required for tool discovery)
+yb tools embed start
+
+# Check embedding server status
+yb tools embed status
+
+# Update tool embeddings from configured MCP servers
+yb tools embed update
+
+# Stop the embedding server when not needed
+yb tools embed stop
 ```
 
 ### History Management

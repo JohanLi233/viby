@@ -126,9 +126,22 @@ yb "旧金山的天气怎么样？"
 # -> [Viby 识别并使用天气工具]
 # -> 旧金山当前天气是20°C，多云...
 
-# 管理来自已配置MCP服务器的工具嵌入向量
-yb tools embed
-# -> 更新工具的语义嵌入向量以实现更好的工具发现
+# 嵌入模型管理
+# 首先下载嵌入模型（使用嵌入功能前需要执行一次）
+# 嵌入模型可以通过 yb --config 管理
+yb tools embed download
+
+# 启动嵌入服务器（工具发现功能需要）
+yb tools embed start
+
+# 检查嵌入服务器状态
+yb tools embed status
+
+# 更新来自已配置MCP服务器的工具嵌入向量
+yb tools embed update
+
+# 不需要时停止嵌入服务器
+yb tools embed stop
 ```
 
 ### 历史记录管理

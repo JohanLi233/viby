@@ -198,6 +198,15 @@ def start_embedding_server() -> ServerOperationResult:
         wait_count = 0
 
         while wait_count < max_wait_time:
+            # 检查进程是否仍然存在，如果已经退出，则表示启动失败（很可能是模型加载失败）
+            if proc.poll() is not None:
+                return ServerOperationResult(
+                    False,
+                    error=get_text(
+                        "TOOLS", "server_crashed", "嵌入模型服务器启动失败: 请检查嵌入模型是否下载成功"
+                    ),
+                )
+                
             if is_server_running():
                 return ServerOperationResult(True, pid=proc.pid)
             time.sleep(check_interval)

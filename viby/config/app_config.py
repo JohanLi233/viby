@@ -24,8 +24,7 @@ class ModelProfileConfig:
 class EmbeddingModelConfig:
     """嵌入模型配置类"""
 
-    model_name: str = "BAAI/bge-m3"  # 默认嵌入模型
-    cache_dir: Optional[str] = None  # 模型缓存目录
+    model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"  # 默认嵌入模型
     update_frequency: str = "on_change"  # 更新频率: on_change, manual
 
 
@@ -171,12 +170,6 @@ class Config:
                     self.embedding.model_name = embedding_data.get(
                         "model_name", self.embedding.model_name
                     )
-                    self.embedding.cache_dir = embedding_data.get(
-                        "cache_dir", self.embedding.cache_dir
-                    )
-                    self.embedding.update_frequency = embedding_data.get(
-                        "update_frequency", self.embedding.update_frequency
-                    )
 
                 # 加载全局设置
                 self.api_timeout = int(config_data.get("api_timeout", self.api_timeout))
@@ -283,6 +276,4 @@ class Config:
         """获取嵌入模型配置"""
         return {
             "model_name": self.embedding.model_name,
-            "cache_dir": self.embedding.cache_dir,
-            "update_frequency": self.embedding.update_frequency,
         }

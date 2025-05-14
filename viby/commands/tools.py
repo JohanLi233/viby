@@ -25,6 +25,7 @@ class ToolsCommand:
     支持以下子命令:
     - embed - 嵌入向量管理，包含update、start、stop、status子命令
     - list - 列出所有可用的MCP工具
+    - download - 检查并下载嵌入模型
     """
 
     def __init__(self):
@@ -37,7 +38,7 @@ class ToolsCommand:
         执行工具命令
 
         Args:
-            subcommand: 子命令名称（embed, list）
+            subcommand: 子命令名称（embed, list, download）
             args: 命令行参数
 
         Returns:

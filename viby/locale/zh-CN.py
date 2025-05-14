@@ -197,10 +197,12 @@ TOOLS = {
     "embed_start_help": "启动嵌入模型服务",
     "embed_stop_help": "停止嵌入模型服务",
     "embed_status_help": "查看嵌入模型服务状态",
+    "download_help": "下载嵌入模型",
     "embed_server_title": "嵌入模型服务",
     "starting_embed_server": "启动嵌入模型服务器",
     "stopping_embed_server": "停止嵌入模型服务器",
     "checking_embed_server": "检查嵌入模型服务器状态",
+    "downloading_embed_model": "下载嵌入模型",
     "embed_server_already_running": "嵌入模型服务器已经在运行",
     "embed_server_not_running": "嵌入模型服务器未运行",
     "starting_server": "正在启动服务器",
@@ -235,7 +237,16 @@ TOOLS = {
     "tools_loaded_from_cache": "工具信息已从缓存加载",
     "listing_tools": "列出可用工具",
     "tools_list_title": "工具列表",
-    
+    # 模型下载相关
+    "using_default_model": "使用默认嵌入模型",
+    "model_already_downloaded": "模型已下载",
+    "model_not_downloaded": "嵌入模型尚未下载",
+    "download_model_suggestion": "请先使用 \"yb tools embed download\" 命令下载模型，然后再启动服务器",
+    "downloading_model": "正在下载嵌入模型",
+    "downloading": "下载中",
+    "model_download_success": "模型下载成功",
+    "model_download_failed": "模型下载失败",
+    "model_download_error": "下载模型时发生错误",
     # embedding_manager.py 新增
     "loaded_from_cache": "从缓存加载了",
     "tools_embeddings": "个工具的embeddings",
@@ -267,7 +278,6 @@ TOOLS = {
     "query_embedding_failed": "查询嵌入生成失败",
     "tool_not_exist": "工具",
     "not_in_tool_info": "在tool_info中不存在，跳过",
-    
     # server.py 新增
     "query_cannot_be_empty": "查询文本不能为空",
     "search_failed": "搜索失败",
@@ -278,7 +288,6 @@ TOOLS = {
     "update_status_failed": "更新状态文件失败",
     "update_tools_failed": "更新工具失败",
     "server_shutting_down": "服务器正在关闭...",
-    
     # client.py 新增
     "read_status_failed": "读取状态文件失败",
     "days": "天",
@@ -290,6 +299,7 @@ TOOLS = {
     "server_already_running": "嵌入模型服务器已在运行中",
     "server_start_timeout": "启动嵌入模型服务器失败: 服务未响应",
     "server_start_error": "启动服务器失败",
+    "server_crashed": "嵌入模型服务器启动失败: 请检查嵌入模型是否下载成功",
     "server_not_running": "嵌入模型服务器未运行",
     "embedding_server_not_running": "嵌入模型服务未运行，无法搜索工具",
     "sending_search_request": "向嵌入服务器发送搜索请求",
