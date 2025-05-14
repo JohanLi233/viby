@@ -190,14 +190,6 @@ def configure_embedding_model(config):
     model_name = get_input(model_prompt, config.embedding.model_name)
     config.embedding.model_name = model_name
 
-    # 模型缓存目录
-    cache_prompt = get_text("CONFIG_WIZARD", "embedding_cache_dir_prompt")
-    cache_dir = get_input(
-        cache_prompt, config.embedding.cache_dir or "", allow_pass_keyword=True
-    )
-    config.embedding.cache_dir = (
-        None if not cache_dir or cache_dir == PASS_SENTINEL else cache_dir
-    )
     return config
 
 

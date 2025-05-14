@@ -222,17 +222,37 @@ yb "What's 100 USD in Euros?"
 
 ### Managing Tool Embeddings
 
-Viby uses embedding vectors to semantically match your queries with appropriate tools from your configured MCP servers. You can manage these embeddings:
+Viby uses embedding vectors to semantically match your queries with appropriate tools from your configured MCP servers. Before using this feature, you need to set up the embedding server:
 
 ```bash
-# Update tool embeddings (run after adding new tools)
-yb tools embed
+# Step 1: Download the embedding model (required once before using embedding features)
+# Embed model configurable with yb --config
+yb tools embed download
+
+# Step 2: Start the embedding server
+yb tools embed start
+
+# Step 3: Check the server status
+yb tools embed status
+# -> This shows if the server is running, PID, URL, uptime, etc.
+
+# Step 4: Update tool embeddings (run after adding new tools to MCP servers)
+yb tools embed update
 
 # View available tools
 yb tools list
 
-# Get information about a specific tool
-yb tools info tool_name
+# When you're done, you can stop the embedding server to free up resources
+yb tools embed stop
+```
+
+The embedding server process runs in the background and provides fast tool discovery without reloading the model for each query. The process is:
+
+1. Download the embedding model (one-time setup)
+2. Start the server (required for tool discovery)
+3. Update embeddings whenever your tools change
+4. Use Viby normally - it will automatically connect to the running server
+5. Stop the server when needed (optional)
 ```
 
 ### Tool Categories

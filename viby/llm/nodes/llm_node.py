@@ -166,13 +166,10 @@ class LLMNode(Node):
                 {
                     "id": "0",
                     "type": "function",
-                    "function": {
-                        "name": tool_name,
-                        "arguments": json.dumps(arguments)
-                    }
+                    "function": {"name": tool_name, "arguments": json.dumps(arguments)},
                 }
             ]
-            
+
             shared.update(
                 {
                     "tool_name": tool_name,

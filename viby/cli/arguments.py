@@ -232,6 +232,11 @@ def get_parser() -> argparse.ArgumentParser:
         help=get_text("TOOLS", "embed_status_help", "查看嵌入模型服务状态"),
     )
 
+    # 下载嵌入模型子命令
+    embed_subparsers.add_parser(
+        "download", help=get_text("TOOLS", "download_help", "下载嵌入模型")
+    )
+
     # 列出工具子命令
     tools_subparsers.add_parser(
         "list", help=get_text("TOOLS", "list_help", "列出所有可用的MCP工具")

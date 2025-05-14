@@ -19,3 +19,10 @@ def get_pid_file_path() -> Path:
 def get_status_file_path() -> Path:
     """获取状态文件路径"""
     return get_cache_dir() / "status.json"
+
+
+def get_log_file_path() -> Path:
+    """获取日志文件路径"""
+    log_dir = get_cache_dir()
+    log_dir.mkdir(parents=True, exist_ok=True)
+    return log_dir / "embed_server.log"

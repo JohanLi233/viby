@@ -33,6 +33,7 @@ class EmbedServerCommand:
     - stop - 停止嵌入服务器
     - status - 检查嵌入服务器状态
     - update - 更新工具嵌入向量
+    - download - 下载嵌入模型
     """
 
     def __init__(self):
@@ -44,7 +45,7 @@ class EmbedServerCommand:
         执行嵌入服务器命令
 
         Args:
-            subcommand: 子命令名称（start, stop, status, update）
+            subcommand: 子命令名称（start, stop, status, update, download）
             args: 命令行参数
 
         Returns:
@@ -59,6 +60,8 @@ class EmbedServerCommand:
             return self.check_embed_server_status()
         elif subcommand == "update":
             return self.update_embeddings()
+        elif subcommand == "download":
+            return self.download_embedding_model()
         else:
             console.print(
                 f"[bold red]{get_text('COMMANDS', 'unknown_subcommand').format(subcommand)}[/bold red]"
@@ -274,5 +277,38 @@ class EmbedServerCommand:
                     "embed_server_status_check_failed",
                     "嵌入模型服务器状态检查失败",
                 )
+            )
+            return 1
+
+    def download_embedding_model(self) -> int:
+        """下载嵌入模型"""
+        try:
+            self._print_panel("downloading_embed_model", "下载嵌入模型")
+
+            from sentence_transformers import SentenceTransformer
+            from viby.config import Config
+
+            # 获取配置中的模型名称
+            config = Config()
+            embedding_config = config.get_embedding_config()
+            model_name = embedding_config.get("model_name", "paraphrase-multilingual-MiniLM-L12-v2")
+            # 显示下载进度
+            console.print(
+                f"[yellow]{get_text('TOOLS', 'downloading_model', '正在下载嵌入模型')}: {model_name}[/yellow]"
+            )
+
+            SentenceTransformer(model_name)
+
+            console.print(
+                f"[green]{get_text('TOOLS', 'model_download_success', '模型下载成功')}: {model_name}[/green]"
+            )
+            return 0
+
+        except Exception as e:
+            console.print(
+                f"[bold red]{get_text('TOOLS', 'model_download_failed', '模型下载失败')}: {str(e)}[/bold red]"
+            )
+            logger.exception(
+                get_text("TOOLS", "model_download_error", "下载模型时发生错误")
             )
             return 1

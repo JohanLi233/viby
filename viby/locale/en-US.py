@@ -196,10 +196,12 @@ TOOLS = {
     "embed_start_help": "Start the embedding model service",
     "embed_stop_help": "Stop the embedding model service",
     "embed_status_help": "Check the status of the embedding model service",
+    "download_help": "Download embedding model",
     "embed_server_title": "Embedding Model Service",
     "starting_embed_server": "Starting embedding model server",
     "stopping_embed_server": "Stopping embedding model server",
     "checking_embed_server": "Checking embedding model server status",
+    "downloading_embed_model": "Downloading embedding model",
     "embed_server_already_running": "Embedding model server is already running",
     "embed_server_not_running": "Embedding model server is not running",
     "starting_server": "Starting server",
@@ -226,7 +228,23 @@ TOOLS = {
     "no_cached_tools": "No cached tool information found",
     "suggest_update_embeddings": "Please use 'yb tools embed' command first to update tool embeddings",
     "fallback_collect_tools": "Cannot read from cache, falling back to direct tool collection",
-    
+    "successfully_collected": "Successfully collected tool data",
+    "fallback_to_cached": "Cannot directly collect tools, trying to read from cache",
+    "cache_read_failed": "Failed to read tool information from cache",
+    "total_tools": "Total tools",
+    "tools_loaded_from_cache": "Tool information loaded from cache",
+    "listing_tools": "Listing available tools",
+    "tools_list_title": "Tools List",
+    # Model download related
+    "using_default_model": "Using default embedding model",
+    "model_already_downloaded": "Model already downloaded",
+    "model_not_downloaded": "Embedding model not downloaded yet",
+    "download_model_suggestion": "Please use \"yb tools embed download\" command to download the model first, then start the server",
+    "downloading_model": "Downloading embedding model",
+    "downloading": "Downloading",
+    "model_download_success": "Model download successful",
+    "model_download_failed": "Model download failed",
+    "model_download_error": "Error downloading model",
     # New additions for embedding_manager.py
     "loaded_from_cache": "Loaded from cache",
     "tools_embeddings": "tool embeddings",
@@ -258,7 +276,6 @@ TOOLS = {
     "query_embedding_failed": "Query embedding generation failed",
     "tool_not_exist": "Tool",
     "not_in_tool_info": "does not exist in tool_info, skipping",
-    
     # New additions for server.py
     "query_cannot_be_empty": "Query text cannot be empty",
     "search_failed": "Search failed",
@@ -269,7 +286,6 @@ TOOLS = {
     "update_status_failed": "Failed to update status file",
     "update_tools_failed": "Failed to update tools",
     "server_shutting_down": "Server is shutting down...",
-    
     # New additions for client.py
     "read_status_failed": "Failed to read status file",
     "days": "days",
@@ -281,8 +297,9 @@ TOOLS = {
     "server_already_running": "Embedding model server is already running",
     "server_start_timeout": "Failed to start embedding model server: service not responding",
     "server_start_error": "Error starting server",
+    "server_crashed": "Failed to start embedding model server: Server process exi",
     "server_not_running": "Embedding model server is not running",
-    "embedding_server_not_running": "Embedding model server is not running, cannot search for tools",
+    "embedding_server_not_running": "Embedding model server is not running, check if the model is downloaded",
     "sending_search_request": "Sending search request to embedding server",
     "search_success": "Search successful, found",
     "related_tools": "related tools",
@@ -292,9 +309,6 @@ TOOLS = {
     "connect_server_failed": "Failed to connect to embedding server",
     "call_server_failed": "Failed to call embedding model service",
     "embedding_server_not_running_cannot_update": "Embedding model server is not running, cannot update tools",
-    
-    # New additions for utils.py
-    "cache_read_failed": "Failed to read tool information from cache",
 }
 
 # History command related

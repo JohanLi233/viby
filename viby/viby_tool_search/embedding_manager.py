@@ -61,24 +61,17 @@ class EmbeddingManager:
         self._load_cached_embeddings()
 
     def _load_model(self):
-        """
-        延迟加载sentence-transformer模型
-
-        Returns:
-            bool: 是否成功加载模型
-        """
         if self.model is None:
             try:
                 from sentence_transformers import SentenceTransformer
 
                 # 从配置中获取模型名称
-                model_name = self.embedding_config.get("model_name", "BAAI/bge-m3")
+                model_name = self.embedding_config.get("model_name", "paraphrase-multilingual-MiniLM-L12-v2")
                 logger.info(
                     f"{get_text('TOOLS', 'loading_embedding_model', '加载sentence-transformer模型')}: {model_name}..."
                 )
 
-                # 添加超时处理，避免模型下载过久阻塞程序
-                self.model = SentenceTransformer(model_name, trust_remote_code=True)
+                self.model = SentenceTransformer(model_name, local_files_only=True)
 
                 # 检查模型是否加载成功
                 if self.model:
@@ -155,7 +148,7 @@ class EmbeddingManager:
             # 保存元数据
             meta = {
                 "last_update": datetime.now().isoformat(),
-                "model_name": self.embedding_config.get("model_name", "BAAI/bge-m3"),
+                "model_name": self.embedding_config.get("model_name", "paraphrase-multilingual-MiniLM-L12-v2"),
                 "tool_count": len(self.tool_embeddings),
                 "tool_names": sorted(list(self.tool_embeddings.keys())),
             }
@@ -375,6 +368,7 @@ class EmbeddingManager:
             if server_name not in result_dict:
                 result_dict[server_name] = []
 
+            logger.info(f"相似度: {score}")
             result_dict[server_name].append(tool)
 
         return result_dict
