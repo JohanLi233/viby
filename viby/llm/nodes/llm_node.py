@@ -17,11 +17,11 @@ class LLMNode(Node):
         # 创建中断事件和监听线程
         interrupt_event = threading.Event()
         listener_thread = self._create_interrupt_listener(interrupt_event)
-        
+
         # 运行监听线程
         if listener_thread:
             listener_thread.start()
-            
+
         # 返回模型调用所需的所有参数
         return {
             "model_manager": shared.get("model_manager"),
@@ -33,6 +33,7 @@ class LLMNode(Node):
 
     def _create_interrupt_listener(self, event):
         """创建监听中断的线程"""
+
         def _listen_for_interrupt(event):
             try:
                 # 根据平台和环境选择合适的监听方式
@@ -73,7 +74,7 @@ class LLMNode(Node):
             except Exception:
                 # 捕获所有异常，确保线程不会崩溃
                 pass
-                
+
         return threading.Thread(
             target=_listen_for_interrupt, args=(event,), daemon=True
         )
@@ -83,10 +84,10 @@ class LLMNode(Node):
         manager = prep_res.get("model_manager")
         messages = prep_res.get("messages")
         interrupt_event = prep_res.get("interrupt_event")
-        
+
         if not manager or not messages:
             return {"text_content": "", "was_interrupted": False}
-            
+
         # 收集文本块和中断状态
         chunks = []
         was_interrupted = False
@@ -110,7 +111,7 @@ class LLMNode(Node):
             "listener_thread": prep_res.get("listener_thread"),
             "was_interrupted": was_interrupted,
         }
-        
+
     def exec_fallback(self, prep_res, exc):
         """错误处理：提供友好的错误信息"""
         return {
@@ -142,7 +143,7 @@ class LLMNode(Node):
         if was_interrupted:
             return "interrupt"
         return "continue"
-        
+
     def _cleanup_listener(self, listener_thread, interrupt_event):
         """清理监听线程"""
         if listener_thread and listener_thread.is_alive():
@@ -184,7 +185,7 @@ class LLMNode(Node):
             if not selected_server:
                 print(get_text("MCP", "parsing_error", f"Tool '{tool_name}' not found"))
                 return "continue"
-                
+
             # 更新消息中的工具调用信息
             shared["messages"][-1]["tool_calls"] = [
                 {

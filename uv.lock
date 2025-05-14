@@ -1780,7 +1780,7 @@ wheels = [
 
 [[package]]
 name = "viby"
-version = "0.2.0"
+version = "0.2.2"
 source = { virtual = "." }
 dependencies = [
     { name = "fastapi" },
@@ -1795,6 +1795,7 @@ dependencies = [
     { name = "requests" },
     { name = "rich" },
     { name = "sentence-transformers" },
+    { name = "typer" },
 ]
 
 [package.optional-dependencies]
@@ -1831,6 +1832,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.3" },
     { name = "rich", specifier = ">=14.0.0" },
     { name = "sentence-transformers", specifier = ">=4.1.0" },
+    { name = "typer", specifier = ">=0.15.3" },
 ]
 provides-extras = ["dev", "test"]
 

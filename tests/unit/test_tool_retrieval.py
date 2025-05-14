@@ -184,7 +184,9 @@ class TestToolRetrieval(unittest.TestCase):
     @patch("viby.viby_tool_search.client.requests")
     @patch("viby.viby_tool_search.client.logger")
     @patch("viby.viby_tool_search.client.get_text")
-    def test_search_tools(self, mock_get_text, mock_logger, mock_requests, mock_is_running):
+    def test_search_tools(
+        self, mock_get_text, mock_logger, mock_requests, mock_is_running
+    ):
         # 让模拟get_text返回第三个参数或空字符串
         mock_get_text.side_effect = lambda group, key, *args: args[0] if args else ""
         """测试search_similar_tools函数"""

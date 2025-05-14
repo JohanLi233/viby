@@ -252,7 +252,6 @@ def parse_arguments() -> argparse.Namespace:
         解析后的参数命名空间，额外属性 prompt_args 为剩余位置参数
     """
     parser = get_parser()
-    import sys
 
     raw = sys.argv[1:]
     # 如果调用 history、shortcuts 或 tools 等子命令，使用 parse_args 来支持子命令解析

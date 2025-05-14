@@ -17,15 +17,15 @@ class ExecuteToolNode(Node):
         tool_name = shared.get("tool_name", "")
         parameters = shared.get("parameters", {})
         selected_server = shared.get("selected_server", "")
-        
+
         # 验证必要的参数是否存在
         if not tool_name or not selected_server:
             return None
-            
+
         return {
             "tool_name": tool_name,
             "parameters": parameters,
-            "selected_server": selected_server
+            "selected_server": selected_server,
         }
 
     def exec(self, tool_info):
@@ -33,7 +33,7 @@ class ExecuteToolNode(Node):
         # 如果准备阶段返回None，表示参数缺失
         if tool_info is None:
             return {"status": "error", "message": get_text("MCP", "missing_params")}
-            
+
         tool_name = tool_info["tool_name"]
         parameters = tool_info["parameters"]
         selected_server = tool_info["selected_server"]
@@ -57,12 +57,12 @@ class ExecuteToolNode(Node):
         except Exception as e:
             print(get_text("MCP", "execution_error", e))
             return {"status": "error", "message": get_text("MCP", "error_message", e)}
-            
+
     def _execute_viby_tool(self, tool_name, parameters):
         """执行viby内置工具"""
         # 获取所有viby工具名称
         viby_tool_names = [tool_def["name"] for tool_def in AVAILABLE_TOOLS.values()]
-        
+
         # 检查是否是viby工具
         if tool_name in viby_tool_names:
             if tool_name in TOOL_EXECUTORS:
@@ -71,9 +71,9 @@ class ExecuteToolNode(Node):
                 return executor(parameters)
             else:
                 raise ValueError(f"未实现的Viby工具: {tool_name}")
-        
+
         raise ValueError(f"未知的Viby工具: {tool_name}")
-        
+
     def exec_fallback(self, tool_info, exc):
         """处理工具执行过程中的错误"""
         error_message = str(exc)
@@ -89,10 +89,10 @@ class ExecuteToolNode(Node):
             )
             print_markdown(str(exec_res))
             return "call_llm"
-        
+
         tool_name = prep_res["tool_name"]
         selected_server = prep_res["selected_server"]
-        
+
         # 将工具执行结果添加到消息历史
         shared["messages"].append(
             {"role": "tool", "tool_call_id": "0", "content": str(exec_res)}

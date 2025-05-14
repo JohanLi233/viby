@@ -33,21 +33,21 @@ class ChatInputNode(Node):
             "commands": self.COMMANDS,
             "style": self._create_style(),
         }
-        
+
         # 确保历史文件目录存在
         config["history_path"].parent.mkdir(parents=True, exist_ok=True)
-        
+
         # 创建历史记录对象
         config["history"] = FileHistory(str(config["history_path"]))
-        
+
         # 创建命令自动完成器
         config["command_completer"] = WordCompleter(
             list(config["commands"].keys()), ignore_case=True
         )
-        
+
         # 创建键绑定
         config["key_bindings"] = KeyBindings()
-        
+
         return config
 
     @staticmethod
@@ -60,7 +60,7 @@ class ChatInputNode(Node):
             else Path.home() / ".config"
         )
         return base_dir / "viby" / "history"
-        
+
     @staticmethod
     def _create_style() -> Style:
         """创建输入界面的样式"""
@@ -107,7 +107,7 @@ class ChatInputNode(Node):
 
             # 不是内部命令，返回用户输入
             return {"action": "input", "content": user_input}
-            
+
     def exec_fallback(self, config, exc):
         """处理获取输入时发生的错误"""
         print(f"Error getting input: {str(exc)}")

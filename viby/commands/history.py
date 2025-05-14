@@ -15,7 +15,6 @@ from rich.progress import Progress
 from viby.utils.history import HistoryManager
 from viby.utils.renderer import print_markdown
 from viby.locale import get_text
-from viby.config.app_config import Config
 
 
 class HistoryCommand:
@@ -31,8 +30,7 @@ class HistoryCommand:
 
     def __init__(self):
         """初始化历史命令"""
-        self.config = Config()
-        self.history_manager = HistoryManager(self.config)
+        self.history_manager = HistoryManager()
         self.console = Console()
 
     def execute(self, subcommand: str, args: Any) -> int:
