@@ -6,7 +6,7 @@ from viby.llm.nodes.dummy_node import DummyNode
 from pocketflow import Flow
 
 
-class AskCommand:
+class Vibe:
     """单次提问命令，用于向 AI 发送单个问题并获取回答"""
 
     def __init__(self, model_manager: ModelManager):
@@ -24,7 +24,7 @@ class AskCommand:
         self.execute_tool_node - "completed" >> DummyNode()
         self.flow = Flow(start=self.prompt_node)
 
-    def run(self, user_input: str) -> int:
+    def vibe(self, user_input: str) -> int:
         # 准备共享状态
         shared = {
             "model_manager": self.model_manager,

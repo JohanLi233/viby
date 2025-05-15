@@ -265,27 +265,11 @@ class TestHistoryCommand:
         with patch("viby.commands.history.Progress") as mock_progress:
             mock_progress_instance = MagicMock()
             mock_progress.return_value.__enter__.return_value = mock_progress_instance
-            result = history_command.clear_history("all", False)
+            result = history_command.clear_history()
 
         # 验证调用和返回值
         mock_confirm.assert_called_once()
-        mock_history_manager.clear_history.assert_called_once_with("all")
-        assert result == 0
-
-    def test_clear_history_force(self, history_command, mock_history_manager):
-        """测试clear_history方法（强制）"""
-        # 设置mock返回值
-        mock_history_manager.clear_history.return_value = True
-
-        # 调用被测试方法
-        with patch("viby.commands.history.Progress") as mock_progress:
-            mock_progress_instance = MagicMock()
-            mock_progress.return_value.__enter__.return_value = mock_progress_instance
-            with patch("viby.commands.history.print_markdown"):
-                result = history_command.clear_history("all", True)
-
-        # 验证调用和返回值（不应该请求确认）
-        mock_history_manager.clear_history.assert_called_once_with("all")
+        mock_history_manager.clear_history.assert_called_once_with()
         assert result == 0
 
     @patch("viby.commands.history.Table")
@@ -395,13 +379,11 @@ def test_cli_export(mock_typer, mock_history_command):
 
     # 调用cli_export函数
     with pytest.raises(Exception):
-        cli_export("output.json", "json", "interactions")
+        cli_export("output.json")
 
     # 验证函数调用
     mock_history_command.assert_called_once()
-    mock_command_instance.export_history.assert_called_once_with(
-        "output.json", "json", "interactions"
-    )
+    mock_command_instance.export_history.assert_called_once_with("output.json")
     mock_exit.assert_called_once_with(code=0)
 
 
@@ -423,11 +405,11 @@ def test_cli_clear(mock_typer, mock_history_command):
 
     # 调用cli_clear函数
     with pytest.raises(Exception):
-        cli_clear("all", True)
+        cli_clear()
 
     # 验证函数调用
     mock_history_command.assert_called_once()
-    mock_command_instance.clear_history.assert_called_once_with("all", True)
+    mock_command_instance.clear_history.assert_called_once_with()
     mock_exit.assert_called_once_with(code=0)
 
 

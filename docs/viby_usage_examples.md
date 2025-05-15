@@ -1,534 +1,246 @@
-# Viby - Detailed Usage Examples
+# Viby Usage Examples
 
-<div align="center">
-  <img src="https://raw.githubusercontent.com/JohanLi233/viby/main/assets/viby-icon.png" alt="Viby Logo" width="120" height="120">
-</div>
+This document provides detailed usage examples for Viby to help you make the most of its capabilities.
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Installation](#installation)
-- [Basic Questions](#basic-questions)
-- [Interactive Chat Mode](#interactive-chat-mode)
-- [Processing Piped Content](#processing-piped-content)
-- [Shell Command Generation](#shell-command-generation)
-- [Model Selection](#model-selection)
-- [Shell Command Magic Integration](#shell-command-magic-integration)
-- [Smart Tool Discovery](#smart-tool-discovery)
-- [Using MCP Tools](#using-mcp-tools)
-- [History Management](#history-management)
-- [Keyboard Shortcuts](#keyboard-shortcuts)
-- [Configuration](#configuration)
-- [Additional Tips and Tricks](#additional-tips-and-tricks)
+- [Viby Usage Examples](#viby-usage-examples)
+  - [Table of Contents](#table-of-contents)
+  - [Basic Usage](#basic-usage)
+  - [Interactive Chat Mode](#interactive-chat-mode)
+  - [Pipe Input](#pipe-input)
+  - [Shell Command Generation](#shell-command-generation)
+  - [History Management](#history-management)
+  - [MCP Tool Integration](#mcp-tool-integration)
+    - [Configuring MCP Servers](#configuring-mcp-servers)
+  - [Embeddings and Tool Discovery](#embeddings-and-tool-discovery)
+  - [Keyboard Shortcuts](#keyboard-shortcuts)
+  - [Language Switching](#language-switching)
+  - [Multi-Model Support](#multi-model-support)
+  - [Configuration](#configuration)
 
-## Introduction
+## Basic Usage
 
-Viby is a powerful CLI tool that integrates large language models directly into your terminal. With its versatile features, Viby can assist with coding, answer questions, generate shell commands, and much more - all without leaving your terminal.
+The simplest way to use Viby is to directly ask questions:
 
-This document provides detailed usage examples to help you get the most out of Viby.
-
-## Installation
-
-### Standard Installation
-
-The easiest way to install Viby is through PyPI:
-
-```bash
-pip install viby
+```sh
+yb "Write a binary search algorithm in Python"
 ```
 
-### Development Installation
+You can also use the explicit `vibe` command:
 
-If you want to install from source or contribute to Viby:
+```sh
+# Basic Q&A
+yb vibe "Write a binary search algorithm in Python"
 
-```bash
-# Clone the repository
-git clone https://github.com/JohanLi233/viby.git
-cd viby
-
-# Install with uv (recommended)
-uv pip install -e .
-
-# Or with traditional pip
-pip install -e .
-```
-
-## Basic Questions
-
-The simplest way to use Viby is to ask it direct questions using the `yb` command:
-
-```bash
-yb "What is the Fibonacci sequence?"
-```
-
-Viby will respond with a concise explanation of the Fibonacci sequence.
-
-For code examples:
-
-```bash
-yb "Write a quicksort implementation in Python"
-```
-
-It will provide a clean, commented implementation of the quicksort algorithm in Python.
-
-You can also use Viby for translations:
-
-```bash
-yb "Translate 'Hello, how are you?' to Spanish"
+# Direct run as default command - with explicit "vibe" command
+yb vibe Recommend some Python learning resources
 ```
 
 ## Interactive Chat Mode
 
-For multi-turn conversations, use the chat mode with the `-c` or `--chat` flag:
+Interactive mode allows you to have multi-turn continuous conversations, with all context from the session preserved:
 
-```bash
-yb -c
-# or
+```sh
+# Start interactive chat
 yb --chat
-```
+# or
+yb -c
 
-This opens an interactive session where you can have a back-and-forth conversation:
+|> Introduce machine learning
+# -> [AI explains machine learning]
 
-```
-Welcome to Viby chat mode, type 'exit' to end conversation
-|> What is quantum computing?
-[AI explanation about quantum computing]
-
-|> What are some practical applications?
-[AI responds with applications of quantum computing]
-
-|> How does quantum entanglement work?
-[AI explains quantum entanglement]
+|> What's the difference between supervised and unsupervised learning?
+# -> [AI explains differences, utilizing previous context]
 
 |> exit
+# or use Ctrl+D to exit chat mode
 ```
 
-Exiting chat mode can be done by typing `exit`, `/exit`, or `/quit`.
+## Pipe Input
 
-## Processing Piped Content
+Viby can receive input data from pipes:
 
-Viby can process content from other commands through pipes, making it extremely versatile for integrating into your workflow:
+```sh
+# Analyze git diff
+git diff | yb vibe "What are the main changes in this code?"
 
-### Analyzing Git Diffs
+# Read file content and analyze
+cat complex_code.py | yb vibe "Simplify this code"
 
-```bash
-git diff | yb "Generate a concise commit message"
+# Analyze command output
+ls -la | yb vibe "Which files were modified recently?"
+
+# Use redirect input
+yb vibe "Summarize this article" < article.txt
 ```
-
-This passes the git diff output to Viby, which analyzes the changes and suggests an appropriate commit message.
-
-### Summarizing Files
-
-```bash
-cat README.md | yb "Summarize this document"
-# or
-yb "Summarize this document" < README.md
-```
-
-Both commands achieve the same result: Viby reads the content of README.md and produces a summary.
-
-### Analyzing Command Outputs
-
-```bash
-ls -la | yb "Which files are the largest in this directory?"
-```
-
-Viby receives the directory listing and identifies the largest files.
-
-### Processing Multiple Commands
-
-```bash
-(find . -name "*.js" | wc -l && find . -name "*.py" | wc -l) | yb "Compare the number of JavaScript and Python files"
-```
-
-This combines multiple command outputs for Viby to analyze together.
 
 ## Shell Command Generation
 
-Viby is particularly helpful for generating shell commands based on natural language descriptions:
+Viby can automatically analyze your question and generate appropriate Shell commands:
 
-```bash
-yb "Find all Python files modified in the last 3 days"
-# -> find . -name "*.py" -mtime -3
-# -> [r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run):
+```sh
+# Find large files
+yb vibe "Find the 5 largest files on my system"
+# -> find / -type f -exec du -h {} \; | sort -rh | head -n 5
+# -> [r]un, [e]dit, cop[y], [c]hat, [q]uit (default: run): 
+
+# Generate and directly execute command
+yb vibe "Compress all log files in the current directory"
+# -> tar -czvf logs.tar.gz *.log
+# -> Press Enter to execute, or choose other options
 ```
 
-When Viby generates a shell command, it gives you several options:
-- `r` (or Enter): Run the command immediately
-- `e`: Edit the command before running it
-- `y`: Copy the command to clipboard without running it
-- `c`: Enter chat mode to refine the command
-- `q`: Quit without executing
+You can also use Shell command magic to pass current environment information to Viby:
 
-### YOLO Mode
+```sh
+# Analyze current directory contents
+yb vibe "$(ls -la) Explain what these files are for"
 
-If you frequently execute generated commands, you can enable YOLO mode in the configuration. With YOLO mode enabled, Viby will automatically execute "safe" shell commands without prompting (potentially dangerous commands will still require confirmation):
+# Combine multiple command outputs
+yb vibe "$(ps aux | grep python) $(free -h) Which Python processes are using the most memory?"
 
-```bash
-# With YOLO mode enabled
-yb "List all markdown files"
-# -> [Automatically executes] find . -name "*.md"
+# Analyze Git repository status
+yb vibe "$(git status) $(git log --oneline -5) What should I do next?"
 ```
 
-To enable YOLO mode, run the configuration wizard and select "Yes" when prompted about YOLO mode:
+## History Management
 
-```bash
+Viby provides complete history management functionality:
+
+```sh
+# List recent interaction history (default 10)
+yb history list
+
+# List more history records
+yb history list --limit 20
+
+# Search history by filter criteria
+yb history search "Python"
+
+# Export history to a file
+yb history export history.json
+
+# Export history for a specific time range
+yb history export --from "2024-01-01" --to "2024-01-31" jan_history.json
+
+# View Shell commands generated and executed through Viby
+yb history shell
+
+# Clear all history (will prompt for confirmation)
+yb history clear
+```
+
+## MCP Tool Integration
+
+Viby integrates with MCP (Model Context Protocol) to use various powerful tools:
+
+```sh
+# Automatic tool usage
+yb vibe "What's the weather like in Paris right now?"
+# -> [AI uses weather tool, returns real-time weather information]
+
+# Using TaviyAI search tool
+yb vibe "Recent research advances in quantum computing"
+# -> [AI uses Tavily search tool to get latest information]
+```
+
+### Configuring MCP Servers
+
+```sh
+# Enable MCP tools in interactive configuration
 yb --config
+# Select MCP settings section and enable
 ```
 
-## Model Selection
+## Embeddings and Tool Discovery
 
-Viby supports different model profiles for different types of queries:
+Viby uses embedding models for semantic search of tools, enabling intelligent tool discovery:
 
-### Think Model
-
-For complex analysis or deeper reasoning, use the `--think` or `-t` flag:
-
-```bash
-yb --think "Analyze the advantages and disadvantages of microservices architecture"
-```
-
-The think model typically uses a more capable model with higher tokens and temperature settings optimized for thoughtful analysis.
-
-### Fast Model
-
-For quick, simple queries where speed matters more than depth, use the `--fast` or `-f` flag:
-
-```bash
-yb --fast "Convert 42°C to Fahrenheit"
-```
-
-The fast model uses a smaller, quicker model with settings optimized for speed.
-
-## Smart Tool Discovery
-
-Viby includes an intelligent tool discovery system that automatically finds and uses the most relevant tools within your configured MCP servers to answer your queries:
-
-### Automatic Tool Selection
-
-```bash
-# Weather information
-yb "What's the weather like in Tokyo today?"
-# -> [Viby automatically identifies this as a weather query and uses appropriate tools]
-
-# Unit conversion
-yb "Convert 5 kilometers to miles"
-# -> [Viby uses conversion tools without you needing to specify]
-
-# Currency conversion
-yb "What's 100 USD in Euros?"
-# -> [Viby uses currency conversion tools]
-```
-
-### Managing Tool Embeddings
-
-Viby uses embedding vectors to semantically match your queries with appropriate tools from your configured MCP servers. Before using this feature, you need to set up the embedding server:
-
-```bash
-# Step 1: Download the embedding model (required once before using embedding features)
-# Embed model configurable with yb --config
+```sh
+# Download embedding model (needed before first use)
 yb tools embed download
 
-# Step 2: Start the embedding server
+# Start embedding server (needed for tool discovery)
 yb tools embed start
 
-# Step 3: Check the server status
+# Check embedding server status
 yb tools embed status
-# -> This shows if the server is running, PID, URL, uptime, etc.
 
-# Step 4: Update tool embeddings (run after adding new tools to MCP servers)
+# Update tool embeddings
 yb tools embed update
 
-# View available tools
+# List available tools
 yb tools list
 
-# When you're done, you can stop the embedding server to free up resources
+# Use specific tool (no embedding server needed)
+yb tools use weather "Weather in Beijing"
+
+# Stop embedding server
 yb tools embed stop
-```
-
-The embedding server process runs in the background and provides fast tool discovery without reloading the model for each query. The process is:
-
-1. Download the embedding model (one-time setup)
-2. Start the server (required for tool discovery)
-3. Update embeddings whenever your tools change
-4. Use Viby normally - it will automatically connect to the running server
-5. Stop the server when needed (optional)
-```
-
-### Tool Categories
-
-Viby organizes tools into different categories for better discovery:
-
-- **Information Retrieval**: Weather, news, search, etc.
-- **Computation**: Math, currency conversion, unit conversion
-- **System**: File operations, network tasks
-- **Development**: Code generation, debugging, analysis
-- **Utility**: Time, date, random generators
-
-The tool discovery system automatically improves over time as it learns from your usage patterns.
-
-## Shell Command Magic Integration
-
-Viby can integrate directly with command outputs using the `$()` syntax in your prompt:
-
-### Analyzing Current Directory
-
-```bash
-yb "$(ls -la) What files in this directory might be taking up the most space?"
-```
-
-This executes `ls -la` first and includes its output as part of the context for Viby.
-
-### Working with Git
-
-```bash
-yb "$(git status) What should I do next with these changes?"
-```
-
-Viby gets the current git status and provides advice on how to proceed.
-
-### Debugging Code
-
-```bash
-yb "$(cat main.py) What's wrong with this code?"
-```
-
-Viby analyzes the content of main.py and suggests fixes for any issues.
-
-### Multiple Commands
-
-You can combine multiple commands:
-
-```bash
-yb "$(ps aux | grep python) $(free -h) Why is my system running slowly?"
-```
-
-This provides both process and memory information to help Viby diagnose performance issues.
-
-## Using MCP Tools
-
-Model Context Protocol (MCP) tools allow Viby to access external capabilities:
-
-### Getting Current Time
-
-```bash
-yb "What time is it now?"
-```
-
-Viby will use the time tool to get and display the current time.
-
-### Checking Weather
-
-```bash
-yb "What's the weather like in New York?"
-```
-
-With appropriate MCP tools configured, Viby can fetch real-time weather information.
-
-### Web Search
-
-If configured with search tools:
-
-```bash
-yb "What were the major tech news yesterday?"
-```
-
-### Tool Call Visibility
-
-When Viby uses an MCP tool, it shows the tool call information:
-
-```
-Executing Tool Call
-{
-  "tool": "time_now",
-  "server": "time",
-  "parameters": {}
-}
-
-Tool Call Result
-"2023-05-03T00:49:57+08:00"
 ```
 
 ## Keyboard Shortcuts
 
-Viby provides a convenient keyboard shortcut (Ctrl+Q) that transforms your current command line into a Viby query:
+Viby provides convenient keyboard shortcut integration:
 
-### Installing Shortcuts
-
-```bash
+```sh
+# Install keyboard shortcuts
 yb shortcuts
+
+# After installation, type something in the command line and press Ctrl+Q
+git log  # press Ctrl+Q
+# -> becomes: yb vibe git log
+# -> [AI parses and explains the Git log]
+
+# You can also type a question and use the shortcut
+Analyze system memory usage  # press Ctrl+Q
+# -> becomes: yb vibe Analyze system memory usage
 ```
 
-This automatically detects your shell type (bash, zsh, or fish) and adds the appropriate configuration to your shell config file.
+Supported shells: Bash, Zsh, and Fish
 
-### Using Shortcuts
+## Language Switching
 
-After installation and reloading your shell:
+Viby supports multiple interface languages:
 
-1. Type a command or description in your terminal:
-   ```
-   find all python files containing the word "import requests"
-   ```
+```sh
+# Switch language in configuration
+yb --config
+# Then select language settings section
+```
 
-2. Press Ctrl+Q, and it transforms into:
-   ```
-   yb find all python files containing the word "import requests"
-   ```
+## Multi-Model Support
 
-3. Viby processes the request and may respond with:
-   ```
-   grep -r "import requests" --include="*.py" .
-   ```
+Viby supports using different models to handle different types of queries:
+
+```sh
+# Use thinking model for deep analysis
+yb --think vibe "Analyze the time complexity of this algorithm and possible optimization directions"
+
+# Use fast model for simple answers
+yb --fast vibe "Translate 'Hello, World!' to Chinese"
+
+# Set default model in configuration
+yb --config
+# Select model settings section
+```
 
 ## Configuration
 
-Viby can be configured through an interactive wizard:
+Set up Viby through the interactive configuration wizard:
 
-```bash
+```sh
+# Launch configuration wizard
 yb --config
 ```
 
-This wizard will guide you through setting up:
+The configuration wizard allows you to set:
+- API keys and endpoints
+- Default and fallback models
+- Model parameters (temperature, max tokens, etc.)
+- MCP tool integration options
+- Interface language
+- Embedding model settings
 
-1. Interface language (English or Chinese)
-2. Default model settings (name, API endpoint, API key)
-3. Think model settings (optional)
-4. Fast model settings (optional)
-5. MCP tools enablement
-6. YOLO mode for shell commands
-
-### Configuration Location
-
-Viby stores its configuration in:
-- `~/.config/viby/config.yaml` (Linux/macOS)
-- `%APPDATA%\viby\config.yaml` (Windows)
-
-### Language Setting
-
-You can temporarily switch the interface language:
-
-```bash
-yb --language en-US "Your query here"
-# or
-yb --language zh-CN "Your query here"
-```
-
-### Token Usage Tracking
-
-To see token usage for your queries:
-
-```bash
-yb --tokens "Explain quantum computing"
-```
-
-This will show input tokens, output tokens, total tokens, and response time after the response.
-
-## History Management
-
-Viby keeps track of your interactions and can show, search, export, or clear your history:
-
-### Viewing History
-
-```bash
-# List recent interactions
-yb history list
-
-# List with custom limit
-yb history list --limit 20
-```
-
-### Searching History
-
-```bash
-# Search for specific terms
-yb history search "python"
-```
-
-### Exporting History
-
-```bash
-# Export to JSON (default)
-yb history export ~/viby_history.json
-
-# Export to CSV
-yb history export ~/viby_history.csv --format csv
-
-# Export shell commands only
-yb history export ~/shell_history.json --type shell
-```
-
-### Clearing History
-
-```bash
-# Clear all history (with confirmation)
-yb history clear
-
-# Clear only shell commands
-yb history clear --type shell
-
-# Force clear without confirmation
-yb history clear --force
-```
-
-### Viewing Shell Command History
-
-```bash
-# View recent shell commands
-yb history shell
-```
-
-## Additional Tips and Tricks
-
-### Combining Features
-
-You can combine multiple Viby features:
-
-```bash
-# Use the think model with token tracking
-yb --think --tokens "Analyze the complexity of merge sort vs quicksort"
-
-# Process piped content with the fast model
-cat large_log.txt | yb --fast "Summarize this log file"
-```
-
-### Environment Variables
-
-Viby respects the following environment variables:
-- `VIBY_DEBUG`: Enable detailed logging for troubleshooting
-- `VIBY_DEV_MODE`: Enable development mode
-
-### One-liners for Common Tasks
-
-```bash
-# Generate a random password
-yb "Generate a secure random password with 16 characters"
-
-# Explain a command
-yb "What does 'find . -type f -name \"*.py\" | xargs grep \"import\"' do?"
-
-# Help with regex
-yb "Write a regex to match valid email addresses"
-
-# Code review
-cat my_file.py | yb "Review this code and suggest improvements"
-```
-
-### Using with Version Control
-
-```bash
-# Explain changes in a commit
-git show | yb "Explain what changes were made in this commit"
-
-# Generate release notes
-git log --pretty=format:"%h %s" v1.0..HEAD | yb "Generate release notes from these commits"
-```
-
----
-
-This document covers the main features and usage examples for Viby. For more specific use cases or questions, you can always ask Viby itself:
-
-```bash
-yb "How can I use you to [specific task]?"
-```
-
-For updates and more information, visit the [Viby GitHub repository](https://github.com/JohanLi233/viby). 
+Configuration is saved in `~/.config/viby/config.yaml`, while MCP server configuration is stored in `~/.config/viby/mcp_servers.json`. 

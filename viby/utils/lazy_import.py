@@ -8,12 +8,10 @@
 import importlib
 import sys
 import types
-from typing import Any, Callable, Set, TypeVar, cast, List
+from typing import Any, Callable, Set, cast, List
 
 # 跟踪已加载的延迟模块，用于调试和监控
 _LOADED_LAZY_MODULES: Set[str] = set()
-
-T = TypeVar("T")
 
 
 def lazy_import(module_name: str) -> types.ModuleType:

@@ -83,11 +83,11 @@ def test_invalid_command():
 
 @with_stdin_mocked
 @pytest.mark.skipif(os.environ.get("SKIP_API_TESTS"), reason="需要API密钥的测试被跳过")
-def test_basic_ask_command():
-    """测试基本的ask命令"""
-    with mock.patch("sys.argv", ["viby", "ask", "什么是Python?"]):
-        # 模拟AskCommand.run
-        with mock.patch("viby.commands.ask.AskCommand.run") as mock_run:
+def test_basic_vibe_command():
+    """测试基本的vibe命令"""
+    with mock.patch("sys.argv", ["viby", "vibe", "什么是Python?"]):
+        # 模拟Vibe.vibe
+        with mock.patch("viby.commands.vibe.Vibe.vibe") as mock_run:
             mock_run.return_value = 0
 
             # 运行
@@ -118,9 +118,9 @@ def test_full_cli_workflow():
                     assert "0.2.2" in mock_stdout.getvalue()
 
     # 模拟简单查询
-    with mock.patch("sys.argv", ["viby", "ask", "你好，Viby！"]):
+    with mock.patch("sys.argv", ["viby", "vibe", "你好，Viby！"]):
         with mock.patch("sys.stdin.isatty", return_value=True):
-            with mock.patch("viby.commands.ask.AskCommand.run") as mock_run:
+            with mock.patch("viby.commands.vibe.Vibe.vibe") as mock_run:
                 mock_run.return_value = 0
                 exit_code = main()
                 assert exit_code == 0

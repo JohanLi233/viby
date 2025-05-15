@@ -168,41 +168,30 @@ class HistoryCommand:
             print_markdown(get_text("HISTORY", "export_failed"), "error")
             return 1
 
-    def clear_history(self, history_type: str = "all", force: bool = False) -> int:
+    def clear_history(self) -> int:
         """
         清除历史记录
-
-        Args:
-            history_type: 要清除的历史类型（all, interactions, shell）
-            force: 是否强制清除，不提示确认
 
         Returns:
             命令退出码
         """
-        if not force:
-            confirmation = get_text("HISTORY", "confirm_clear_all")
-            if history_type == "interactions":
-                confirmation = get_text("HISTORY", "confirm_clear_interactions")
-            elif history_type == "shell":
-                confirmation = get_text("HISTORY", "confirm_clear_shell")
-
-            if not Confirm.ask(confirmation):
-                print_markdown(get_text("HISTORY", "clear_cancelled"), "")
-                return 0
+        # 确认清除
+        confirmation = get_text("HISTORY", "confirm_clear_all")
+        if not Confirm.ask(confirmation):
+            print_markdown(get_text("HISTORY", "clear_cancelled"), "")
+            return 0
 
         # 显示清除进度
         with Progress() as progress:
             task = progress.add_task(get_text("HISTORY", "clearing_history"), total=1)
 
             # 清除历史记录
-            success = self.history_manager.clear_history(history_type)
+            success = self.history_manager.clear_history()
 
             progress.update(task, completed=1)
 
         if success:
-            print_markdown(
-                get_text("HISTORY", "clear_successful").format(history_type), "success"
-            )
+            print_markdown(get_text("HISTORY", "clear_successful"), "success")
             return 0
         else:
             print_markdown(get_text("HISTORY", "clear_failed"), "error")
@@ -293,29 +282,20 @@ def cli_search(
 @app.command("export")
 def cli_export(
     file: str = typer.Argument(..., help=get_text("HISTORY", "file_help")),
-    format_type: str = typer.Option(
-        "json", "--format", "-f", help=get_text("HISTORY", "format_help")
-    ),
-    history_type: str = typer.Option(
-        "interactions", "--type", "-t", help=get_text("HISTORY", "type_help")
-    ),
 ):
     """导出历史记录到文件。"""
-    code = HistoryCommand().export_history(file, format_type, history_type)
+    code = HistoryCommand().export_history(file)
     raise typer.Exit(code=code)
 
 
 @app.command("clear")
 def cli_clear(
-    history_type: str = typer.Option(
-        "all", "--type", "-t", help=get_text("HISTORY", "clear_type_help")
-    ),
     force: bool = typer.Option(
         False, "--force", "-f", help=get_text("HISTORY", "force_help")
     ),
 ):
     """清除历史记录。"""
-    code = HistoryCommand().clear_history(history_type, force)
+    code = HistoryCommand().clear_history()
     raise typer.Exit(code=code)
 
 

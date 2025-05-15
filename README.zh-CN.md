@@ -30,8 +30,8 @@ Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解
 - **管道集成** - 处理来自其他命令的数据（例如，`git diff | viby "写一个提交消息"`）
 - **MCP 工具** - 通过模型上下文协议集成扩展能力
 - **智能工具发现** - 自动在配置的MCP服务器中查找并使用最相关的工具来回答您的查询
-- **历史记录管理** - 查看、搜索和导出您的交互历史
-- **Shell 命令历史** - 通过 Viby 直接访问您的 shell 命令历史
+- **增强的历史记录管理** - 完整的交互历史，支持查询、搜索、导出和管理
+- **多模型支持** - 配置和使用不同模型执行各种任务
 - **多语言支持** - 支持英文和中文界面，可轻松切换语言
 
 ![Viby 终端演示](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png)
@@ -57,8 +57,15 @@ uv pip install -e .
 ### 基本问题
 
 ```sh
-yb "用 Python 写一个快速排序"
+yb vibe "用 Python 写一个快速排序"
 # -> 当然！以下是用 **Python** 实现的快速排序算法：
+```
+
+### 简化命令
+
+```sh
+yb "用 Python 写一个快速排序"
+# -> 同上
 ```
 
 ### 交互式对话模式
@@ -77,19 +84,19 @@ yb -c
 ### 处理管道内容
 
 ```sh
-git diff | yb "生成一个提交消息"
+git diff | yb vibe "生成一个提交消息"
 # -> 添加了 README 的相关信息
 ```
 
 ```sh
-yb "这个项目是关于什么的？" < README.md
+yb vibe "这个项目是关于什么的？" < README.md
 # -> 这个项目是关于...
 ```
 
 ### 生成 Shell 命令
 
 ```sh
-yb "我写了多少行 Python 代码？"
+yb vibe "我写了多少行 Python 代码？"
 # -> find . -type f -name "*.py" | xargs wc -l
 # -> [r]运行, [e]编辑, [y]复制, [c]对话, [q]放弃 (默认: 运行): 
 ```
@@ -98,37 +105,36 @@ yb "我写了多少行 Python 代码？"
 
 ```sh
 # 使用思考模型进行复杂分析
-yb --think "分析这个复杂算法并提出优化建议"
+yb --think vibe "分析这个复杂算法并提出优化建议"
 
 # 使用快速模型获取快速响应
-yb --fast "将'Hello, World!'翻译成中文"
+yb --fast vibe "将'Hello, World!'翻译成中文"
 ```
 
 ### Shell命令魔法集成
 
 ```sh
 # 列出目录内容
-yb "$(ls) 当前目录下都有哪些文件？"
+yb vibe "$(ls) 当前目录下都有哪些文件？"
 # -> 当前目录下的文件和文件夹包括：文件1.txt, 文件2.py, 目录1/...
 
 # 分析Git状态
-yb "$(git status) 我应该先提交哪些文件？"
+yb vibe "$(git status) 我应该先提交哪些文件？"
 
 # 查看代码文件
-yb "$(cat main.py) 如何改进这段代码？"
+yb vibe "$(cat main.py) 如何改进这段代码？"
 ```
 
 ### 智能工具发现
 
 ```sh
 # Viby 会自动发现并使用相关工具
-yb "旧金山的天气怎么样？"
+yb vibe "旧金山的天气怎么样？"
 # -> [Viby 识别并使用天气工具]
 # -> 旧金山当前天气是20°C，多云...
 
 # 嵌入模型管理
 # 首先下载嵌入模型（使用嵌入功能前需要执行一次）
-# 嵌入模型可以通过 yb --config 管理
 yb tools embed download
 
 # 启动嵌入服务器（工具发现功能需要）
@@ -139,6 +145,9 @@ yb tools embed status
 
 # 更新来自已配置MCP服务器的工具嵌入向量
 yb tools embed update
+
+# 列出可用工具
+yb tools list
 
 # 不需要时停止嵌入服务器
 yb tools embed stop
@@ -156,14 +165,17 @@ yb history search "python"
 # 导出交互历史
 yb history export history.json
 
-# 查看命令历史
+# 查看Shell命令历史
 yb history shell
+
+# 清除历史记录（需确认）
+yb history clear
 ```
 
 ### 自动使用 MCP 工具
 
 ```sh
-yb "现在几点了？"
+yb vibe "现在几点了？"
 # -> [AI 使用时间工具获取当前时间]
 # -> "datetime": "2025-05-03T00:49:57+08:00"
 ```
@@ -177,9 +189,9 @@ Viby 提供了一个便捷的键盘快捷键（Ctrl+Q），让你可以快速将
 yb shortcuts
 
 # 安装后，输入任何命令并按下 Ctrl+Q
-帮我阅读分析readme文件  # 现在按 Ctrl+Q
-# -> 这会转变为: yb 帮我阅读分析readme文件
-# -> [AI 阅读readme文件并总结]
+帮我分析readme文件  # 现在按 Ctrl+Q
+# -> 这会转变为: yb vibe 帮我分析readme文件
+# -> [AI 分析readme文件并提供反馈]
 ```
 
 支持的 shell：
@@ -189,20 +201,25 @@ yb shortcuts
 
 安装快捷键后，你需要重新加载 shell 配置（`source ~/.bashrc`、`source ~/.zshrc` 或类似命令）或重启终端才能使快捷键生效。
 
-更多详细示例和高级用法，请参阅[使用示例](./docs/viby_使用示例.md)文档。
-## 配置
+## 命令结构
 
-Viby 从 `~/.config/viby/config.yaml` 读取配置。你可以在这里设置模型、参数和 MCP 选项。
+Viby 使用简单的命令结构：
 
-## 安装
-
-```sh
-pip install viby
 ```
-### 或从源码安装
-```sh
-uv pip install -e .
+yb [选项] [命令] [参数]...
 ```
+
+主要命令：
+- `yb [prompt]` - 提问
+- `yb vibe "你的问题"` - 提问（默认命令）
+- `yb --chat` 或 `yb -c` - 启动交互式聊天模式
+- `yb --think vibe "复杂问题"` - 使用思考模型进行深入分析
+- `yb --fast vibe "简单问题"` - 使用快速模型获取快速响应
+- `yb history` - 管理交互历史记录
+- `yb tools` - 管理工具相关命令
+- `yb shortcuts` - 安装键盘快捷键
+
+使用 `yb --help` 查看所有可用的命令和选项。
 
 ## 配置
 
@@ -222,6 +239,7 @@ yb --config
 - 温度和token设置
 - MCP工具启用选项
 - 界面语言
+- 嵌入模型设置
 
 ### MCP服务器配置
 

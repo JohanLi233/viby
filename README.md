@@ -31,7 +31,8 @@ Viby is a powerful AI agent that lives in your terminal, designed to solve virtu
 - **Pipeline Integration** - Process data from other commands (e.g., `git diff | viby "write a commit message"`)
 - **MCP Tools** - Extended capabilities through Model Context Protocol integration
 - **Smart Tool Discovery** - Automatically finds and uses the most relevant tools within configured MCP servers
-- **History Management** - Complete interaction history with search, export, and management
+- **Enhanced History Management** - Complete interaction history with search, export, and management
+- **Multiple Model Support** - Configure and use different models for various tasks
 - **Command Embeddings** - Semantic search in tools using embedded vectors for accurate tool selection
 - **Multi-language Support** - Full interface in English and Chinese with easy language switching
 
@@ -58,8 +59,15 @@ uv pip install -e .
 ### Basic Question
 
 ```sh
-yb "Write a quicksort in python"
+yb vibe "Write a quicksort in python"
 # -> Sure! Here is a quicksort algorithm implemented in **Python**:
+```
+
+### Simplified Command
+
+```sh
+yb "Write a quicksort in python"
+# -> Same result as above
 ```
 
 ### Interactive Chat Mode
@@ -78,19 +86,19 @@ yb -c
 ### Process Piped Content
 
 ```sh
-git diff | yb "Generate a commit message"
+git diff | yb vibe "Generate a commit message"
 # -> Added information to the README
 ```
 
 ```sh
-yb "What is this project about?" < README.md
+yb vibe "What is this project about?" < README.md
 # -> This project is about...
 ```
 
 ### Generate Shell Command
 
 ```sh
-yb "How many lines of python code did I write?"
+yb vibe "How many lines of python code did I write?"
 # -> find . -type f -name "*.py" | xargs wc -l
 # -> [r]run, [e]edit, [y]copy, [c]chat, [q]quit (default: run): 
 ```
@@ -99,31 +107,31 @@ yb "How many lines of python code did I write?"
 
 ```sh
 # Use think model for complex analysis
-yb --think "Analyze this complex algorithm and suggest optimizations"
+yb --think vibe "Analyze this complex algorithm and suggest optimizations"
 
 # Use fast model for quick responses
-yb --fast "Translate 'Hello, World!' to French"
+yb --fast vibe "Translate 'Hello, World!' to French"
 ```
 
 ### Shell Command Magic Integration
 
 ```sh
 # List directory contents
-yb "$(ls) What files are in the current directory?"
+yb vibe "$(ls) What files are in the current directory?"
 # -> The current directory contains: file1.txt, file2.py, directory1/...
 
 # Analyze Git status
-yb "$(git status) Which files should I commit first?"
+yb vibe "$(git status) Which files should I commit first?"
 
 # View code files
-yb "$(cat main.py) How can I improve this code?"
+yb vibe "$(cat main.py) How can I improve this code?"
 ```
 
 ### Smart Tool Discovery
 
 ```sh
 # Viby will automatically discover and use relevant tools
-yb "What's the weather in San Francisco?"
+yb vibe "What's the weather in San Francisco?"
 # -> [Viby identifies and uses weather tools]
 # -> The current weather in San Francisco is 68°F and partly cloudy...
 
@@ -141,6 +149,9 @@ yb tools embed status
 # Update tool embeddings from configured MCP servers
 yb tools embed update
 
+# List available tools (udpate before listing)
+yb tools list
+
 # Stop the embedding server when not needed
 yb tools embed stop
 ```
@@ -157,14 +168,17 @@ yb history search "python"
 # Export your interaction history
 yb history export history.json
 
-# View command history
+# View shell command history
 yb history shell
+
+# Clear history (with confirmation)
+yb history clear
 ```
 
 ### Automatically Use MCP Tools When Needed
 
 ```sh
-yb "What time is it now?"
+yb vibe "What time is it now?"
 # -> [AI uses time tool to get current time]
 # -> "datetime": "2025-05-03T00:49:57+08:00"
 ```
@@ -178,8 +192,8 @@ Viby provides a convenient keyboard shortcut (Ctrl+Q) that allows you to quickly
 yb shortcuts
 
 # After installation, type any command and press Ctrl+Q
-help me analysis my readme file  # Now press Ctrl+Q
-# -> This transforms into: yb help me analysis my readme file
+help me analyze my readme file  # Now press Ctrl+Q
+# -> This transforms into: yb vibe help me analyze my readme file
 # -> [AI analyzes and responds to question]
 ```
 
@@ -191,7 +205,25 @@ Supported shells:
 
 After installing shortcuts, you'll need to reload your shell configuration (`source ~/.bashrc`, `source ~/.zshrc`, or equivalent) or restart your terminal for the shortcuts to take effect.
 
-For more detailed examples and advanced usage, see the [Usage Examples](./docs/viby_usage_examples.md) documentation.
+## Command Structure
+
+Viby uses a simple command structure:
+
+```
+yb [OPTIONS] [COMMAND] [ARGS]...
+```
+
+Main commands:
+- `yb [prompt]` - Ask a question (alias for `yb vibe "your question"`; **recommended**)
+- `yb vibe "your question"` - Ask a question (default command for questions)
+- `yb --chat` or `yb -c` - Start interactive chat mode
+- `yb --think vibe "complex question"` - Use the think model for deeper analysis
+- `yb --fast vibe "simple question"` - Use the fast model for quick responses
+- `yb history` - Manage interaction history
+- `yb tools` - Manage tool-related commands
+- `yb shortcuts` - Install keyboard shortcuts
+
+Use `yb --help` to see all available commands and options.
 
 ## Configuration
 
@@ -212,6 +244,7 @@ This allows you to configure:
 - Temperature and token settings
 - MCP tools enablement
 - Interface language
+- Embedding model settings
 
 ### MCP Server Configuration
 

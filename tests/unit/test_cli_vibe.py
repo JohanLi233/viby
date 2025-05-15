@@ -214,38 +214,38 @@ def test_main_config_mode(mock_init_text, mock_config, mock_lazy_load, cli_runne
 @patch("viby.cli.app.process_input")
 @patch("viby.cli.app.load_model_manager")
 @patch("viby.cli.app.get_command_class")
-def test_ask_command(
+def test_vibe_command(
     mock_get_command, mock_load_manager, mock_process_input, cli_runner
 ):
-    """测试ask命令"""
+    """测试vibe命令"""
     # 模拟有输入
     mock_process_input.return_value = ("测试问题", True)
-    mock_ask_command = MagicMock()
-    mock_ask_class = MagicMock(return_value=mock_ask_command)
-    mock_get_command.return_value = mock_ask_class
+    mock_vibe_command = MagicMock()
+    mock_vibe_class = MagicMock(return_value=mock_vibe_command)
+    mock_get_command.return_value = mock_vibe_class
 
-    result = cli_runner.invoke(app, ["ask", "测试问题"])
+    result = cli_runner.invoke(app, ["vibe", "测试问题"])
 
-    mock_get_command.assert_called_once_with("ask")
-    mock_ask_class.assert_called_once()
-    mock_ask_command.run.assert_called_once_with("测试问题")
+    mock_get_command.assert_called_once_with("vibe")
+    mock_vibe_class.assert_called_once()
+    mock_vibe_command.vibe.assert_called_once_with("测试问题")
 
     # 模拟无输入，终端环境
     mock_process_input.return_value = ("", False)
     mock_get_command.reset_mock()
-    mock_ask_class.reset_mock()
-    mock_ask_command.run.reset_mock()
+    mock_vibe_class.reset_mock()
+    mock_vibe_command.vibe.reset_mock()
 
     # 直接测试无输入情况
     with patch("sys.stdout.isatty", return_value=True):
         with patch("viby.cli.app.typer"):
-            result = cli_runner.invoke(app, ["ask"])
+            result = cli_runner.invoke(app, ["vibe"])
             # typer.echo函数可能不是通过装饰器调用的，所以我们检查返回结果
             assert "content" not in result.stdout
 
     # 模拟无输入，非终端环境（管道环境）
     with patch("sys.stdout.isatty", return_value=False):
-        result = cli_runner.invoke(app, ["ask"])
+        result = cli_runner.invoke(app, ["vibe"])
         assert result.exit_code == 0
         mock_get_command.assert_not_called()
 
@@ -372,11 +372,11 @@ def test_history_clear_command(mock_get_command, cli_runner):
     mock_history_class = MagicMock(return_value=mock_history_command)
     mock_get_command.return_value = mock_history_class
 
-    cli_runner.invoke(app, ["history", "clear", "--type", "all", "--force"])
+    cli_runner.invoke(app, ["history", "clear"])
 
     mock_get_command.assert_called_once_with("history")
     mock_history_class.assert_called_once()
-    mock_history_command.clear_history.assert_called_once_with("all", True)
+    mock_history_command.clear_history.assert_called_once_with()
 
 
 @patch("viby.cli.app.get_command_class")

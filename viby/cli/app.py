@@ -1,27 +1,59 @@
 """
-viby命令行界面 - 使用Typer框架重构
+viby 命令行界面 - 使用 Typer 框架重构
+默认行为：如果用户没有显式写出一级子命令，则自动当作 `vibe` 处理。
 """
 
 import importlib
 import sys
 from typing import Dict, List, Type, Any
-
 import typer
 from rich.console import Console
-
-# 导入viby模块
 from viby.locale import get_text, init_text_manager
 from viby.config import config
 from viby.utils.logging import setup_logging
 from viby.utils.keyboard_shortcuts import install_shortcuts, detect_shell
 
-# 在使用get_text之前初始化文本管理器
+
+# ---------------------------------------------------------
+# 1) 预处理 argv：把默认未指定的情况映射到 vibe ---------
+# ---------------------------------------------------------
+def _inject_default_subcommand() -> None:
+    """
+    如果用户输入形如 `yb <something>`，而 <something> 既不是选项也不是
+    已知一级子命令，则在 argv 中自动插入 'vibe'，变成
+    `yb vibe <something>`。这样用户可以直接 `yb 提示词 ...`。
+    """
+    # 没有任何额外参数 → 不处理（让 Typer 去显示帮助等）
+    if len(sys.argv) <= 1:
+        return
+
+    # 已知的一级子命令名称
+    _known_root_cmds = {
+        "vibe",
+        "chat",
+        "history",
+        "tools",
+        "embed",
+        "shortcuts",
+    }
+
+    # 扫描 argv[1:]，找到第一个既不是 -option 也不是一级子命令的 token
+    for idx, arg in enumerate(sys.argv[1:], start=1):
+        # 1. 以 - 开头的是全局 / 子命令选项，跳过
+        if arg.startswith("-"):
+            continue
+        # 2. 如果本身就是已知一级子命令，则无需插入，直接返回
+        if arg in _known_root_cmds:
+            return
+        # 3. 既不是选项也不是子命令 → 把 vibe 插进去
+        sys.argv.insert(idx, "vibe")
+        return
+
+_inject_default_subcommand()
 init_text_manager(config)
 
-
-# 新增: 统一创建Typer实例的工厂函数和默认回调
 def create_typer(help_text, add_completion: bool = True):
-    """创建定制的Typer实例，统一配置帮助选项等"""
+    """创建定制的 Typer 实例，统一配置帮助选项等"""
     return typer.Typer(
         help=help_text,
         add_help_option=False,
@@ -47,14 +79,14 @@ def default_callback(
         raise typer.Exit()
 
 
-# 创建Typer实例
-app = create_typer(get_text("GENERAL", "app_description"), add_completion=True)
+# 创建 Typer 实例
+app = create_typer(get_text("GENERAL", "app_description"))
 
 # 创建子命令组
 history_app = create_typer(get_text("HISTORY", "command_help"))
 tools_app = create_typer(get_text("TOOLS", "command_help", "管理工具相关命令"))
 embed_app = create_typer(
-    get_text("TOOLS", "update_embeddings_help", "更新MCP工具的嵌入向量")
+    get_text("TOOLS", "update_embeddings_help", "更新 MCP 工具的嵌入向量")
 )
 
 # 添加子命令组到主应用
@@ -75,7 +107,7 @@ logger = setup_logging(log_to_file=True)
 
 # 命令注册表
 command_registry: Dict[str, Dict] = {
-    "ask": {"module": "viby.commands.ask", "class": "AskCommand"},
+    "vibe": {"module": "viby.commands.vibe", "class": "Vibe"},
     "chat": {"module": "viby.commands.chat", "class": "ChatCommand"},
     "history": {"module": "viby.commands.history", "class": "HistoryCommand"},
     "shortcuts": {"module": "viby.commands.shortcuts", "class": "ShortcutsCommand"},
@@ -120,7 +152,7 @@ def get_command_class(command_name: str) -> Type:
     按需导入并获取命令类，减少启动时的导入开销
 
     Args:
-        command_name: 命令名称，如 'shell', 'ask', 'chat'
+        command_name: 命令名称，如 'shell', 'vibe', 'chat'
 
     Returns:
         命令类
@@ -248,8 +280,8 @@ def main(
 
 # 通用命令
 @app.command(help=get_text("GENERAL", "prompt_help"))
-def ask(ctx: typer.Context, prompt_args: List[str] = typer.Argument(None)):
-    """向AI发送单个问题并获取回答。"""
+def vibe(ctx: typer.Context, prompt_args: List[str] = typer.Argument(None)):
+    """向 AI 发送单个问题并获取回答。"""
     user_input, has_input = process_input(prompt_args)
 
     if not has_input:
@@ -261,21 +293,20 @@ def ask(ctx: typer.Context, prompt_args: List[str] = typer.Argument(None)):
     # 懒加载模型管理器
     model_manager = load_model_manager(ctx.obj)
 
-    # 创建AskCommand实例
-    AskCommand = get_command_class("ask")
-    ask_command = AskCommand(model_manager)
+    Vibe = get_command_class("vibe")
+    vibe = Vibe(model_manager)
 
     # 执行命令
-    return ask_command.run(user_input)
+    return vibe.vibe(user_input)
 
 
 @app.command(help=get_text("GENERAL", "chat_help"))
 def chat(ctx: typer.Context):
-    """启动交互式聊天模式与AI进行多轮对话。"""
+    """启动交互式聊天模式与 AI 进行多轮对话。"""
     # 懒加载模型管理器
     model_manager = load_model_manager(ctx.obj)
 
-    # 创建ChatCommand实例
+    # 创建 ChatCommand 实例
     ChatCommand = get_command_class("chat")
     chat_command = ChatCommand(model_manager)
 
@@ -286,7 +317,7 @@ def chat(ctx: typer.Context):
 @app.command(help=get_text("SHORTCUTS", "command_help"))
 def shortcuts():
     """安装和管理键盘快捷键。"""
-    # 检测shell类型
+    # 检测 shell 类型
     detected_shell = detect_shell()
     if detected_shell:
         typer.echo(f"{get_text('SHORTCUTS', 'auto_detect_shell')}: {detected_shell}")
@@ -319,7 +350,7 @@ def shortcuts():
         typer.echo(f"\n{get_text('SHORTCUTS', 'activation_note')}")
 
 
-# History命令组
+# History 命令组
 @history_app.command("list")
 def history_list(
     limit: int = typer.Option(
@@ -359,17 +390,10 @@ def history_export(
 
 
 @history_app.command("clear")
-def history_clear(
-    history_type: str = typer.Option(
-        "all", "--type", "-t", help=get_text("HISTORY", "clear_type_help")
-    ),
-    force: bool = typer.Option(
-        False, "--force", "-f", help=get_text("HISTORY", "force_help")
-    ),
-):
+def history_clear():
     """清除历史记录。"""
     HistoryCommand = get_command_class("history")
-    return HistoryCommand().clear_history(history_type, force)
+    return HistoryCommand().clear_history()
 
 
 @history_app.command("shell")
@@ -378,23 +402,23 @@ def history_shell(
         10, "--limit", "-n", help=get_text("HISTORY", "limit_help")
     ),
 ):
-    """列出shell命令历史。"""
+    """列出 shell 命令历史。"""
     HistoryCommand = get_command_class("history")
     return HistoryCommand().list_shell_history(limit)
 
 
-# Tools命令组
+# Tools 命令组
 @tools_app.command("list")
 def tools_list():
-    """列出所有可用的MCP工具。"""
+    """列出所有可用的 MCP 工具。"""
     ToolsCommand = get_command_class("tools")
     return ToolsCommand().list_tools()
 
 
-# Embed子命令组
+# Embed 子命令组
 @embed_app.command("update")
 def embed_update():
-    """更新MCP工具的嵌入向量。"""
+    """更新 MCP 工具的嵌入向量。"""
     EmbedServerCommand = get_command_class("embed")
     return EmbedServerCommand().update_embeddings()
 
