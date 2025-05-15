@@ -75,7 +75,7 @@ def test_invalid_command():
                     pass
                 except Exception as e:
                     print(f"捕获到异常: {e}")
-                
+
                 # 检查输出是否包含错误消息
                 stdout_value = mock_stdout.getvalue()
                 assert "No such command" in stdout_value or "Error" in stdout_value
