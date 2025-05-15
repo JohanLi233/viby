@@ -6,7 +6,7 @@ viby CLI入口点 - 基于Typer框架的命令行接口
 import sys
 from typing import NoReturn
 
-from viby.cli.typer_cli import app
+from viby.cli.app import app
 
 
 def main() -> int:
@@ -19,7 +19,7 @@ def main() -> int:
     try:
         return app(standalone_mode=False) or 0
     except Exception as e:
-        print(f"错误: {str(e)}")
+        print(e)
         return 1
 
 

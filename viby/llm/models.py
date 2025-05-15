@@ -92,11 +92,9 @@ class TokenTracker:
 
 class ModelManager:
     def __init__(self, args=None):
-        # 从命令行参数中获取是否使用 think model 和 fast model
-        self.use_think_model = args.think if args and hasattr(args, "think") else False
-        self.use_fast_model = args.fast if args and hasattr(args, "fast") else False
-        # 新增：跟踪token使用情况
-        self.track_tokens = args.tokens if args and hasattr(args, "tokens") else False
+        self.use_think_model = args.get("think", False)
+        self.use_fast_model = args.get("fast", False)
+        self.track_tokens = args.get("tokens", False)
         self.token_tracker = TokenTracker() if self.track_tokens else None
         # 历史管理器
         self.history_manager = HistoryManager()

@@ -41,7 +41,7 @@ include = ["viby*"]
 exclude = ["assets*"]
 
 [project.scripts]
-yb = "viby.cli.cli_entry:entry_point"
+yb = "viby.cli.main:entry_point"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

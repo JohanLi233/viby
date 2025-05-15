@@ -48,7 +48,7 @@ def default_callback(
 
 
 # 创建Typer实例
-app = create_typer(get_text("GENERAL", "app_description"), add_completion=False)
+app = create_typer(get_text("GENERAL", "app_description"), add_completion=True)
 
 # 创建子命令组
 history_app = create_typer(get_text("HISTORY", "command_help"))
@@ -100,8 +100,8 @@ def get_version_string() -> str:
     import importlib.metadata
     import json
 
+    version = importlib.metadata.version("viby")
     dist = importlib.metadata.distribution("viby")
-    version = dist.version
 
     # 检测是否为可编辑安装 (dev 版本)
     suffix = ""
