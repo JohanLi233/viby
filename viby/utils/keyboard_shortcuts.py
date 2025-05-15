@@ -19,15 +19,15 @@ logger = logging.getLogger(__name__)
 SHELL_CONFIG = {
     "bash": {
         "path": "~/.bashrc",
-        "command": '\n# Viby keyboard shortcut\nbind -x \'"\\C-q": "yb $READLINE_LINE"\'\n',
+        "command": '\n# Viby keyboard shortcut\nbind -x \'"\\C-q": "yb ask $READLINE_LINE"\'\n',
     },
     "zsh": {
         "path": "~/.zshrc",
-        "command": '\n# Viby keyboard shortcut\nviby-shortcut() { [[ -n "$BUFFER" ]] && BUFFER="yb $BUFFER" || BUFFER="yb"; zle accept-line; }\nzle -N viby-shortcut\nbindkey "^q" viby-shortcut\n',
+        "command": '\n# Viby keyboard shortcut\nviby-shortcut() { [[ -n "$BUFFER" ]] && BUFFER="yb ask $BUFFER" || BUFFER="yb ask"; zle accept-line; }\nzle -N viby-shortcut\nbindkey "^q" viby-shortcut\n',
     },
     "fish": {
         "path": "~/.config/fish/config.fish",
-        "command": '\n# Viby keyboard shortcut\nfunction viby_shortcut\n  set -l cmd (commandline)\n  if test -n "$cmd"\n    commandline -r "yb $cmd"\n  else\n    commandline -r "yb"\n  end\n  commandline -f execute\nend\nbind \\cq viby_shortcut\n',
+        "command": '\n# Viby keyboard shortcut\nfunction viby_shortcut\n  set -l cmd (commandline)\n  if test -n "$cmd"\n    commandline -r "yb ask $cmd"\n  else\n    commandline -r "yb ask"\n  end\n  commandline -f execute\nend\nbind \\cq viby_shortcut\n',
     },
 }
 

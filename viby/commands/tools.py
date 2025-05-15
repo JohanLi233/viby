@@ -9,8 +9,9 @@ import textwrap
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-
 from viby.locale import get_text
+import typer
+from typing import Optional
 from viby.config import config
 from viby.viby_tool_search.commands import EmbedServerCommand
 from viby.viby_tool_search.utils import get_mcp_tools_from_cache
@@ -22,7 +23,7 @@ console = Console()
 class ToolsCommand:
     """
     工具管理命令类，提供工具嵌入向量更新和列出工具信息功能
-    支持以下子命令:
+    支持以下子命令：
     - embed - 嵌入向量管理，包含update、start、stop、status子命令
     - list - 列出所有可用的MCP工具
     - download - 检查并下载嵌入模型
@@ -32,35 +33,6 @@ class ToolsCommand:
         """初始化工具命令"""
         self.config = config  # 使用单例config实例
         self.embed_server_command = EmbedServerCommand()
-
-    def execute(self, subcommand: str, args: any) -> int:
-        """
-        执行工具命令
-
-        Args:
-            subcommand: 子命令名称（embed, list, download）
-            args: 命令行参数
-
-        Returns:
-            命令退出码
-        """
-        if subcommand == "embed":
-            # 处理embed子命令
-            embed_subcommand = getattr(args, "embed_subcommand", None)
-
-            # 如果没有子命令，默认为update（向后兼容）
-            if embed_subcommand is None:
-                return self.embed_server_command.update_embeddings()
-
-            # 委托给嵌入服务器命令类处理
-            return self.embed_server_command.execute(embed_subcommand, args)
-        elif subcommand == "list":
-            return self.list_tools()
-        else:
-            console.print(
-                f"[bold red]{get_text('COMMANDS', 'unknown_subcommand').format(subcommand)}[/bold red]"
-            )
-            return 1
 
     def list_tools(self) -> int:
         """列出所有可用的MCP工具"""
@@ -146,3 +118,37 @@ class ToolsCommand:
             )
             logger.exception(get_text("TOOLS", "tools_listing_failed"))
             return 1
+
+    def run(self, embed_subcommand: Optional[str] = None) -> int:
+        """
+        管理嵌入向量服务，支持子命令：update、start、stop、status、download
+        """
+        if embed_subcommand is None:
+            return self.embed_server_command.update_embeddings()
+        # Delegate to the embed server command's new run() method
+        return self.embed_server_command.run(embed_subcommand)
+
+
+# Typer CLI 适配器
+app = typer.Typer(
+    help=get_text("TOOLS", "command_help"),
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@app.command("list")
+def cli_list():
+    """列出所有可用的MCP工具。"""
+    code = ToolsCommand().list_tools()
+    raise typer.Exit(code=code)
+
+
+@app.command("embed")
+def cli_embed(
+    embed_subcommand: str = typer.Argument(
+        None, help="嵌入子命令: update、start、stop、status"
+    ),
+):
+    """管理嵌入向量服务。"""
+    code = ToolsCommand().run(embed_subcommand)
+    raise typer.Exit(code=code)

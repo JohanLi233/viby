@@ -5,6 +5,8 @@ from viby.llm.nodes.execute_tool_node import ExecuteToolNode
 from viby.llm.nodes.llm_node import LLMNode
 from viby.llm.nodes.dummy_node import DummyNode
 from viby.llm.models import ModelManager
+import typer
+from viby.locale import get_text
 
 
 class ChatCommand:
@@ -40,7 +42,7 @@ class ChatCommand:
         self.execute_tool_node - "completed" >> self.input_node
         self.input_node - "exit" >> DummyNode()
 
-    def execute(self):
+    def run(self) -> int:
         # 准备共享状态
         shared = {
             "model_manager": self.model_manager,
@@ -50,3 +52,17 @@ class ChatCommand:
         self.flow.run(shared)
 
         return 0
+
+
+# Typer CLI 适配器
+app = typer.Typer(
+    help=get_text("CHAT", "command_help"),
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@app.command("chat")
+def cli_chat():
+    """启动多轮对话交互。"""
+    code = ChatCommand(ModelManager()).run()
+    raise typer.Exit(code=code)
