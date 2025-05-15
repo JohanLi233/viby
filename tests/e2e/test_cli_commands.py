@@ -6,6 +6,7 @@ import os
 import io
 import pytest
 from unittest import mock
+import re # 导入 re 模块
 
 # 导入CLI入口点
 from viby.cli.main import main
@@ -18,6 +19,10 @@ def with_stdin_mocked(func):
             return func(*args, **kwargs)
 
     return wrapper
+
+# 辅助函数：移除 ANSI 转义字符
+def strip_ansi_codes(text: str) -> str:
+    return re.sub(r'\\x1b\\\[[0-9;]*[a-zA-Z]', '', text)
 
 
 @with_stdin_mocked
@@ -61,7 +66,7 @@ def test_help_command():
                     # 验证结果
                     stdout_value = mock_stdout.getvalue()
                     assert "usage:" in stdout_value.lower() or "Usage:" in stdout_value
-                    assert "--help" in stdout_value
+                    assert "--help" in strip_ansi_codes(stdout_value)
 
 
 @with_stdin_mocked
