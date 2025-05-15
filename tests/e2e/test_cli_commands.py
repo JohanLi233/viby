@@ -6,6 +6,7 @@ import os
 import io
 import pytest
 from unittest import mock
+import re # 导入 re 模块
 
 # 导入CLI入口点
 from viby.cli.main import main
@@ -18,6 +19,11 @@ def with_stdin_mocked(func):
             return func(*args, **kwargs)
 
     return wrapper
+
+# 辅助函数：移除 ANSI 转义字符
+def strip_ansi_codes(text: str) -> str:
+    # 匹配实际的 ESC 字符 (0x1b) 后跟 [ 和数字/;，再跟字母，移除所有 ANSI 控制码序列
+    return re.sub("\x1b\\[[0-9;]*[A-Za-z]", "", text)
 
 
 @with_stdin_mocked
@@ -60,8 +66,8 @@ def test_help_command():
 
                     # 验证结果
                     stdout_value = mock_stdout.getvalue()
-                    assert "usage:" in stdout_value.lower() or "Usage:" in stdout_value
-                    assert "--help" in stdout_value
+                    assert "OPTIONS" in strip_ansi_codes(stdout_value)
+                    assert "COMMAND" in strip_ansi_codes(stdout_value)
 
 
 @with_stdin_mocked
