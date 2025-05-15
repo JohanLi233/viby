@@ -92,7 +92,6 @@ CONFIG_WIZARD = {
     "embedding_model_header": "--- Embedding Model Configuration ---",
     "embedding_model_name_prompt": "Embedding Model Name",
     "embedding_cache_dir_prompt": "Embedding Model Cache Directory (optional, leave blank for default)",
-    "embedding_update_frequency_prompt": "Tool Embedding Update Frequency",
     "embedding_update_choices": "On change, Manual",
 }
 

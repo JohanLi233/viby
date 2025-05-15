@@ -218,17 +218,19 @@ def test_vibe_command(
     mock_get_command, mock_load_manager, mock_process_input, cli_runner
 ):
     """测试vibe命令"""
-    # 模拟有输入
-    mock_process_input.return_value = ("测试问题", True)
-    mock_vibe_command = MagicMock()
-    mock_vibe_class = MagicMock(return_value=mock_vibe_command)
-    mock_get_command.return_value = mock_vibe_class
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        # 模拟有输入
+        mock_process_input.return_value = ("测试问题", True)
+        mock_vibe_command = MagicMock()
+        mock_vibe_class = MagicMock(return_value=mock_vibe_command)
+        mock_get_command.return_value = mock_vibe_class
 
-    result = cli_runner.invoke(app, ["vibe", "测试问题"])
+        result = cli_runner.invoke(app, ["vibe", "测试问题"])
 
-    mock_get_command.assert_called_once_with("vibe")
-    mock_vibe_class.assert_called_once()
-    mock_vibe_command.vibe.assert_called_once_with("测试问题")
+        mock_get_command.assert_called_once_with("vibe")
+        mock_vibe_class.assert_called_once()
+        mock_vibe_command.vibe.assert_called_once_with("测试问题")
 
     # 模拟无输入，终端环境
     mock_process_input.return_value = ("", False)
@@ -237,35 +239,39 @@ def test_vibe_command(
     mock_vibe_command.vibe.reset_mock()
 
     # 直接测试无输入情况
-    with patch("sys.stdout.isatty", return_value=True):
-        with patch("viby.cli.app.typer"):
-            result = cli_runner.invoke(app, ["vibe"])
-            # typer.echo函数可能不是通过装饰器调用的，所以我们检查返回结果
-            assert "content" not in result.stdout
+    with patch("viby.cli.app.config.is_first_run", False):
+        with patch("sys.stdout.isatty", return_value=True):
+            with patch("viby.cli.app.typer"):
+                result = cli_runner.invoke(app, ["vibe"])
+                # typer.echo函数可能不是通过装饰器调用的，所以我们检查返回结果
+                assert "content" not in result.stdout
 
     # 模拟无输入，非终端环境（管道环境）
-    with patch("sys.stdout.isatty", return_value=False):
-        result = cli_runner.invoke(app, ["vibe"])
-        assert result.exit_code == 0
-        mock_get_command.assert_not_called()
+    with patch("viby.cli.app.config.is_first_run", False):
+        with patch("sys.stdout.isatty", return_value=False):
+            result = cli_runner.invoke(app, ["vibe"])
+            assert result.exit_code == 0
+            mock_get_command.assert_not_called()
 
 
 @patch("viby.cli.app.get_command_class")
 @patch("viby.cli.app.load_model_manager")
 def test_chat_command(mock_load_manager, mock_get_command, cli_runner):
     """测试chat命令"""
-    mock_chat_command = MagicMock()
-    mock_chat_class = MagicMock(return_value=mock_chat_command)
-    mock_get_command.return_value = mock_chat_class
-    mock_model_manager = MagicMock()
-    mock_load_manager.return_value = mock_model_manager
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        mock_chat_command = MagicMock()
+        mock_chat_class = MagicMock(return_value=mock_chat_command)
+        mock_get_command.return_value = mock_chat_class
+        mock_model_manager = MagicMock()
+        mock_load_manager.return_value = mock_model_manager
 
-    cli_runner.invoke(app, ["chat"])
+        cli_runner.invoke(app, ["chat"])
 
-    mock_load_manager.assert_called_once()
-    mock_get_command.assert_called_once_with("chat")
-    mock_chat_class.assert_called_once_with(mock_model_manager)
-    mock_chat_command.run.assert_called_once()
+        mock_load_manager.assert_called_once()
+        mock_get_command.assert_called_once_with("chat")
+        mock_chat_class.assert_called_once_with(mock_model_manager)
+        mock_chat_command.run.assert_called_once()
 
 
 @patch("viby.cli.app.detect_shell")
@@ -276,182 +282,207 @@ def test_shortcuts_command(
     mock_get_text, mock_typer, mock_install, mock_detect, cli_runner
 ):
     """测试shortcuts命令"""
-    # 设置get_text的返回值
-    mock_get_text.side_effect = lambda section, key, default=None: key
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        # 设置get_text的返回值
+        mock_get_text.side_effect = lambda section, key, default=None: key
 
-    # 成功检测shell
-    mock_detect.return_value = "bash"
-    mock_install.return_value = {"status": "success", "message": "已成功安装快捷键"}
+        # 成功检测shell
+        mock_detect.return_value = "bash"
+        mock_install.return_value = {"status": "success", "message": "已成功安装快捷键"}
 
-    cli_runner.invoke(app, ["shortcuts"])
+        cli_runner.invoke(app, ["shortcuts"])
 
-    mock_detect.assert_called_once()
-    mock_install.assert_called_once_with("bash")
-    mock_typer.echo.assert_any_call("auto_detect_shell: bash")
-    mock_typer.style.assert_called_with("[SUCCESS]", fg=mock_typer.colors.GREEN)
+        mock_detect.assert_called_once()
+        mock_install.assert_called_once_with("bash")
 
-    # 失败检测shell
-    mock_detect.reset_mock()
-    mock_install.reset_mock()
-    mock_typer.reset_mock()
+        # 测试状态样式
+        mock_typer.style.assert_called_with("[SUCCESS]", fg=mock_typer.colors.GREEN)
 
-    mock_detect.return_value = None
-    mock_install.return_value = {
-        "status": "error",
-        "message": "安装失败",
-        "action_required": "需要手动操作",
-    }
-
-    cli_runner.invoke(app, ["shortcuts"])
-
-    mock_detect.assert_called_once()
-    mock_install.assert_called_once_with(None)
-    mock_typer.echo.assert_any_call("auto_detect_failed")
-    mock_typer.style.assert_called_with("[ERROR]", fg=mock_typer.colors.RED)
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        # 失败检测shell
+        mock_detect.reset_mock()
+        mock_install.reset_mock()
+        mock_typer.reset_mock()
+        
+        mock_detect.return_value = None
+        mock_install.return_value = {
+            "status": "error",
+            "message": "安装失败",
+            "action_required": "需要手动操作",
+        }
+        
+        cli_runner.invoke(app, ["shortcuts"])
+        
+        mock_detect.assert_called_once()
+        mock_install.assert_called_once_with(None)
+        mock_typer.echo.assert_any_call("auto_detect_failed")
+        mock_typer.style.assert_called_with("[ERROR]", fg=mock_typer.colors.RED)
 
 
 @patch("viby.cli.app.get_command_class")
 def test_history_list_command(mock_get_command, cli_runner):
     """测试history list命令"""
-    mock_history_command = MagicMock()
-    mock_history_class = MagicMock(return_value=mock_history_command)
-    mock_get_command.return_value = mock_history_class
-
-    cli_runner.invoke(app, ["history", "list", "--limit", "5"])
-
-    mock_get_command.assert_called_once_with("history")
-    mock_history_class.assert_called_once()
-    mock_history_command.list_history.assert_called_once_with(5)
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        mock_history_command = MagicMock()
+        mock_history_class = MagicMock(return_value=mock_history_command)
+        mock_get_command.return_value = mock_history_class
+    
+        cli_runner.invoke(app, ["history", "list"])
+    
+        mock_get_command.assert_called_once_with("history")
+        mock_history_class.assert_called_once()
+        mock_history_command.list_history.assert_called_once_with(10)
 
 
 @patch("viby.cli.app.get_command_class")
 def test_history_search_command(mock_get_command, cli_runner):
     """测试history search命令"""
-    mock_history_command = MagicMock()
-    mock_history_class = MagicMock(return_value=mock_history_command)
-    mock_get_command.return_value = mock_history_class
-
-    cli_runner.invoke(app, ["history", "search", "测试查询", "--limit", "5"])
-
-    mock_get_command.assert_called_once_with("history")
-    mock_history_class.assert_called_once()
-    mock_history_command.search_history.assert_called_once_with("测试查询", 5)
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        mock_history_command = MagicMock()
+        mock_history_class = MagicMock(return_value=mock_history_command)
+        mock_get_command.return_value = mock_history_class
+    
+        cli_runner.invoke(app, ["history", "search", "查询词"])
+    
+        mock_get_command.assert_called_once_with("history")
+        mock_history_class.assert_called_once()
+        mock_history_command.search_history.assert_called_once_with("查询词", 10)
 
 
 @patch("viby.cli.app.get_command_class")
 def test_history_export_command(mock_get_command, cli_runner):
     """测试history export命令"""
-    mock_history_command = MagicMock()
-    mock_history_class = MagicMock(return_value=mock_history_command)
-    mock_get_command.return_value = mock_history_class
-
-    cli_runner.invoke(
-        app,
-        [
-            "history",
-            "export",
-            "output.json",
-            "--format",
-            "json",
-            "--type",
-            "interactions",
-        ],
-    )
-
-    mock_get_command.assert_called_once_with("history")
-    mock_history_class.assert_called_once()
-    mock_history_command.export_history.assert_called_once_with(
-        "output.json", "json", "interactions"
-    )
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        mock_history_command = MagicMock()
+        mock_history_class = MagicMock(return_value=mock_history_command)
+        mock_get_command.return_value = mock_history_class
+    
+        # 测试默认格式和类型
+        cli_runner.invoke(app, ["history", "export", "output.json"])
+    
+        mock_get_command.assert_called_once_with("history")
+        mock_history_class.assert_called_once()
+        mock_history_command.export_history.assert_called_once_with(
+            "output.json", "json", "interactions"
+        )
+    
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        # 测试自定义格式和类型
+        mock_get_command.reset_mock()
+        mock_history_class.reset_mock()
+        mock_history_command.export_history.reset_mock()
+    
+        cli_runner.invoke(
+            app, ["history", "export", "output.csv", "--format", "csv", "--type", "shell"]
+        )
+    
+        mock_get_command.assert_called_once_with("history")
+        mock_history_class.assert_called_once()
+        mock_history_command.export_history.assert_called_once_with(
+            "output.csv", "csv", "shell"
+        )
 
 
 @patch("viby.cli.app.get_command_class")
 def test_history_clear_command(mock_get_command, cli_runner):
     """测试history clear命令"""
-    mock_history_command = MagicMock()
-    mock_history_class = MagicMock(return_value=mock_history_command)
-    mock_get_command.return_value = mock_history_class
-
-    cli_runner.invoke(app, ["history", "clear"])
-
-    mock_get_command.assert_called_once_with("history")
-    mock_history_class.assert_called_once()
-    mock_history_command.clear_history.assert_called_once_with()
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        mock_history_command = MagicMock()
+        mock_history_class = MagicMock(return_value=mock_history_command)
+        mock_get_command.return_value = mock_history_class
+    
+        cli_runner.invoke(app, ["history", "clear"])
+    
+        mock_get_command.assert_called_once_with("history")
+        mock_history_class.assert_called_once()
+        mock_history_command.clear_history.assert_called_once()
 
 
 @patch("viby.cli.app.get_command_class")
 def test_history_shell_command(mock_get_command, cli_runner):
     """测试history shell命令"""
-    mock_history_command = MagicMock()
-    mock_history_class = MagicMock(return_value=mock_history_command)
-    mock_get_command.return_value = mock_history_class
-
-    cli_runner.invoke(app, ["history", "shell", "--limit", "5"])
-
-    mock_get_command.assert_called_once_with("history")
-    mock_history_class.assert_called_once()
-    mock_history_command.list_shell_history.assert_called_once_with(5)
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        mock_history_command = MagicMock()
+        mock_history_class = MagicMock(return_value=mock_history_command)
+        mock_get_command.return_value = mock_history_class
+    
+        cli_runner.invoke(app, ["history", "shell"])
+    
+        mock_get_command.assert_called_once_with("history")
+        mock_history_class.assert_called_once()
+        mock_history_command.list_shell_history.assert_called_once_with(10)
 
 
 @patch("viby.cli.app.get_command_class")
 def test_tools_list_command(mock_get_command, cli_runner):
     """测试tools list命令"""
-    mock_tools_command = MagicMock()
-    mock_tools_class = MagicMock(return_value=mock_tools_command)
-    mock_get_command.return_value = mock_tools_class
-
-    cli_runner.invoke(app, ["tools", "list"])
-
-    mock_get_command.assert_called_once_with("tools")
-    mock_tools_class.assert_called_once()
-    mock_tools_command.list_tools.assert_called_once()
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        mock_tools_command = MagicMock()
+        mock_tools_class = MagicMock(return_value=mock_tools_command)
+        mock_get_command.return_value = mock_tools_class
+    
+        cli_runner.invoke(app, ["tools", "list"])
+    
+        mock_get_command.assert_called_once_with("tools")
+        mock_tools_class.assert_called_once()
+        mock_tools_command.list_tools.assert_called_once()
 
 
 @patch("viby.cli.app.get_command_class")
 def test_embed_commands(mock_get_command, cli_runner):
     """测试embed命令组"""
-    mock_embed_command = MagicMock()
-    mock_embed_class = MagicMock(return_value=mock_embed_command)
-    mock_get_command.return_value = mock_embed_class
-
-    # 测试update子命令
-    cli_runner.invoke(app, ["tools", "embed", "update"])
-    mock_get_command.assert_called_with("embed")
-    mock_embed_class.assert_called_once()
-    mock_embed_command.update_embeddings.assert_called_once()
-
-    # 测试start子命令
-    mock_get_command.reset_mock()
-    mock_embed_class.reset_mock()
-    mock_embed_command.reset_mock()
-
-    cli_runner.invoke(app, ["tools", "embed", "start"])
-    mock_get_command.assert_called_with("embed")
-    mock_embed_command.start_embed_server.assert_called_once()
-
-    # 测试stop子命令
-    mock_get_command.reset_mock()
-    mock_embed_class.reset_mock()
-    mock_embed_command.reset_mock()
-
-    cli_runner.invoke(app, ["tools", "embed", "stop"])
-    mock_get_command.assert_called_with("embed")
-    mock_embed_command.stop_embed_server.assert_called_once()
-
-    # 测试status子命令
-    mock_get_command.reset_mock()
-    mock_embed_class.reset_mock()
-    mock_embed_command.reset_mock()
-
-    cli_runner.invoke(app, ["tools", "embed", "status"])
-    mock_get_command.assert_called_with("embed")
-    mock_embed_command.check_embed_server_status.assert_called_once()
-
-    # 测试download子命令
-    mock_get_command.reset_mock()
-    mock_embed_class.reset_mock()
-    mock_embed_command.reset_mock()
-
-    cli_runner.invoke(app, ["tools", "embed", "download"])
-    mock_get_command.assert_called_with("embed")
-    mock_embed_command.download_embedding_model.assert_called_once()
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        mock_embed_command = MagicMock()
+        mock_embed_class = MagicMock(return_value=mock_embed_command)
+        mock_get_command.return_value = mock_embed_class
+    
+        # 测试update子命令
+        cli_runner.invoke(app, ["tools", "embed", "update"])
+        mock_get_command.assert_called_with("embed")
+        mock_embed_command.update_embeddings.assert_called_once()
+    
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        # 测试start子命令
+        mock_get_command.reset_mock()
+        mock_embed_command.reset_mock()
+        cli_runner.invoke(app, ["tools", "embed", "start"])
+        mock_get_command.assert_called_with("embed")
+        mock_embed_command.start_embed_server.assert_called_once()
+    
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        # 测试stop子命令
+        mock_get_command.reset_mock()
+        mock_embed_command.reset_mock()
+        cli_runner.invoke(app, ["tools", "embed", "stop"])
+        mock_get_command.assert_called_with("embed")
+        mock_embed_command.stop_embed_server.assert_called_once()
+    
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        # 测试status子命令
+        mock_get_command.reset_mock()
+        mock_embed_command.reset_mock()
+        cli_runner.invoke(app, ["tools", "embed", "status"])
+        mock_get_command.assert_called_with("embed")
+        mock_embed_command.check_embed_server_status.assert_called_once()
+    
+    # 模拟配置不是首次运行，避免触发配置向导
+    with patch("viby.cli.app.config.is_first_run", False):
+        # 测试download子命令
+        mock_get_command.reset_mock()
+        mock_embed_command.reset_mock()
+        cli_runner.invoke(app, ["tools", "embed", "download"])
+        mock_get_command.assert_called_with("embed")
+        mock_embed_command.download_embedding_model.assert_called_once()

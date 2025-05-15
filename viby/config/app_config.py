@@ -25,7 +25,6 @@ class EmbeddingModelConfig:
     """嵌入模型配置类"""
 
     model_name: str = "paraphrase-multilingual-MiniLM-L12-v2"  # 默认嵌入模型
-    update_frequency: str = "on_change"  # 更新频率: on_change, manual
 
 
 @dataclass

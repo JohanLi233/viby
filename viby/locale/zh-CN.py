@@ -93,7 +93,6 @@ CONFIG_WIZARD = {
     "embedding_model_header": "--- 嵌入模型配置 ---",
     "embedding_model_name_prompt": "嵌入模型名称",
     "embedding_cache_dir_prompt": "嵌入模型缓存目录 (可选, 留空则使用默认)",
-    "embedding_update_frequency_prompt": "工具嵌入向量更新频率",
     "embedding_update_choices": "有变化时, 手动",
 }
 
