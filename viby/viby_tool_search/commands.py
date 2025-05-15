@@ -8,9 +8,10 @@ import logging
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+import typer
 
-from viby.locale import get_text
-from viby.config import Config
+from viby.locale import get_text, init_text_manager
+from viby.config import config
 from viby.mcp.client import list_tools
 from viby.viby_tool_search.client import (
     start_embedding_server,
@@ -20,6 +21,9 @@ from viby.viby_tool_search.client import (
     is_server_running,
     update_tools,
 )
+
+# 在使用get_text之前初始化文本管理器
+init_text_manager(config)
 
 logger = logging.getLogger(__name__)
 console = Console()
@@ -38,35 +42,7 @@ class EmbedServerCommand:
 
     def __init__(self):
         """初始化嵌入服务器命令"""
-        self.config = Config()
-
-    def execute(self, subcommand: str, args: any) -> int:
-        """
-        执行嵌入服务器命令
-
-        Args:
-            subcommand: 子命令名称（start, stop, status, update, download）
-            args: 命令行参数
-
-        Returns:
-            命令退出码
-        """
-        # 根据子命令分派
-        if subcommand == "start":
-            return self.start_embed_server()
-        elif subcommand == "stop":
-            return self.stop_embed_server()
-        elif subcommand == "status":
-            return self.check_embed_server_status()
-        elif subcommand == "update":
-            return self.update_embeddings()
-        elif subcommand == "download":
-            return self.download_embedding_model()
-        else:
-            console.print(
-                f"[bold red]{get_text('COMMANDS', 'unknown_subcommand').format(subcommand)}[/bold red]"
-            )
-            return 1
+        self.config = config
 
     def update_embeddings(self) -> int:
         """更新MCP工具的嵌入向量"""
@@ -286,12 +262,12 @@ class EmbedServerCommand:
             self._print_panel("downloading_embed_model", "下载嵌入模型")
 
             from sentence_transformers import SentenceTransformer
-            from viby.config import Config
 
             # 获取配置中的模型名称
-            config = Config()
-            embedding_config = config.get_embedding_config()
-            model_name = embedding_config.get("model_name", "paraphrase-multilingual-MiniLM-L12-v2")
+            embedding_config = self.config.get_embedding_config()
+            model_name = embedding_config.get(
+                "model_name", "paraphrase-multilingual-MiniLM-L12-v2"
+            )
             # 显示下载进度
             console.print(
                 f"[yellow]{get_text('TOOLS', 'downloading_model', '正在下载嵌入模型')}: {model_name}[/yellow]"
@@ -312,3 +288,49 @@ class EmbedServerCommand:
                 get_text("TOOLS", "model_download_error", "下载模型时发生错误")
             )
             return 1
+
+
+# Typer CLI 适配器
+app = typer.Typer(
+    help=get_text("TOOLS", "embed_subcommand_help"),
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@app.command("update", help=get_text("TOOLS", "embed_update_help"))
+def cli_update():
+    """更新MCP工具的嵌入向量"""
+    code = EmbedServerCommand().update_embeddings()
+    raise typer.Exit(code=code)
+
+
+@app.command("start", help=get_text("TOOLS", "embed_start_help"))
+def cli_start():
+    """启动嵌入模型服务"""
+    code = EmbedServerCommand().start_embed_server()
+    raise typer.Exit(code=code)
+
+
+@app.command("stop", help=get_text("TOOLS", "embed_stop_help"))
+def cli_stop():
+    """停止嵌入模型服务"""
+    code = EmbedServerCommand().stop_embed_server()
+    raise typer.Exit(code=code)
+
+
+@app.command("status", help=get_text("TOOLS", "embed_status_help"))
+def cli_status():
+    """查看嵌入模型服务状态"""
+    code = EmbedServerCommand().check_embed_server_status()
+    raise typer.Exit(code=code)
+
+
+@app.command("download", help=get_text("TOOLS", "download_help"))
+def cli_download():
+    """下载嵌入模型"""
+    code = EmbedServerCommand().download_embedding_model()
+    raise typer.Exit(code=code)
+
+
+if __name__ == "__main__":
+    app()

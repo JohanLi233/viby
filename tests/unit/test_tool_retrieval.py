@@ -52,6 +52,10 @@ class TestToolRetrieval(unittest.TestCase):
         ):
             # 设置mock_logger的level属性为整数，避免TypeError
             mock_logger.level = 0
+            # 确保logger的所有处理器也有level属性
+            mock_handler = MagicMock()
+            mock_handler.level = 0
+            mock_logger.handlers = [mock_handler]
 
             # 让get_text返回第三个参数或空字符串
             mock_get_text.side_effect = (
@@ -84,16 +88,28 @@ class TestToolRetrieval(unittest.TestCase):
         # 让模拟get_text返回空字符串
         mock_get_text.return_value = ""
 
-        # 使用正确的路径模拟Config类
-        with patch("viby.config.Config") as mock_config_class:
-            # 模拟MCP禁用
-            mock_config_instance = MagicMock()
-            mock_config_instance.enable_mcp = False
-            mock_config_class.return_value = mock_config_instance
+        # 先为logger设置模拟
+        with patch("viby.viby_tool_search.utils.logger") as mock_logger:
+            # 设置logger和其处理器的level为整数值
+            mock_logger.level = 0
+            mock_handler = MagicMock()
+            mock_handler.level = 0
+            mock_logger.handlers = [mock_handler]
+            mock_logger.warning = MagicMock()
+            mock_logger.debug = MagicMock()
+            mock_logger.error = MagicMock()
+            mock_logger.info = MagicMock()
 
-            # 测试MCP禁用时返回空字典
-            result = get_mcp_tools_from_cache()
-            self.assertEqual(result, {})
+            # 使用正确的路径模拟Config类
+            with patch("viby.config.Config") as mock_config_class:
+                # 模拟MCP禁用
+                mock_config_instance = MagicMock()
+                mock_config_instance.enable_mcp = False
+                mock_config_class.return_value = mock_config_instance
+
+                # 测试MCP禁用时返回空字典
+                result = get_mcp_tools_from_cache()
+                self.assertEqual(result, {})
 
         # 模拟Config和EmbeddingManager
         with (
@@ -147,7 +163,14 @@ class TestToolRetrieval(unittest.TestCase):
 
             # 设置mock_logger的level属性为整数，避免TypeError
             mock_logger.level = 0
+            # 确保logger的所有处理器也有level属性
+            mock_handler = MagicMock()
+            mock_handler.level = 0
+            mock_logger.handlers = [mock_handler]
             mock_logger.warning = MagicMock()
+            mock_logger.debug = MagicMock()
+            mock_logger.error = MagicMock()
+            mock_logger.info = MagicMock()
 
             # 模拟EmbeddingManager抛出异常
             mock_embedding_manager.side_effect = Exception("测试异常")
@@ -160,12 +183,23 @@ class TestToolRetrieval(unittest.TestCase):
     @patch("viby.viby_tool_search.client.is_server_running", return_value=True)
     @patch("viby.viby_tool_search.client.requests")
     @patch("viby.viby_tool_search.client.logger")
-    def test_search_tools(self, mock_logger, mock_requests, mock_is_running):
+    @patch("viby.viby_tool_search.client.get_text")
+    def test_search_tools(
+        self, mock_get_text, mock_logger, mock_requests, mock_is_running
+    ):
+        # 让模拟get_text返回第三个参数或空字符串
+        mock_get_text.side_effect = lambda group, key, *args: args[0] if args else ""
         """测试search_similar_tools函数"""
         # 设置mock_logger的level属性为整数，避免TypeError
+        mock_logger.level = 0
+        # 确保logger的所有处理器也有level属性
+        mock_handler = MagicMock()
+        mock_handler.level = 0
+        mock_logger.handlers = [mock_handler]
         mock_logger.debug = MagicMock()
         mock_logger.error = MagicMock()
         mock_logger.warning = MagicMock()
+        mock_logger.info = MagicMock()
 
         # 模拟requests.post的结果
         mock_response = MagicMock()
@@ -224,7 +258,14 @@ class TestToolRetrieval(unittest.TestCase):
         with patch("viby.tools.tool_retrieval.logger") as mock_logger:
             # 设置mock_logger的level属性为整数，避免TypeError
             mock_logger.level = 0
+            # 确保logger的所有处理器也有level属性
+            mock_handler = MagicMock()
+            mock_handler.level = 0
+            mock_logger.handlers = [mock_handler]
             mock_logger.error = MagicMock()
+            mock_logger.warning = MagicMock()
+            mock_logger.debug = MagicMock()
+            mock_logger.info = MagicMock()
 
             # 调用函数
             result = execute_tool_retrieval({"query": "测试查询"})

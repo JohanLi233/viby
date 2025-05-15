@@ -5,8 +5,6 @@
 import os
 from pathlib import Path
 from datetime import datetime
-from typing import Any
-
 from rich.table import Table
 from rich.console import Console
 from rich.prompt import Confirm
@@ -15,7 +13,7 @@ from rich.progress import Progress
 from viby.utils.history import HistoryManager
 from viby.utils.renderer import print_markdown
 from viby.locale import get_text
-from viby.config.app_config import Config
+import typer
 
 
 class HistoryCommand:
@@ -31,34 +29,32 @@ class HistoryCommand:
 
     def __init__(self):
         """初始化历史命令"""
-        self.config = Config()
-        self.history_manager = HistoryManager(self.config)
+        self.history_manager = HistoryManager()
         self.console = Console()
 
-    def execute(self, subcommand: str, args: Any) -> int:
-        """
-        执行历史命令
+    def _truncate(self, text: str, limit: int) -> str:
+        return text if len(text) <= limit else text[: limit - 3] + "..."
 
-        Args:
-            subcommand: 子命令名称（list, search, export, clear, shell）
-            args: 命令行参数
-
-        Returns:
-            命令退出码
-        """
-        if subcommand == "list":
-            return self.list_history(args.limit)
-        elif subcommand == "search":
-            return self.search_history(args.query, args.limit)
-        elif subcommand == "export":
-            return self.export_history(args.file, args.format, args.type)
-        elif subcommand == "clear":
-            return self.clear_history(args.type, args.force)
-        elif subcommand == "shell":
-            return self.list_shell_history(args.limit)
-        else:
-            print(get_text("COMMANDS", "unknown_subcommand").format(subcommand))
-            return 1
+    def _format_records(
+        self, records, title: str, content_limit: int, response_limit: int = None
+    ) -> None:
+        if response_limit is None:
+            response_limit = content_limit
+        table = Table(title=title)
+        table.add_column("ID", justify="right", style="cyan")
+        table.add_column(get_text("HISTORY", "timestamp"), style="green")
+        table.add_column(get_text("HISTORY", "type"), style="magenta")
+        table.add_column(get_text("HISTORY", "content"), style="white")
+        table.add_column(get_text("HISTORY", "response"), style="yellow")
+        for record in records:
+            dt = datetime.fromisoformat(record["timestamp"])
+            formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S")
+            content = self._truncate(record["content"], content_limit)
+            response = self._truncate(record.get("response", ""), response_limit)
+            table.add_row(
+                str(record["id"]), formatted_time, record["type"], content, response
+            )
+        self.console.print(table)
 
     def list_history(self, limit: int = 10) -> int:
         """
@@ -76,33 +72,9 @@ class HistoryCommand:
             print_markdown(get_text("HISTORY", "no_history"), "")
             return 0
 
-        table = Table(title=get_text("HISTORY", "recent_history"))
-        table.add_column("ID", justify="right", style="cyan")
-        table.add_column(get_text("HISTORY", "timestamp"), style="green")
-        table.add_column(get_text("HISTORY", "type"), style="magenta")
-        table.add_column(get_text("HISTORY", "content"), style="white")
-        table.add_column(get_text("HISTORY", "response"), style="yellow")
-
-        for record in records:
-            # 格式化时间戳
-            dt = datetime.fromisoformat(record["timestamp"])
-            formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S")
-
-            # 限制内容长度
-            content = record["content"]
-            if len(content) > 256:
-                content = content[:256] + "..."
-
-            # 添加响应内容，同样限制长度
-            response = record.get("response", "")
-            if response and len(response) > 256:
-                response = response[:256] + "..."
-
-            table.add_row(
-                str(record["id"]), formatted_time, record["type"], content, response
-            )
-
-        self.console.print(table)
+        self._format_records(
+            records, get_text("HISTORY", "recent_history"), content_limit=256
+        )
         return 0
 
     def search_history(self, query: str, limit: int = 10) -> int:
@@ -126,33 +98,11 @@ class HistoryCommand:
             print_markdown(get_text("HISTORY", "no_matching_history").format(query), "")
             return 0
 
-        table = Table(title=get_text("HISTORY", "search_results").format(query))
-        table.add_column("ID", justify="right", style="cyan")
-        table.add_column(get_text("HISTORY", "timestamp"), style="green")
-        table.add_column(get_text("HISTORY", "type"), style="magenta")
-        table.add_column(get_text("HISTORY", "content"), style="white")
-        table.add_column(get_text("HISTORY", "response"), style="yellow")
-
-        for record in records:
-            # 格式化时间戳
-            dt = datetime.fromisoformat(record["timestamp"])
-            formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S")
-
-            # 限制内容长度
-            content = record["content"]
-            if len(content) > 50:
-                content = content[:47] + "..."
-
-            # 添加响应内容，同样限制长度
-            response = record.get("response", "")
-            if response and len(response) > 50:
-                response = response[:47] + "..."
-
-            table.add_row(
-                str(record["id"]), formatted_time, record["type"], content, response
-            )
-
-        self.console.print(table)
+        self._format_records(
+            records,
+            get_text("HISTORY", "search_results").format(query),
+            content_limit=50,
+        )
         return 0
 
     def export_history(
@@ -218,41 +168,30 @@ class HistoryCommand:
             print_markdown(get_text("HISTORY", "export_failed"), "error")
             return 1
 
-    def clear_history(self, history_type: str = "all", force: bool = False) -> int:
+    def clear_history(self) -> int:
         """
         清除历史记录
-
-        Args:
-            history_type: 要清除的历史类型（all, interactions, shell）
-            force: 是否强制清除，不提示确认
 
         Returns:
             命令退出码
         """
-        if not force:
-            confirmation = get_text("HISTORY", "confirm_clear_all")
-            if history_type == "interactions":
-                confirmation = get_text("HISTORY", "confirm_clear_interactions")
-            elif history_type == "shell":
-                confirmation = get_text("HISTORY", "confirm_clear_shell")
-
-            if not Confirm.ask(confirmation):
-                print_markdown(get_text("HISTORY", "clear_cancelled"), "")
-                return 0
+        # 确认清除
+        confirmation = get_text("HISTORY", "confirm_clear_all")
+        if not Confirm.ask(confirmation):
+            print_markdown(get_text("HISTORY", "clear_cancelled"), "")
+            return 0
 
         # 显示清除进度
         with Progress() as progress:
             task = progress.add_task(get_text("HISTORY", "clearing_history"), total=1)
 
             # 清除历史记录
-            success = self.history_manager.clear_history(history_type)
+            success = self.history_manager.clear_history()
 
             progress.update(task, completed=1)
 
         if success:
-            print_markdown(
-                get_text("HISTORY", "clear_successful").format(history_type), "success"
-            )
+            print_markdown(get_text("HISTORY", "clear_successful"), "success")
             return 0
         else:
             print_markdown(get_text("HISTORY", "clear_failed"), "error")
@@ -309,3 +248,63 @@ class HistoryCommand:
 
         self.console.print(table)
         return 0
+
+
+app = typer.Typer(
+    help=get_text("HISTORY", "command_help"),
+    context_settings={"help_option_names": ["-h", "--help"]},
+)
+
+
+@app.command("list")
+def cli_list(
+    limit: int = typer.Option(
+        10, "--limit", "-n", help=get_text("HISTORY", "limit_help")
+    ),
+):
+    """列出历史记录。"""
+    code = HistoryCommand().list_history(limit)
+    raise typer.Exit(code=code)
+
+
+@app.command("search")
+def cli_search(
+    query: str = typer.Argument(..., help=get_text("HISTORY", "query_help")),
+    limit: int = typer.Option(
+        10, "--limit", "-n", help=get_text("HISTORY", "limit_help")
+    ),
+):
+    """搜索历史记录。"""
+    code = HistoryCommand().search_history(query, limit)
+    raise typer.Exit(code=code)
+
+
+@app.command("export")
+def cli_export(
+    file: str = typer.Argument(..., help=get_text("HISTORY", "file_help")),
+):
+    """导出历史记录到文件。"""
+    code = HistoryCommand().export_history(file)
+    raise typer.Exit(code=code)
+
+
+@app.command("clear")
+def cli_clear(
+    force: bool = typer.Option(
+        False, "--force", "-f", help=get_text("HISTORY", "force_help")
+    ),
+):
+    """清除历史记录。"""
+    code = HistoryCommand().clear_history()
+    raise typer.Exit(code=code)
+
+
+@app.command("shell")
+def cli_shell(
+    limit: int = typer.Option(
+        10, "--limit", "-n", help=get_text("HISTORY", "limit_help")
+    ),
+):
+    """列出shell命令历史。"""
+    code = HistoryCommand().list_shell_history(limit)
+    raise typer.Exit(code=code)

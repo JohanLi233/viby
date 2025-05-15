@@ -203,10 +203,12 @@ def start_embedding_server() -> ServerOperationResult:
                 return ServerOperationResult(
                     False,
                     error=get_text(
-                        "TOOLS", "server_crashed", "嵌入模型服务器启动失败: 请检查嵌入模型是否下载成功"
+                        "TOOLS",
+                        "server_crashed",
+                        "嵌入模型服务器启动失败: 请检查嵌入模型是否下载成功",
                     ),
                 )
-                
+
             if is_server_running():
                 return ServerOperationResult(True, pid=proc.pid)
             time.sleep(check_interval)

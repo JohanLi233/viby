@@ -241,7 +241,7 @@ TOOLS = {
     "using_default_model": "使用默认嵌入模型",
     "model_already_downloaded": "模型已下载",
     "model_not_downloaded": "嵌入模型尚未下载",
-    "download_model_suggestion": "请先使用 \"yb tools embed download\" 命令下载模型，然后再启动服务器",
+    "download_model_suggestion": '请先使用 "yb tools embed download" 命令下载模型，然后再启动服务器',
     "downloading_model": "正在下载嵌入模型",
     "downloading": "下载中",
     "model_download_success": "模型下载成功",

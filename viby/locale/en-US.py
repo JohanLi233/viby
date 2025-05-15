@@ -239,7 +239,7 @@ TOOLS = {
     "using_default_model": "Using default embedding model",
     "model_already_downloaded": "Model already downloaded",
     "model_not_downloaded": "Embedding model not downloaded yet",
-    "download_model_suggestion": "Please use \"yb tools embed download\" command to download the model first, then start the server",
+    "download_model_suggestion": 'Please use "yb tools embed download" command to download the model first, then start the server',
     "downloading_model": "Downloading embedding model",
     "downloading": "Downloading",
     "model_download_success": "Model download successful",

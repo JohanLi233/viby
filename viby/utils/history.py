@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
-from viby.config.app_config import Config
+from viby.config import config
 from viby.utils.logging import get_logger
 
 # 设置日志记录器
@@ -20,14 +20,14 @@ logger = get_logger()
 class HistoryManager:
     """历史记录管理器，负责记录、存储和检索用户交互历史"""
 
-    def __init__(self, config: Optional[Config] = None):
+    def __init__(self):
         """
         初始化历史管理器
 
         Args:
-            config: 应用配置对象。如果未提供，将创建新的配置对象。
+            config: 应用配置对象。如果未提供，将使用全局单例配置。
         """
-        self.config = config or Config()
+        self.config = config
         self.db_path = self._get_db_path()
         self._init_db()
 
@@ -256,12 +256,9 @@ class HistoryManager:
             logger.error(f"获取Shell命令历史记录失败: {e}")
             return []
 
-    def clear_history(self, history_type: str = "all") -> bool:
+    def clear_history(self) -> bool:
         """
-        清除历史记录
-
-        Args:
-            history_type: 要清除的历史类型，可以是 "all"、"interactions" 或 "shell"
+        清除所有历史记录
 
         Returns:
             是否成功清除
@@ -270,19 +267,16 @@ class HistoryManager:
             conn = sqlite3.connect(str(self.db_path))
             cursor = conn.cursor()
 
-            if history_type in ("all", "interactions"):
-                cursor.execute("DELETE FROM history")
-                # 重置自增ID序列，确保新记录从1开始
-                cursor.execute("DELETE FROM sqlite_sequence WHERE name='history'")
-
-            if history_type in ("all", "shell"):
-                cursor.execute("DELETE FROM shell_history")
-                # 重置自增ID序列，确保新记录从1开始
-                cursor.execute("DELETE FROM sqlite_sequence WHERE name='shell_history'")
+            # 删除交互历史
+            cursor.execute("DELETE FROM history")
+            cursor.execute("DELETE FROM sqlite_sequence WHERE name='history'")
+            # 删除Shell命令历史
+            cursor.execute("DELETE FROM shell_history")
+            cursor.execute("DELETE FROM sqlite_sequence WHERE name='shell_history'")
 
             conn.commit()
             conn.close()
-            logger.info(f"已清除{history_type}历史记录")
+            logger.info("已清除所有历史记录")
             return True
         except sqlite3.Error as e:
             logger.error(f"清除历史记录失败: {e}")

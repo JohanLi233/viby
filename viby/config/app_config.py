@@ -6,7 +6,7 @@ import os
 import yaml
 import platform
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, ClassVar
 from dataclasses import dataclass
 
 
@@ -38,9 +38,29 @@ class AutoCompactConfig:
 
 
 class Config:
-    """viby 应用的配置管理器"""
+    """viby 应用的配置管理器 (单例模式)"""
+
+    _instance: ClassVar[Optional["Config"]] = None
+
+    @classmethod
+    def get_instance(cls) -> "Config":
+        """获取Config的单例实例"""
+        if cls._instance is None:
+            cls._instance = Config()
+        return cls._instance
+
+    def __new__(cls):
+        """确保只创建一个实例"""
+        if cls._instance is None:
+            cls._instance = super(Config, cls).__new__(cls)
+        return cls._instance
 
     def __init__(self):
+        # 避免重复初始化
+        if hasattr(self, "initialized"):
+            return
+        self.initialized = True
+
         # 全局设置
         self.api_timeout: int = 300
         self.language: str = "en-US"  # options: en-US, zh-CN

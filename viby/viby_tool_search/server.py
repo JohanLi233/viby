@@ -28,36 +28,39 @@ from viby.viby_tool_search.common import (
 # 配置日志
 logger = logging.getLogger(__name__)
 
+
 # 配置日志格式和处理器
 def setup_logging():
     """配置日志记录器"""
     log_file = get_log_file_path()
-    
+
     # 创建格式化器
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+
     # 创建文件处理器
-    file_handler = logging.FileHandler(log_file, encoding='utf-8')
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
     file_handler.setFormatter(formatter)
     file_handler.setLevel(logging.INFO)
-    
+
     # 创建控制台处理器
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
     console_handler.setLevel(logging.INFO)
-    
+
     # 配置根日志记录器
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
-    
+
     # 清除已有的处理器，避免重复
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
-    
+
     # 添加处理器
     root_logger.addHandler(file_handler)
     root_logger.addHandler(console_handler)
-    
+
     logger.info(f"嵌入服务日志将保存到: {log_file}")
 
 
@@ -71,14 +74,20 @@ def run_server():
     """运行FastAPI服务器"""
     # 配置日志
     setup_logging()
-    
+
     # 创建FastAPI应用
     app = FastAPI(title="Viby Embedding Server")
 
     # 创建并预热模型
     embedding_manager = EmbeddingManager()
     if not embedding_manager._load_model():  # 预加载模型
-        logger.error(get_text("TOOLS", "model_load_failed_server_exit", "嵌入模型加载失败，服务器启动终止"))
+        logger.error(
+            get_text(
+                "TOOLS",
+                "model_load_failed_server_exit",
+                "嵌入模型加载失败，服务器启动终止",
+            )
+        )
         sys.exit(1)  # 模型加载失败，退出程序
 
     # 记录PID
@@ -97,7 +106,7 @@ def run_server():
     }
     with open(status_file, "w") as f:
         json.dump(status, f)
-    
+
     logger.info(f"嵌入服务器已启动: PID={os.getpid()}, 端口={DEFAULT_PORT}")
 
     # 健康检查端点
@@ -119,7 +128,9 @@ def run_server():
             results = embedding_manager.search_similar_tools(
                 request.query, request.top_k
             )
-            logger.info(f"搜索完成: 找到 {sum(len(tools) for tools in results.values())} 个结果")
+            logger.info(
+                f"搜索完成: 找到 {sum(len(tools) for tools in results.values())} 个结果"
+            )
             return results
         except Exception as e:
             logger.error(f"{get_text('TOOLS', 'search_failed', '搜索失败')}: {e}")

@@ -2,11 +2,11 @@
 消息压缩模块 - 实现智能消息历史压缩功能
 """
 
-from typing import Dict, Any, List, Tuple, Optional
+from typing import Dict, Any, List, Tuple
 import re
 
-# 懒加载OpenAI库以减少启动时间
-from viby.config.app_config import Config
+# 导入配置单例
+from viby.config import config
 from viby.utils.logging import get_logger
 from viby.locale import get_text
 from viby.llm.client import create_openai_client
@@ -27,9 +27,9 @@ class CompactionManager:
     MESSAGE_OVERHEAD = 4
     FORMATTING_OVERHEAD = 3
 
-    def __init__(self, config: Optional[Config] = None):
+    def __init__(self):
         """初始化压缩管理器"""
-        self.config = config or Config()
+        self.config = config
         # 使用配置中的autocompact设置
         self.autocompact_config = self.config.autocompact
         self.compaction_stats = {

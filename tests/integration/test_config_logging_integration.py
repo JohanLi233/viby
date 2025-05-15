@@ -39,6 +39,14 @@ api_timeout: 300
         yield config_dir, config_path
 
 
+@pytest.fixture(autouse=True)
+def reset_config_singleton():
+    """确保每个测试都获取全新的Config实例"""
+    Config._instance = None
+    yield
+    Config._instance = None
+
+
 def test_config_with_logging_integration(mock_config_path, mock_logger):
     """测试配置加载与日志集成"""
     config_dir, config_path = mock_config_path

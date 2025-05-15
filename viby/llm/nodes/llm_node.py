@@ -14,8 +14,25 @@ class LLMNode(Node):
 
     def prep(self, shared):
         """准备模型调用所需的参数"""
+        # 创建中断事件和监听线程
         interrupt_event = threading.Event()
-        listener_thread = None
+        listener_thread = self._create_interrupt_listener(interrupt_event)
+
+        # 运行监听线程
+        if listener_thread:
+            listener_thread.start()
+
+        # 返回模型调用所需的所有参数
+        return {
+            "model_manager": shared.get("model_manager"),
+            "messages": shared.get("messages", []),
+            "tools": shared.get("tools", []),
+            "interrupt_event": interrupt_event,
+            "listener_thread": listener_thread,
+        }
+
+    def _create_interrupt_listener(self, event):
+        """创建监听中断的线程"""
 
         def _listen_for_interrupt(event):
             try:
@@ -58,30 +75,20 @@ class LLMNode(Node):
                 # 捕获所有异常，确保线程不会崩溃
                 pass
 
-        # 创建并启动监听线程
-        listener_thread = threading.Thread(
-            target=_listen_for_interrupt, args=(interrupt_event,), daemon=True
+        return threading.Thread(
+            target=_listen_for_interrupt, args=(event,), daemon=True
         )
-        listener_thread.start()
-
-        return {
-            "model_manager": shared.get("model_manager"),
-            "messages": shared.get("messages"),
-            "tools": shared.get("tools"),
-            "interrupt_event": interrupt_event,
-            "listener_thread": listener_thread,
-        }
 
     def exec(self, prep_res):
-        """执行模型调用并渲染输出，直接获取工具调用信息"""
+        """执行模型调用并渲染输出"""
         manager = prep_res.get("model_manager")
         messages = prep_res.get("messages")
         interrupt_event = prep_res.get("interrupt_event")
-        listener_thread = prep_res.get("listener_thread")
 
         if not manager or not messages:
-            return None
+            return {"text_content": "", "was_interrupted": False}
 
+        # 收集文本块和中断状态
         chunks = []
         was_interrupted = False
 
@@ -95,32 +102,40 @@ class LLMNode(Node):
                     chunks.append(text)
                     yield text
 
+        # 渲染流式响应
         render_markdown_stream(_stream_response())
 
         return {
             "text_content": "".join(chunks),
             "interrupt_event": interrupt_event,
-            "listener_thread": listener_thread,
+            "listener_thread": prep_res.get("listener_thread"),
             "was_interrupted": was_interrupted,
         }
 
+    def exec_fallback(self, prep_res, exc):
+        """错误处理：提供友好的错误信息"""
+        return {
+            "text_content": f"Error: {str(exc)}",
+            "interrupt_event": prep_res.get("interrupt_event"),
+            "listener_thread": prep_res.get("listener_thread"),
+            "was_interrupted": False,
+        }
+
     def post(self, shared, prep_res, exec_res):
-        """处理模型响应，处理工具调用（如果有），清理监听线程"""
+        """处理模型响应，处理工具调用，清理监听线程"""
         text_content = exec_res.get("text_content", "")
         interrupt_event = exec_res.get("interrupt_event")
         listener_thread = exec_res.get("listener_thread")
         was_interrupted = exec_res.get("was_interrupted", False)
 
-        # 只有当监听线程存在时才尝试清理
-        if listener_thread and listener_thread.is_alive():
-            if interrupt_event:
-                interrupt_event.set()
-            listener_thread.join(timeout=0.2)
+        # 清理监听线程
+        self._cleanup_listener(listener_thread, interrupt_event)
 
+        # 保存响应到共享状态
         shared["response"] = text_content
         shared["messages"].append({"role": "assistant", "content": text_content})
 
-        # 尝试解析XML格式的工具调用
+        # 尝试解析工具调用
         tool_call = self._extract_xml_tool_call(text_content)
         if tool_call:
             return self._handle_xml_tool_call(shared, tool_call)
@@ -128,6 +143,13 @@ class LLMNode(Node):
         if was_interrupted:
             return "interrupt"
         return "continue"
+
+    def _cleanup_listener(self, listener_thread, interrupt_event):
+        """清理监听线程"""
+        if listener_thread and listener_thread.is_alive():
+            if interrupt_event:
+                interrupt_event.set()
+            listener_thread.join(timeout=0.2)
 
     def _extract_xml_tool_call(self, text):
         """从文本中提取XML格式的工具调用"""
@@ -156,12 +178,15 @@ class LLMNode(Node):
                 print(get_text("MCP", "parsing_error", "No tool name specified in XML"))
                 return "continue"
 
+            # 查找工具所属的服务器
             tool_servers = shared.get("tool_servers", {})
             selected_server = tool_servers.get(tool_name)
 
             if not selected_server:
                 print(get_text("MCP", "parsing_error", f"Tool '{tool_name}' not found"))
                 return "continue"
+
+            # 更新消息中的工具调用信息
             shared["messages"][-1]["tool_calls"] = [
                 {
                     "id": "0",
@@ -170,6 +195,7 @@ class LLMNode(Node):
                 }
             ]
 
+            # 保存工具调用所需的参数
             shared.update(
                 {
                     "tool_name": tool_name,
@@ -181,7 +207,3 @@ class LLMNode(Node):
         except Exception as e:
             print(get_text("MCP", "parsing_error", e))
             return "continue"
-
-    def exec_fallback(self, prep_res, exc):
-        """错误处理：提供友好的错误信息"""
-        return f"Error: {str(exc)}"

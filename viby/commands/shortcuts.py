@@ -4,8 +4,8 @@ Viby 键盘快捷键命令
 处理快捷键的安装和管理
 """
 
-from typing import Optional, Any
-
+from typing import Optional
+import typer
 from viby.utils.keyboard_shortcuts import install_shortcuts, detect_shell
 from viby.locale import get_text
 
@@ -17,36 +17,21 @@ class ShortcutsCommand:
         """初始化快捷键命令"""
         pass
 
-    def execute(self, subcommand: Optional[str] = None, args: Any = None) -> int:
+    def run(self, shell: Optional[str] = None) -> int:
         """
-        执行快捷键命令
-
-        Args:
-            subcommand: 不再使用
-            args: 命令行参数
-
-        Returns:
-            命令执行的退出码
+        安装并管理快捷键
         """
-        # 获取shell类型，优先使用参数指定的shell
-        shell = getattr(args, "shell", None) if args else None
-
-        # 如果没有指定shell，打印自动检测提示
         if not shell:
             detected_shell = detect_shell()
             if detected_shell:
                 print(f"{get_text('SHORTCUTS', 'auto_detect_shell')}: {detected_shell}")
             else:
                 print(get_text("SHORTCUTS", "auto_detect_failed"))
+            shell = detected_shell
 
-        # 安装快捷键
         result = install_shortcuts(shell)
-
-        # 显示安装结果
         self._print_result(result)
-
-        # 根据操作状态设置退出码
-        return 0 if result["status"] in ["success", "info"] else 1
+        return 0 if result.get("status") in ["success", "info"] else 1
 
     def _print_result(self, result: dict) -> None:
         """
@@ -77,3 +62,19 @@ class ShortcutsCommand:
 
         if result["status"] == "success":
             print(f"\n{get_text('SHORTCUTS', 'activation_note')}")
+
+
+app = typer.Typer(
+    help=get_text("SHORTCUTS", "command_help"), invoke_without_command=True
+)
+
+
+@app.callback(invoke_without_command=True)
+def cli(
+    shell: Optional[str] = typer.Option(
+        None, "--shell", "-s", help=get_text("SHORTCUTS", "auto_detect_shell")
+    ),
+):
+    """安装和管理键盘快捷键。"""
+    code = ShortcutsCommand().run(shell)
+    raise typer.Exit(code=code)
