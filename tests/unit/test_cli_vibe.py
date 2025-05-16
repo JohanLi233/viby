@@ -305,16 +305,16 @@ def test_shortcuts_command(
         mock_detect.reset_mock()
         mock_install.reset_mock()
         mock_typer.reset_mock()
-        
+
         mock_detect.return_value = None
         mock_install.return_value = {
             "status": "error",
             "message": "安装失败",
             "action_required": "需要手动操作",
         }
-        
+
         cli_runner.invoke(app, ["shortcuts"])
-        
+
         mock_detect.assert_called_once()
         mock_install.assert_called_once_with(None)
         mock_typer.echo.assert_any_call("auto_detect_failed")
@@ -329,9 +329,9 @@ def test_history_list_command(mock_get_command, cli_runner):
         mock_history_command = MagicMock()
         mock_history_class = MagicMock(return_value=mock_history_command)
         mock_get_command.return_value = mock_history_class
-    
+
         cli_runner.invoke(app, ["history", "list"])
-    
+
         mock_get_command.assert_called_once_with("history")
         mock_history_class.assert_called_once()
         mock_history_command.list_history.assert_called_once_with(10)
@@ -345,9 +345,9 @@ def test_history_search_command(mock_get_command, cli_runner):
         mock_history_command = MagicMock()
         mock_history_class = MagicMock(return_value=mock_history_command)
         mock_get_command.return_value = mock_history_class
-    
+
         cli_runner.invoke(app, ["history", "search", "查询词"])
-    
+
         mock_get_command.assert_called_once_with("history")
         mock_history_class.assert_called_once()
         mock_history_command.search_history.assert_called_once_with("查询词", 10)
@@ -361,27 +361,28 @@ def test_history_export_command(mock_get_command, cli_runner):
         mock_history_command = MagicMock()
         mock_history_class = MagicMock(return_value=mock_history_command)
         mock_get_command.return_value = mock_history_class
-    
+
         # 测试默认格式和类型
         cli_runner.invoke(app, ["history", "export", "output.json"])
-    
+
         mock_get_command.assert_called_once_with("history")
         mock_history_class.assert_called_once()
         mock_history_command.export_history.assert_called_once_with(
             "output.json", "json", "interactions"
         )
-    
+
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
         # 测试自定义格式和类型
         mock_get_command.reset_mock()
         mock_history_class.reset_mock()
         mock_history_command.export_history.reset_mock()
-    
+
         cli_runner.invoke(
-            app, ["history", "export", "output.csv", "--format", "csv", "--type", "shell"]
+            app,
+            ["history", "export", "output.csv", "--format", "csv", "--type", "shell"],
         )
-    
+
         mock_get_command.assert_called_once_with("history")
         mock_history_class.assert_called_once()
         mock_history_command.export_history.assert_called_once_with(
@@ -397,9 +398,9 @@ def test_history_clear_command(mock_get_command, cli_runner):
         mock_history_command = MagicMock()
         mock_history_class = MagicMock(return_value=mock_history_command)
         mock_get_command.return_value = mock_history_class
-    
+
         cli_runner.invoke(app, ["history", "clear"])
-    
+
         mock_get_command.assert_called_once_with("history")
         mock_history_class.assert_called_once()
         mock_history_command.clear_history.assert_called_once()
@@ -413,9 +414,9 @@ def test_history_shell_command(mock_get_command, cli_runner):
         mock_history_command = MagicMock()
         mock_history_class = MagicMock(return_value=mock_history_command)
         mock_get_command.return_value = mock_history_class
-    
+
         cli_runner.invoke(app, ["history", "shell"])
-    
+
         mock_get_command.assert_called_once_with("history")
         mock_history_class.assert_called_once()
         mock_history_command.list_shell_history.assert_called_once_with(10)
@@ -429,9 +430,9 @@ def test_tools_list_command(mock_get_command, cli_runner):
         mock_tools_command = MagicMock()
         mock_tools_class = MagicMock(return_value=mock_tools_command)
         mock_get_command.return_value = mock_tools_class
-    
+
         cli_runner.invoke(app, ["tools", "list"])
-    
+
         mock_get_command.assert_called_once_with("tools")
         mock_tools_class.assert_called_once()
         mock_tools_command.list_tools.assert_called_once()
@@ -445,12 +446,12 @@ def test_embed_commands(mock_get_command, cli_runner):
         mock_embed_command = MagicMock()
         mock_embed_class = MagicMock(return_value=mock_embed_command)
         mock_get_command.return_value = mock_embed_class
-    
+
         # 测试update子命令
         cli_runner.invoke(app, ["tools", "embed", "update"])
         mock_get_command.assert_called_with("embed")
         mock_embed_command.update_embeddings.assert_called_once()
-    
+
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
         # 测试start子命令
@@ -459,7 +460,7 @@ def test_embed_commands(mock_get_command, cli_runner):
         cli_runner.invoke(app, ["tools", "embed", "start"])
         mock_get_command.assert_called_with("embed")
         mock_embed_command.start_embed_server.assert_called_once()
-    
+
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
         # 测试stop子命令
@@ -468,7 +469,7 @@ def test_embed_commands(mock_get_command, cli_runner):
         cli_runner.invoke(app, ["tools", "embed", "stop"])
         mock_get_command.assert_called_with("embed")
         mock_embed_command.stop_embed_server.assert_called_once()
-    
+
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
         # 测试status子命令
@@ -477,7 +478,7 @@ def test_embed_commands(mock_get_command, cli_runner):
         cli_runner.invoke(app, ["tools", "embed", "status"])
         mock_get_command.assert_called_with("embed")
         mock_embed_command.check_embed_server_status.assert_called_once()
-    
+
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
         # 测试download子命令

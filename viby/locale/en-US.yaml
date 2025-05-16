@@ -38,113 +38,57 @@ AGENT:
     for available tools, and the tools retrieved are all available.Always strive to
     solve the user''s needs efficiently and thoroughly.'
 CHAT:
-  available_commands: 'Available top-level commands:'
-  current_time: 'Current time: {0}'
-  help_commands: Show available top-level commands
-  help_exit: Exit Viby
-  help_help: Show this help information
-  help_history: Show recent command history
-  help_history_clear: Clear command history
-  help_note: You can also use standard Viby commands like ask, shell, chat
-  help_shortcuts: 'Shortcuts:'
-  help_status: Show current status information
-  help_title: 'Available internal commands:'
-  history_clear_error: 'Error clearing history: {0}'
-  history_cleared: 'Command history cleared. Backup created at: {0}'
-  history_empty: No command history yet.
-  history_not_found: History file not found.
-  history_title: 'Recent command history:'
   input_prompt: '|> '
-  shortcut_exit: 'Ctrl+C: Exit program'
-  shortcut_help: 'F1: Show this help information'
-  shortcut_time: 'Ctrl+T: Show current time'
-  status_title: 'System status:'
-  version_info: 'Viby version information:'
-  version_number: 'Version: {0}'
-  welcome: Welcome to Viby chat mode, type 'exit' to end conversation
-COMMANDS:
-  available_commands: 'Available Commands:'
-  unknown_subcommand: unknown subcommand:{0}
 CONFIG_WIZARD:
   PASS_PROMPT_HINT: (type 'pass' to skip)
-  api_timeout_prompt: API timeout (seconds)
   autocompact_header: '--- Auto Message Compaction Configuration ---'
   autocompact_threshold_prompt: Compaction threshold (ratio of max_tokens to trigger
     compaction, 0.1-0.9)
   checking_chinese: Checking if terminal supports Chinese...
-  config_saved: Configuration saved to
-  continue_prompt: Press Enter to continue...
-  default_api_key_prompt: Default API Key (if needed)
-  default_api_url_prompt: Default API Base URL
   default_model_header: '--- Default Model Configuration ---'
-  default_model_name_prompt: Default Model Name
-  embedding_cache_dir_prompt: Embedding Model Cache Directory (optional, leave blank
-    for default)
   embedding_model_header: '--- Embedding Model Configuration ---'
   embedding_model_name_prompt: Embedding Model Name
-  embedding_update_choices: On change, Manual
   enable_autocompact_prompt: Enable automatic message compaction
   enable_mcp_prompt: Enable MCP tools
   enable_tool_search_prompt: Enable MCP tool search feature (intelligently select
     relevant tools based on query)
   enable_yolo_mode_prompt: Enable YOLO mode (auto-execute safe shell commands)
   fast_model_header: '--- Fast Model Configuration (Optional) ---'
-  fast_model_name_prompt: Fast Model Name (optional, leave blank to skip)
-  global_max_tokens_prompt: Set default global maximum tokens (20480)
   invalid_decimal: Please enter a valid decimal number!
   invalid_integer: Please enter a valid integer!
-  invalid_min_p: Invalid min_p value, set to None!
   invalid_number: Please enter a valid number!
-  invalid_top_k: Invalid top_k value, set to None!
   invalid_top_p: Invalid top_p value, set to None!
   keep_exchanges_prompt: Number of recent exchanges to keep uncompacted (1-5)
   keep_exchanges_range: Keep exchanges must be between 1 and 5!
-  max_tokens_prompt: Maximum tokens
   mcp_config_info: 'MCP configuration folder: {0}'
-  min_p_range: min_p must be between 0.0 and 1.0, set to None!
   model_max_tokens_prompt: Set maximum tokens for {model_name} model (20480)
-  model_min_p_prompt: Set min_p value for {model_name} model (0.0-1.0, leave blank
-    to disable)
   model_specific_key_prompt: API Key for {model_name} (optional, uses default if blank)
   model_specific_url_prompt: API URL for {model_name} (optional, uses default if blank)
   model_temperature_prompt: Set temperature for {model_name} model (0.0-1.0)
-  model_top_k_prompt: Set top_k value for {model_name} model (leave blank to disable)
   model_top_p_prompt: Set top_p value for {model_name} model (0.0-1.0, leave blank
     to disable)
   'no': 'No'
   number_range_error: Please enter a number between 1-{0}!
   selected_language: Selected English interface
-  temperature_prompt: Temperature (0.0-1.0)
   temperature_range: Temperature must be between 0.0 and 1.0!
   think_model_header: '--- Think Model Configuration (Optional) ---'
-  think_model_name_prompt: Think Model Name (optional, leave blank to skip)
   threshold_range: Threshold must be between 0.1 and 0.9!
-  timeout_positive: Timeout must be greater than 0!
   tokens_positive: Token count must be greater than 0!
-  top_k_positive: top_k must be a positive integer, set to None!
   top_p_range: top_p must be between 0.0 and 1.0, set to None!
   url_error: URL must start with http:// or https://!
   'yes': 'Yes'
 GENERAL:
   app_description: viby - A versatile command-line tool for interacting with large
     language models
-  app_epilog: "Examples:\n  yb \"What is the Fibonacci sequence?\"\n  git diff | yb\
-    \ \"Help me write a commit message\"\n  yb \"Find all json files in current directory\"\
-    \n"
   chat_help: Start an interactive chat session with the model
   config_help: Launch interactive configuration wizard
-  copy_fail: 'Copy failed: {0}'
-  copy_success: Content copied to clipboard!
   fast_help: Use the fast model for quicker responses (if configured)
   help_text: show this help message and exit
-  language_help: Set the interface language (en-US or zh-CN)
   llm_empty_response: Model did not return any content, please try again or check
     your prompt.
   model_not_specified_error: 'Error: No model specified. You must explicitly set a
     model in the configuration.'
-  operation_cancelled: Operation cancelled.
   prompt_help: Prompt content to send to the model
-  shell_help: Generate and optionally execute shell commands
   think_help: Use the think model for deeper analysis (if configured)
   token_usage_completion: 'Output Tokens: {0}'
   token_usage_duration: 'Response Time: {0}'
@@ -157,14 +101,10 @@ GENERAL:
 HISTORY:
   clear_cancelled: Clear operation cancelled.
   clear_failed: Failed to clear history records.
-  clear_help: Clear history records
   clear_successful: Successfully cleared {0} history records
-  clear_type_help: Type of history to clear (all, interactions, shell)
   clearing_history: Clearing history records...
   command: Command
   command_help: Manage interaction history records
-  compaction_disabled: Auto message compaction is disabled
-  compaction_enabled: 'Auto message compaction is enabled, threshold: {0}%'
   compaction_system_prompt: You are a chat history compression assistant. Your task
     is to compress the provided conversation history into a smaller token count while
     preserving all important information and context. Your goal is to reduce token
@@ -172,20 +112,15 @@ HISTORY:
     readable, and include all relevant information, but with more concise wording.
     Do not add any information that was not present in the original conversation.
   compaction_user_prompt: 'Please compress the following conversation history, preserving
-    important information but reducing token count:
-    {0}'
+    important information but reducing token count: {0}'
   compressed_summary_prefix: 'Here''s a compressed summary of the previous conversation:'
   confirm_clear_all: Are you sure you want to clear all history records?
-  confirm_clear_interactions: Are you sure you want to clear all interaction history
-    records?
-  confirm_clear_shell: Are you sure you want to clear all shell command history records?
   content: Content
   create_directory_failed: 'Failed to create directory: {0}'
   directory: Directory
   exit_code: Exit code
   export_cancelled: Export cancelled.
   export_failed: Failed to export history records.
-  export_help: Export history records
   export_path_required: Export file path is required.
   export_successful: 'History records successfully exported to {0}, format: {1}, type:
     {2}'
@@ -194,10 +129,7 @@ HISTORY:
   file_help: Path to export file
   force_help: Force clear without confirmation
   format_help: Export format (json, csv, yaml)
-  history_compacted: Message history has been compacted, preserving key information
-    while saving {0} tokens.
   limit_help: Number of records to display
-  list_help: List recent history records
   no_history: No history records found.
   no_matching_history: No matching history for '{0}'.
   no_shell_history: No shell command history found.
@@ -205,13 +137,8 @@ HISTORY:
   recent_history: Recent interaction history
   recent_shell_history: Recent shell command history
   response: Response
-  search_help: Search history records
   search_results: 'Search results: ''{0}'''
   search_term_required: A search keyword is required.
-  shell_help: List shell command history
-  subcommand_help: Subcommands for history management
-  subcommand_required: A history subcommand must be specified (e.g., list, search,
-    export, clear, shell)
   timestamp: Time
   type: Type
   type_help: Type of history to export (interactions, shell)
@@ -222,10 +149,8 @@ MCP:
 
     ❌ Error executing tool: {0}'
   parsing_error: '❌ Error parsing LLM response: {0}'
-  result: '✅ Result: {0}'
   shell_tool_description: Execute a shell command on the user's system
   shell_tool_param_command: The shell command to execute
-  tool_result: Tool call result
   tool_retrieval_description: Search for most relevant MCP tools based on user query,
     returning tool names, descriptions, parameters, and similarity scores
   tool_retrieval_param_query: Search query text describing needed tool functionality
@@ -235,78 +160,32 @@ MCP:
   tools_error: '
 
     Error: Failed to get MCP tools: {0}'
-  update_tool_embeddings_description: Update tool embeddings. Regenerates all tool
-    embeddings
-RENDERER:
-  render_error: 'Rendering error: {}'
 SHELL:
   choice_prompt: '[r]run, [e]edit, [y]copy, [q]quit (default: run): '
-  command_complete: 'Command completed [Return code: {0}]'
-  command_error: 'Command execution error: {0}'
-  command_prompt: 'Please generate a single shell ({1}) command for: {0} (OS: {2}).
-    Only return the command itself, no explanations, no markdown.'
   edit_prompt: 'Edit command (original: {0}):
 
     > '
-  execute_prompt: Execute command│  {0}  │?
-  executing: 'Executing command: {0}'
-  executing_yolo: 'YOLO mode: Auto-executing command│  {0}  │'
-  improve_command_prompt: 'Improve this command: {0}, User feedback: {1}'
-  unsafe_command_warning: '⚠️ Warning: This command may be unsafe, YOLO auto-execution
-    prevented. Please confirm manually.'
 SHORTCUTS:
   action_instructions: 'Required action: source {0} or restart terminal'
-  action_required: Please run 'source {0}' or restart your terminal to activate shortcuts
-  activation_note: After installation, you can use Ctrl+Q shortcut to quickly launch
-    Viby
   auto_detect_failed: Unable to auto-detect shell type, will try common shell types
   auto_detect_shell: Auto-detected shell type
   command_help: Install terminal keyboard shortcuts (Ctrl+Q activates Viby), auto-detects
     shell type
   install_error: 'Failed to install shortcuts: {0}'
-  install_error_log: Error adding shortcuts
   install_exists: Shortcuts already exist in {0}
-  install_help: Install keyboard shortcuts to shell configuration
   install_success: Shortcuts successfully installed to {0}
-  message: Message
-  read_config_error: Error reading configuration file
-  shell_help: 'Optional: manually specify shell type (auto-detected by default)'
   shell_not_supported: 'Unsupported shell type: {0}'
-  status: Status
-  subcommand_help: Keyboard shortcuts management subcommands (optional)
 TOOLS:
-  actual: Actual
   available_tools_table_title: Available MCP Tools
-  cache_read_failed: Failed to read tool information from cache
-  calc_uptime_failed: Failed to calculate uptime
-  call_server_failed: Failed to call embedding model service
-  check_status_failed: Failed to check server status
-  checking_embed_server: Checking embedding model server status
-  clearing_cache: Clearing existing cache, regenerating embeddings...
-  collecting_tools: Collecting MCP tools
   command_help: Manage tools related commands
   connect_server_failed: Failed to connect to embedding server
-  days: days
-  description: Description
   description_column: Description
   description_unavailable: '[Description Unavailable]'
   download_help: Download embedding model
-  download_model_suggestion: Please use "yb tools embed download" command to download
-    the model first, then start the server
-  downloading: Downloading
-  downloading_embed_model: Downloading embedding model
-  downloading_model: Downloading embedding model
-  embed_server_already_running: Embedding model server is already running
-  embed_server_not_running: Embedding model server is not running
-  embed_server_running: Embedding model server is running
   embed_server_start_failed: Failed to start embedding model server
-  embed_server_started: Embedding model server started
   embed_server_status_check_failed: Failed to check embedding model server status
-  embed_server_status_unknown: Embedding model server status unknown
   embed_server_stop_failed: Failed to stop embedding model server
-  embed_server_stopped: Embedding model server stopped
   embed_server_title: Embedding Model Service
-  embed_server_uptime: Uptime
   embed_start_help: Start the embedding model service
   embed_status_help: Check the status of the embedding model service
   embed_stop_help: Stop the embedding model service
@@ -317,110 +196,36 @@ TOOLS:
     model is downloaded
   embedding_server_not_running_cannot_update: Embedding model server is not running,
     cannot update tools
-  embedding_update: Embedding update
-  embeddings_already_updated: Embeddings are already up to date, no update needed
   embeddings_update_failed: Embedding update failed
-  embeddings_update_success: Tool embeddings have been successfully updated
   embeddings_update_title: Embedding Update
-  embeddings_update_via_server_failed: Failed to update embeddings via server
-  error_checking_server: Error checking server status
-  error_listing_tools: Error listing tools
-  error_occurred: ' error occurred'
-  error_starting_server: Error starting server
-  error_stopping_server: Error stopping server
-  error_updating_embeddings: Error updating embeddings
-  expected: Expected
-  failed: failed
-  fallback_collect_tools: Cannot read from cache, falling back to direct tool collection
-  fallback_to_cached: Cannot directly collect tools, trying to read from cache
-  generate_embedding_failed: Failed to generate embedding vector
-  get_param_desc: Getting tool
-  get_tool_desc: Getting tool
-  hours: hours
-  list_help: List all available MCP tools
   listing_tools: Listing available tools
-  load_cache_failed: Failed to load cache embeddings
-  loaded_from_cache: Loaded from cache
-  loading_embedding_model: Loading sentence-transformer model
   mcp_not_enabled: MCP functionality is not enabled, unable to retrieve tools
-  minutes: minutes
-  missing_tools: Missing tools
-  model_already_downloaded: Model already downloaded
   model_download_error: Error downloading model
-  model_download_failed: Model download failed
-  model_download_success: Model download successful
   model_load_complete: Model loading complete
   model_load_empty: Model loading failed, returned empty object
   model_load_failed: Failed to load model
-  model_not_downloaded: Embedding model not downloaded yet
   no_cached_tools: No cached tool information found
   no_embeddings: No tool embeddings available, please call update_tool_embeddings
     first
   no_mcp_tools: No MCP tools available
-  no_tools_found: No MCP tools found
-  not_in_tool_info: does not exist in tool_info, skipping
-  param: parameter
   param_count_column: Parameters
-  parameters: Parameters
-  prepare_update: Preparing to update
   query_cannot_be_empty: Query text cannot be empty
-  query_embedding_failed: Query embedding generation failed
-  read_status_failed: Failed to read status file
-  reading_from_cache: Reading tool information from local cache
-  related_tools: related tools
-  required: Required
   required_no: 'No'
   required_yes: 'Yes'
-  response: response
-  retrieving_from_server: Retrieving tool information from embedding model server
-  save_cache_failed: Failed to save embeddings to cache
-  save_count_mismatch: 'Warning: Saved tool count mismatch!'
-  saved_to_cache: Saved
-  saving_to_cache: About to save
-  search_failed: Search failed
-  search_success: Search successful, found
   search_timeout: Search request timed out
-  seconds: seconds
-  sending_search_request: Sending search request to embedding server
   server_already_running: Embedding model server is already running
   server_column: Server
   server_crashed: 'Failed to start embedding model server: Server process exi'
   server_not_running: Embedding model server is not running
   server_shutting_down: Server is shutting down...
-  server_start_error: Error starting server
   server_start_timeout: 'Failed to start embedding model server: service not responding'
-  start_server_suggestion: Please use 'yb tools embed start' command to start the
-    embedding model server and try again
   start_updating_embeddings: Starting to update embeddings for {tool_count} MCP tools...
-  starting_embed_server: Starting embedding model server
-  starting_server: Starting server
-  status_code: status code
-  stopping_embed_server: Stopping embedding model server
-  stopping_server: Stopping server
-  subcommand_help: Tool management subcommands
-  subcommand_required: A tool subcommand must be specified (e.g., embed, list)
-  success: successful
-  successfully_collected: Successfully collected tool data
   suggest_update_embeddings: Please use 'yb tools embed' command first to update tool
     embeddings
-  tool_list: Tool list
   tool_name_column: Tool Name
-  tool_not_exist: Tool
-  tools_embedding: tool embeddings
-  tools_embeddings: tool embeddings
   tools_list_title: Tools List
   tools_listing_failed: Failed to list tools
-  tools_loaded_from_cache: Tool information loaded from cache
-  tools_saved: tool embeddings to cache
-  tools_to_cache: tool information to cache
-  total_tools: Total tools
-  trying_local_update: Trying local update method
   update_embeddings_help: Update MCP tool embeddings
-  update_status_failed: Failed to update status file
   update_tools_failed: Failed to update tools
   updated_tools_table_title: Updated Tools List
   updating_embeddings: Updating all tool embeddings
-  using_default_model: Using default embedding model
-  using_embedding_server: Using embedding model server to update embeddings
-  using_local_update: Using local method to update embeddings
-  validate_error: Error validating saved tool info

@@ -6,7 +6,7 @@ import os
 import io
 import pytest
 from unittest import mock
-import re # 导入 re 模块
+import re  # 导入 re 模块
 
 # 导入CLI入口点
 from viby.cli.main import main
@@ -19,6 +19,7 @@ def with_stdin_mocked(func):
             return func(*args, **kwargs)
 
     return wrapper
+
 
 # 辅助函数：移除 ANSI 转义字符
 def strip_ansi_codes(text: str) -> str:

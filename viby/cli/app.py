@@ -17,6 +17,17 @@ from viby.utils.keyboard_shortcuts import install_shortcuts, detect_shell
 # ---------------------------------------------------------
 # 1) 预处理 argv：把默认未指定的情况映射到 vibe ---------
 # ---------------------------------------------------------
+
+# 已知的一级子命令名称
+_KNOWN_ROOT_CMDS = {
+    "vibe",
+    "chat",
+    "history",
+    "tools",
+    "embed",
+    "shortcuts",
+}
+
 def _inject_default_subcommand() -> None:
     """
     如果用户输入形如 `yb <something>`，而 <something> 既不是选项也不是
@@ -27,30 +38,22 @@ def _inject_default_subcommand() -> None:
     if len(sys.argv) <= 1:
         return
 
-    # 已知的一级子命令名称
-    _known_root_cmds = {
-        "vibe",
-        "chat",
-        "history",
-        "tools",
-        "embed",
-        "shortcuts",
-    }
-
     # 扫描 argv[1:]，找到第一个既不是 -option 也不是一级子命令的 token
     for idx, arg in enumerate(sys.argv[1:], start=1):
         # 1. 以 - 开头的是全局 / 子命令选项，跳过
         if arg.startswith("-"):
             continue
         # 2. 如果本身就是已知一级子命令，则无需插入，直接返回
-        if arg in _known_root_cmds:
+        if arg in _KNOWN_ROOT_CMDS:
             return
         # 3. 既不是选项也不是子命令 → 把 vibe 插进去
         sys.argv.insert(idx, "vibe")
         return
 
+
 _inject_default_subcommand()
 init_text_manager(config)
+
 
 def create_typer(help_text, add_completion: bool = True):
     """创建定制的 Typer 实例，统一配置帮助选项等"""
