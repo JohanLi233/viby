@@ -79,6 +79,7 @@ CONFIG_WIZARD:
   top_p_range: top_p must be between 0.0 and 1.0, set to None!
   url_error: URL must start with http:// or https://!
   'yes': 'Yes'
+  pass_input_hint: "(enter 'pass' to skip)"
 GENERAL:
   app_description: viby - A versatile command-line tool for interacting with large
     language models
@@ -102,7 +103,7 @@ GENERAL:
   token_usage_title: 'Token Usage Statistics:'
   token_usage_total: 'Total Tokens: {0}'
   tokens_help: Display token usage information
-  version_help: Show program's version number and exit
+  version_help: Show program''s version number and exit
 HISTORY:
   clear_cancelled: Clear operation cancelled.
   clear_failed: Failed to clear history records.
@@ -136,13 +137,13 @@ HISTORY:
   format_help: Export format (json, csv, yaml)
   limit_help: Number of records to display
   no_history: No history records found.
-  no_matching_history: No matching history for '{0}'.
+  no_matching_history: No matching history for ''{0}''.
   no_shell_history: No shell command history found.
   query_help: Search keyword
   recent_history: Recent interaction history
   recent_shell_history: Recent shell command history
   response: Response
-  search_results: 'Search results: ''{0}'''
+  search_results: 'Search results: ''''{0}''''''
   search_term_required: A search keyword is required.
   timestamp: Time
   type: Type
@@ -150,11 +151,11 @@ HISTORY:
 MCP:
   error_message: 'Error executing tool: {0}'
   executing_tool: '## Executing tool call'
-  execution_error: '
+  execution_error: |
 
-    ❌ Error executing tool: {0}'
+    ❌ Error executing tool: {0}
   parsing_error: '❌ Error parsing LLM response: {0}'
-  shell_tool_description: Execute a shell command on the user's system
+  shell_tool_description: Execute a shell command on the user''s system
   shell_tool_param_command: The shell command to execute
   tool_retrieval_description: Search for most relevant MCP tools based on user query,
     returning tool names, descriptions, parameters, and similarity scores
@@ -162,16 +163,17 @@ MCP:
     or user needs
   tool_retrieval_param_top_k: Number of most relevant tools to return, default is
     5
-  tools_error: '
+  tools_error: |
 
-    Error: Failed to get MCP tools: {0}'
+    Error: Failed to get MCP tools: {0}
 SHELL:
   choice_prompt: '[r]run, [e]edit, [y]copy, [q]quit (default: run): '
   command_complete: 'Command completed [Return code: {0}]'
   command_error: 'Command execution error: {0}'
-  edit_prompt: 'Edit command (original: {0}):
+  edit_prompt: |
+    Edit command (original: {0}):
 
-    > '
+    > 
   execute_prompt: Execute command│  {0}  │?
   executing: 'Executing command: {0}'
   executing_yolo: 'YOLO mode: Auto-executing command│  {0}  │'
@@ -179,7 +181,7 @@ SHELL:
     prevented. Please confirm manually.'
 SHORTCUTS:
   action_instructions: 'Required action: source {0} or restart terminal'
-  action_required: Please run 'source {0}' or restart your terminal to activate shortcuts
+  action_required: Please run ''source {0}'' or restart your terminal to activate shortcuts
   activation_note: After installation, you can use Ctrl+Q shortcut to quickly launch
     Viby
   auto_detect_failed: Unable to auto-detect shell type, will try common shell types
@@ -293,14 +295,14 @@ TOOLS:
   server_shutting_down: Server is shutting down...
   server_start_error: Error starting server
   server_start_timeout: 'Failed to start embedding model server: service not responding'
-  start_server_suggestion: Please use 'yb tools embed start' command to start the
+  start_server_suggestion: Please use ''yb tools embed start'' command to start the
     embedding model server and try again
   start_updating_embeddings: Starting to update embeddings for {tool_count} MCP tools...
   starting_server: Starting server
   status_code: status code
   stopping_server: Stopping server
   success: successful
-  suggest_update_embeddings: Please use 'yb tools embed' command first to update tool
+  suggest_update_embeddings: Please use ''yb tools embed'' command first to update tool
     embeddings
   tool_list: Tool list
   tool_name_column: Tool Name

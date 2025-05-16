@@ -72,6 +72,7 @@ CONFIG_WIZARD:
   top_p_range: top_p必须在0.0到1.0之间，已设为None
   url_error: URL 必须以 http:// 或 https:// 开头!
   'yes': 是
+  pass_input_hint: "(输入 'pass' 跳过)"
 GENERAL:
   app_description: Viby - 终端内的智能体
   chat_help: 启动与模型的交互式聊天会话

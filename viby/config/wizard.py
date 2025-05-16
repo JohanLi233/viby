@@ -34,8 +34,9 @@ def configure_model_profile(profile, model_type, config):
     """配置模型资料"""
     model_name_prompt = get_text("CONFIG_WIZARD", f"{model_type}_model_name_prompt")
     current_name = profile.name if profile else ""
+    localized_pass_hint = get_text("CONFIG_WIZARD", "pass_input_hint")
 
-    name_input = get_input(model_name_prompt, current_name, allow_pass_keyword=True)
+    name_input = get_input(model_name_prompt, current_name, allow_pass_keyword=True, pass_hint_text=localized_pass_hint)
 
     if not name_input or name_input == PASS_SENTINEL:
         return None
@@ -43,6 +44,7 @@ def configure_model_profile(profile, model_type, config):
     if not profile or profile.name != name_input:
         profile = ModelProfileConfig(name=name_input)
 
+    console.print()
     # 模型特定URL
     url_prompt = get_text("CONFIG_WIZARD", "model_specific_url_prompt").format(
         model_name=profile.name
@@ -52,18 +54,21 @@ def configure_model_profile(profile, model_type, config):
         profile.api_base_url or "",
         validator=lambda x: not x or validate_url(x),
         allow_pass_keyword=True,
+        pass_hint_text=localized_pass_hint,
     )
     profile.api_base_url = (
         None if not url_input or url_input == PASS_SENTINEL else url_input
     )
 
+    console.print()
     # 模型特定API密钥
     key_prompt = get_text("CONFIG_WIZARD", "model_specific_key_prompt").format(
         model_name=profile.name
     )
-    key_input = get_input(key_prompt, profile.api_key or "", allow_pass_keyword=True)
+    key_input = get_input(key_prompt, profile.api_key or "", allow_pass_keyword=True, pass_hint_text=localized_pass_hint)
     profile.api_key = None if not key_input or key_input == PASS_SENTINEL else key_input
 
+    console.print()
     # 最大令牌数
     tokens_prompt = get_text("CONFIG_WIZARD", "model_max_tokens_prompt").format(
         model_name=profile.name
@@ -79,13 +84,14 @@ def configure_model_profile(profile, model_type, config):
         except ValueError:
             show_error(get_text("CONFIG_WIZARD", "invalid_integer"))
 
+    console.print()
     # 温度设置
     temp_prompt = get_text("CONFIG_WIZARD", "model_temperature_prompt").format(
         model_name=profile.name
     )
     while True:
         temperature = get_input(
-            temp_prompt, str(profile.temperature or 0.7), allow_pass_keyword=True
+            temp_prompt, str(profile.temperature or 0.7), allow_pass_keyword=True, pass_hint_text=localized_pass_hint
         )
         if temperature == PASS_SENTINEL:
             profile.temperature = None
@@ -99,11 +105,12 @@ def configure_model_profile(profile, model_type, config):
         except ValueError:
             show_error(get_text("CONFIG_WIZARD", "invalid_decimal"))
 
+    console.print()
     # top_p设置
     top_p_prompt = get_text("CONFIG_WIZARD", "model_top_p_prompt").format(
         model_name=profile.name
     )
-    top_p = get_input(top_p_prompt, str(profile.top_p or ""), allow_pass_keyword=True)
+    top_p = get_input(top_p_prompt, str(profile.top_p or ""), allow_pass_keyword=True, pass_hint_text=localized_pass_hint)
     if top_p == PASS_SENTINEL or not top_p:
         profile.top_p = None
     else:
@@ -181,22 +188,26 @@ def run_config_wizard(config):
     config.default_model = configure_model_profile(
         config.default_model, "default", config
     )
-    print_separator()
+    console.print()
+    print_separator(char="-")
 
     # --- 思考模型配置 ---
     print_header(get_text("CONFIG_WIZARD", "think_model_header"))
     config.think_model = configure_model_profile(config.think_model, "think", config)
-    print_separator()
+    console.print()
+    print_separator(char="-")
 
     # --- 快速模型配置 ---
     print_header(get_text("CONFIG_WIZARD", "fast_model_header"))
     config.fast_model = configure_model_profile(config.fast_model, "fast", config)
-    print_separator()
+    console.print()
+    print_separator(char="-")
 
     # --- 嵌入模型配置 ---
     print_header(get_text("CONFIG_WIZARD", "embedding_model_header", "嵌入模型配置"))
     config = configure_embedding_model(config)
-    print_separator()
+    console.print()
+    print_separator(char="-")
 
     # --- 自动压缩配置 ---
     print_header(get_text("CONFIG_WIZARD", "autocompact_header", "消息自动压缩配置"))
@@ -261,7 +272,8 @@ def run_config_wizard(config):
             except ValueError:
                 show_error(get_text("CONFIG_WIZARD", "invalid_integer"))
 
-    print_separator()
+    console.print()
+    print_separator(char="-")
 
     # MCP工具设置
     enable_mcp_prompt = get_text("CONFIG_WIZARD", "enable_mcp_prompt")
@@ -275,8 +287,7 @@ def run_config_wizard(config):
     # 如果启用了MCP，显示配置文件夹信息
     if config.enable_mcp:
         show_info(
-            "\n"
-            + get_text("CONFIG_WIZARD", "mcp_config_info").format(config.config_dir)
+            get_text("CONFIG_WIZARD", "mcp_config_info").format(config.config_dir)
         )
 
         # 工具搜索设置

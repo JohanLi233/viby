@@ -333,7 +333,7 @@ def get_input(
     choices=None,
     allow_pass_keyword=False,
     pass_keyword="pass",
-    pass_hint="(输入 'pass' 跳过)",
+    pass_hint_text: Optional[str] = None,
 ):
     """
     获取用户输入，支持默认值和验证
@@ -352,9 +352,11 @@ def get_input(
     """
     PASS_SENTINEL = "_viby_internal_pass_"
 
+    final_pass_hint = pass_hint_text if pass_hint_text is not None else f"(enter '{pass_keyword}' to skip)"
+
     base_prompt_text = prompt
     if allow_pass_keyword:
-        base_prompt_text = f"{prompt} {pass_hint}"
+        base_prompt_text = f"{prompt} {final_pass_hint}"
 
     if default is not None:
         prompt_text = f"{base_prompt_text} [{default}]: "
