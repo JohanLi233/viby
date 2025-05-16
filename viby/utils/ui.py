@@ -352,7 +352,11 @@ def get_input(
     """
     PASS_SENTINEL = "_viby_internal_pass_"
 
-    final_pass_hint = pass_hint_text if pass_hint_text is not None else f"(enter '{pass_keyword}' to skip)"
+    final_pass_hint = (
+        pass_hint_text
+        if pass_hint_text is not None
+        else f"(enter '{pass_keyword}' to skip)"
+    )
 
     base_prompt_text = prompt
     if allow_pass_keyword:

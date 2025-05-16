@@ -36,7 +36,12 @@ def configure_model_profile(profile, model_type, config):
     current_name = profile.name if profile else ""
     localized_pass_hint = get_text("CONFIG_WIZARD", "pass_input_hint")
 
-    name_input = get_input(model_name_prompt, current_name, allow_pass_keyword=True, pass_hint_text=localized_pass_hint)
+    name_input = get_input(
+        model_name_prompt,
+        current_name,
+        allow_pass_keyword=True,
+        pass_hint_text=localized_pass_hint,
+    )
 
     if not name_input or name_input == PASS_SENTINEL:
         return None
@@ -65,7 +70,12 @@ def configure_model_profile(profile, model_type, config):
     key_prompt = get_text("CONFIG_WIZARD", "model_specific_key_prompt").format(
         model_name=profile.name
     )
-    key_input = get_input(key_prompt, profile.api_key or "", allow_pass_keyword=True, pass_hint_text=localized_pass_hint)
+    key_input = get_input(
+        key_prompt,
+        profile.api_key or "",
+        allow_pass_keyword=True,
+        pass_hint_text=localized_pass_hint,
+    )
     profile.api_key = None if not key_input or key_input == PASS_SENTINEL else key_input
 
     console.print()
@@ -91,7 +101,10 @@ def configure_model_profile(profile, model_type, config):
     )
     while True:
         temperature = get_input(
-            temp_prompt, str(profile.temperature or 0.7), allow_pass_keyword=True, pass_hint_text=localized_pass_hint
+            temp_prompt,
+            str(profile.temperature or 0.7),
+            allow_pass_keyword=True,
+            pass_hint_text=localized_pass_hint,
         )
         if temperature == PASS_SENTINEL:
             profile.temperature = None
@@ -110,7 +123,12 @@ def configure_model_profile(profile, model_type, config):
     top_p_prompt = get_text("CONFIG_WIZARD", "model_top_p_prompt").format(
         model_name=profile.name
     )
-    top_p = get_input(top_p_prompt, str(profile.top_p or ""), allow_pass_keyword=True, pass_hint_text=localized_pass_hint)
+    top_p = get_input(
+        top_p_prompt,
+        str(profile.top_p or ""),
+        allow_pass_keyword=True,
+        pass_hint_text=localized_pass_hint,
+    )
     if top_p == PASS_SENTINEL or not top_p:
         profile.top_p = None
     else:

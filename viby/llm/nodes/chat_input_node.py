@@ -6,11 +6,29 @@ from pocketflow import Node
 from prompt_toolkit import prompt
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import FileHistory
-from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.completion import WordCompleter, Completer
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.styles import Style
 
 from viby.locale import get_text
+
+
+# Custom completer to show command suggestions only when typing a command
+class SelectiveCommandCompleter(Completer):
+    def __init__(self, commands_dict):
+        self.command_completer = WordCompleter(
+            list(commands_dict.keys()), ignore_case=True
+        )
+
+    def get_completions(self, document, complete_event):
+        text = document.text_before_cursor
+        stripped_text = text.lstrip()  # Remove leading spaces
+
+        # Only offer completions if the stripped text starts with '/'
+        # and we are likely still typing the command itself (i.e., no spaces after the command start).
+        if stripped_text.startswith("/") and " " not in stripped_text:
+            yield from self.command_completer.get_completions(document, complete_event)
+        # Otherwise, no completions are offered by this completer.
 
 
 class ChatInputNode(Node):
@@ -41,9 +59,7 @@ class ChatInputNode(Node):
         config["history"] = FileHistory(str(config["history_path"]))
 
         # 创建命令自动完成器
-        config["command_completer"] = WordCompleter(
-            list(config["commands"].keys()), ignore_case=True
-        )
+        config["command_completer"] = SelectiveCommandCompleter(config["commands"])
 
         # 创建键绑定
         config["key_bindings"] = KeyBindings()
