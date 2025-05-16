@@ -21,7 +21,6 @@ from viby.utils.keyboard_shortcuts import install_shortcuts, detect_shell
 # 已知的一级子命令名称
 _KNOWN_ROOT_CMDS = {
     "vibe",
-    "chat",
     "history",
     "tools",
     "embed",
@@ -109,7 +108,6 @@ logger = setup_logging(log_to_file=True)
 # 命令注册表
 command_registry: Dict[str, Dict] = {
     "vibe": {"module": "viby.commands.vibe", "class": "Vibe"},
-    "chat": {"module": "viby.commands.chat", "class": "ChatCommand"},
     "history": {"module": "viby.commands.history", "class": "HistoryCommand"},
     "shortcuts": {"module": "viby.commands.shortcuts", "class": "ShortcutsCommand"},
     "tools": {"module": "viby.commands.tools", "class": "ToolsCommand"},
@@ -268,7 +266,6 @@ def main(
 
     # 保存选项到上下文，以便在命令中使用
     ctx.obj = {
-        "chat": chat,
         "think": think,
         "fast": fast,
         "tokens": tokens,
@@ -299,20 +296,6 @@ def vibe(ctx: typer.Context, prompt_args: List[str] = typer.Argument(None)):
 
     # 执行命令
     return vibe.vibe(user_input)
-
-
-@app.command(help=get_text("GENERAL", "chat_help"))
-def chat(ctx: typer.Context):
-    """启动交互式聊天模式与 AI 进行多轮对话。"""
-    # 懒加载模型管理器
-    model_manager = load_model_manager(ctx.obj)
-
-    # 创建 ChatCommand 实例
-    ChatCommand = get_command_class("chat")
-    chat_command = ChatCommand(model_manager)
-
-    # 执行命令
-    return chat_command.run()
 
 
 @app.command(help=get_text("SHORTCUTS", "command_help"))

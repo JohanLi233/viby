@@ -37,8 +37,6 @@ AGENT:
     websites and resources (e.g., use curl to check the weather).You can also search
     for available tools, and the tools retrieved are all available.Always strive to
     solve the user''s needs efficiently and thoroughly.'
-CHAT:
-  input_prompt: '|> '
 CONFIG_WIZARD:
   autocompact_header: '--- Auto Message Compaction Configuration ---'
   autocompact_threshold_prompt: Compaction threshold (ratio of max_tokens to trigger
@@ -83,7 +81,6 @@ CONFIG_WIZARD:
 GENERAL:
   app_description: viby - A versatile command-line tool for interacting with large
     language models
-  chat_help: Start an interactive chat session with the model
   config_help: Launch interactive configuration wizard
   copy_fail: 'Copy failed: {0}'
   copy_success: Content copied to clipboard!

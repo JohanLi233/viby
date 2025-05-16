@@ -70,19 +70,6 @@ yb "Write a quicksort in python"
 # -> Same result as above
 ```
 
-### Interactive Chat Mode
-
-```sh
-yb --chat
-# or
-yb -c
-|> Tell me about quantum computing
-# -> [AI responds about quantum computing]
-|> What are the practical applications?
-# -> [AI responds with follow-up information]
-|> exit
-```
-
 ### Process Piped Content
 
 ```sh
@@ -216,7 +203,6 @@ yb [OPTIONS] [COMMAND] [ARGS]...
 Main commands:
 - `yb [prompt]` - Ask a question (alias for `yb vibe "your question"`; **recommended**)
 - `yb vibe "your question"` - Ask a question (default command for questions)
-- `yb --chat` or `yb -c` - Start interactive chat mode
 - `yb --think vibe "complex question"` - Use the think model for deeper analysis
 - `yb --fast vibe "simple question"` - Use the fast model for quick responses
 - `yb history` - Manage interaction history

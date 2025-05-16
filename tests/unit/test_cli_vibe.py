@@ -254,26 +254,6 @@ def test_vibe_command(
             mock_get_command.assert_not_called()
 
 
-@patch("viby.cli.app.get_command_class")
-@patch("viby.cli.app.load_model_manager")
-def test_chat_command(mock_load_manager, mock_get_command, cli_runner):
-    """测试chat命令"""
-    # 模拟配置不是首次运行，避免触发配置向导
-    with patch("viby.cli.app.config.is_first_run", False):
-        mock_chat_command = MagicMock()
-        mock_chat_class = MagicMock(return_value=mock_chat_command)
-        mock_get_command.return_value = mock_chat_class
-        mock_model_manager = MagicMock()
-        mock_load_manager.return_value = mock_model_manager
-
-        cli_runner.invoke(app, ["chat"])
-
-        mock_load_manager.assert_called_once()
-        mock_get_command.assert_called_once_with("chat")
-        mock_chat_class.assert_called_once_with(mock_model_manager)
-        mock_chat_command.run.assert_called_once()
-
-
 @patch("viby.cli.app.get_text")
 @patch("viby.cli.app.show_warning")
 @patch("viby.cli.app.show_error")

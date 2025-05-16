@@ -33,8 +33,6 @@ AGENT:
     有的时候，用户的需求会和搜索到的工具强相关，可以优先尝试搜索一下有什么可用工具
 
     保证始终以高效、全面的流程彻底解决用户需求。'
-CHAT:
-  input_prompt: '|> '
 CONFIG_WIZARD:
   autocompact_header: '--- 消息自动压缩配置 ---'
   autocompact_threshold_prompt: 压缩阈值 (当消息token数量超过max_tokens的比例时触发压缩, 0.1-0.9)
@@ -75,7 +73,6 @@ CONFIG_WIZARD:
   pass_input_hint: "(输入 'pass' 跳过)"
 GENERAL:
   app_description: Viby - 终端内的智能体
-  chat_help: 启动与模型的交互式聊天会话
   config_help: 启动交互式配置向导
   copy_fail: 复制失败：{0}
   copy_success: 内容已复制到剪贴板！
