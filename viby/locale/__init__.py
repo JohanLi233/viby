@@ -20,8 +20,8 @@ class TextManager:
         lang = self.config.language
         yaml_file = os.path.join(base_dir, f"{lang}.yaml")
         if not os.path.isfile(yaml_file):
-            yaml_file = os.path.join(base_dir, 'en-US.yaml')
-        with open(yaml_file, 'r', encoding='utf-8') as f:
+            yaml_file = os.path.join(base_dir, "en-US.yaml")
+        with open(yaml_file, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f) or {}
         self.texts = data
 
