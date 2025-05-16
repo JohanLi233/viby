@@ -50,7 +50,7 @@ class PromptNode(Node):
         # 获取系统和shell信息用于系统提示
         result["os_info"] = platform.system() + " " + platform.release()
         result["shell_info"] = os.environ.get("SHELL", "Unknown")
-
+        result["current_dir"] = os.getcwd()
         return result
 
     def _prepare_viby_tools(self, config):
@@ -122,6 +122,7 @@ class PromptNode(Node):
             tools_info=tools_info,
             os_info=exec_res["os_info"],
             shell_info=exec_res["shell_info"],
+            current_dir=exec_res["current_dir"],
         )
 
         # 初始化消息历史

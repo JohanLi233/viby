@@ -2,7 +2,8 @@
 多语言提示管理模块
 """
 
-import importlib
+import os
+import yaml
 
 
 class TextManager:
@@ -14,24 +15,15 @@ class TextManager:
         self.load_texts()
 
     def load_texts(self) -> None:
-        """根据配置加载对应语言的文本"""
-        try:
-            # 动态导入语言模块
-            lang_module = importlib.import_module(f"viby.locale.{self.config.language}")
-
-            # 加载所有文本组
-            for key in dir(lang_module):
-                if key.isupper() and not key.startswith("__"):
-                    self.texts[key] = getattr(lang_module, key)
-        except ImportError:
-            # 如果找不到语言模块，回退到英文
-            print(f"警告: 未找到语言 '{self.config.language}'，使用默认语言 'en-US'")
-            self.config.language = "en-US"
-            lang_module = importlib.import_module("viby.locale.en-US")
-
-            for key in dir(lang_module):
-                if key.isupper() and not key.startswith("__"):
-                    self.texts[key] = getattr(lang_module, key)
+        """根据配置加载对应语言的文本，只支持 YAML 格式"""
+        base_dir = os.path.dirname(__file__)
+        lang = self.config.language
+        yaml_file = os.path.join(base_dir, f"{lang}.yaml")
+        if not os.path.isfile(yaml_file):
+            yaml_file = os.path.join(base_dir, 'en-US.yaml')
+        with open(yaml_file, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f) or {}
+        self.texts = data
 
     def get(self, group: str, key: str, *args) -> str:
         """
