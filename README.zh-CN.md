@@ -249,7 +249,7 @@ Viby支持模型上下文协议(MCP)服务器以提供扩展功能。MCP配置�
 
 <div align="center">
   <a href="https://star-history.com/#JohanLi233/viby&Date">
-    <img src="https://api.star-history.com/svg?repos=JohanLi233/viby&type=Date" alt="Star 历史图表" style="max-width:100%;">
+    <img src="https://api.star-history.com/svg?repos=JohanLi233/Viby&type=Date" alt="Star 历史图表" style="max-width:100%;">
   </a>
 </div>
 

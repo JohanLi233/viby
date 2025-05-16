@@ -11,7 +11,7 @@ from rich.prompt import Confirm
 from rich.progress import Progress
 
 from viby.utils.history import HistoryManager
-from viby.utils.renderer import print_markdown
+from viby.utils.ui import print_markdown
 from viby.locale import get_text
 import typer
 

@@ -254,7 +254,7 @@ Viby supports Model Context Protocol (MCP) servers for extended capabilities. MC
 
 <div align="center">
   <a href="https://star-history.com/#JohanLi233/viby&Date">
-    <img src="https://api.star-history.com/svg?repos=JohanLi233/viby&type=Date" alt="Star History Chart" style="max-width:100%;">
+    <img src="https://api.star-history.com/svg?repos=JohanLi233/Viby&type=Date" alt="Star History Chart" style="max-width:100%;">
   </a>
 </div>
 

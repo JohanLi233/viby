@@ -4,86 +4,28 @@
 
 import os
 import sys
-import shutil
 from viby.locale import get_text, init_text_manager
-from viby.utils.formatting import print_separator
+from viby.utils.ui import (
+    print_header,
+    print_separator,
+    get_input,
+    number_choice,
+    show_error,
+    show_warning,
+    show_success,
+    show_info,
+    console,
+)
 from viby.config.app_config import ModelProfileConfig
 
+# 用于表示用户选择跳过某项配置的内部标记
 PASS_SENTINEL = "_viby_internal_pass_"
-
-
-def print_header(title):
-    """打印配置向导标题"""
-    print()
-    print_separator("=")
-    print(f"{title:^{shutil.get_terminal_size().columns}}")
-    print_separator("=")
-    print()
-
-
-def get_input(
-    prompt, default=None, validator=None, choices=None, allow_pass_keyword=False
-):
-    """获取用户输入，支持默认值和验证"""
-    base_prompt_text = prompt
-    if allow_pass_keyword:
-        pass_hint = get_text("CONFIG_WIZARD", "PASS_PROMPT_HINT")
-        base_prompt_text = f"{prompt} {pass_hint}"
-
-    if default is not None:
-        prompt_text = f"{base_prompt_text} [{default}]: "
-    else:
-        prompt_text = f"{base_prompt_text}: "
-
-    while True:
-        user_input = input(prompt_text).strip()
-
-        if allow_pass_keyword and user_input.lower() == "pass":
-            return PASS_SENTINEL
-
-        # 用户未输入，使用默认值
-        if not user_input and default is not None:
-            return default
-
-        # 如果有选项限制，验证输入
-        if choices and user_input not in choices:
-            print(f"输入错误！请从以下选项中选择: {', '.join(choices)}")
-            continue
-
-        # 如果有验证函数，验证输入
-        if validator and not validator(user_input):
-            continue
-
-        return user_input
-
-
-def number_choice(choices, prompt):
-    """显示编号选项并获取用户选择"""
-    print(prompt)
-    for i, choice in enumerate(choices, 1):
-        print(f"  {i}. {choice}")
-
-    while True:
-        try:
-            choice = input("[1]: ").strip()
-            if not choice:
-                return choices[0]  # 默认第一个选项
-
-            choice_num = int(choice)
-            if 1 <= choice_num <= len(choices):
-                return choices[choice_num - 1]
-            else:
-                print(
-                    get_text("CONFIG_WIZARD", "number_range_error").format(len(choices))
-                )
-        except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_number"))
 
 
 def validate_url(url):
     """验证URL格式"""
     if not url.startswith(("http://", "https://")):
-        print(get_text("CONFIG_WIZARD", "url_error"))
+        show_error(get_text("CONFIG_WIZARD", "url_error"))
         return False
     return True
 
@@ -133,9 +75,9 @@ def configure_model_profile(profile, model_type, config):
             if tokens_value > 0:
                 profile.max_tokens = tokens_value
                 break
-            print(get_text("CONFIG_WIZARD", "tokens_positive"))
+            show_warning(get_text("CONFIG_WIZARD", "tokens_positive"))
         except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_integer"))
+            show_error(get_text("CONFIG_WIZARD", "invalid_integer"))
 
     # 温度设置
     temp_prompt = get_text("CONFIG_WIZARD", "model_temperature_prompt").format(
@@ -153,9 +95,9 @@ def configure_model_profile(profile, model_type, config):
             if 0.0 <= temp_value <= 1.0:
                 profile.temperature = temp_value
                 break
-            print(get_text("CONFIG_WIZARD", "temperature_range"))
+            show_warning(get_text("CONFIG_WIZARD", "temperature_range"))
         except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_decimal"))
+            show_error(get_text("CONFIG_WIZARD", "invalid_decimal"))
 
     # top_p设置
     top_p_prompt = get_text("CONFIG_WIZARD", "model_top_p_prompt").format(
@@ -170,10 +112,10 @@ def configure_model_profile(profile, model_type, config):
             if 0.0 <= top_p_value <= 1.0:
                 profile.top_p = top_p_value
             else:
-                print(get_text("CONFIG_WIZARD", "top_p_range"))
+                show_warning(get_text("CONFIG_WIZARD", "top_p_range"))
                 profile.top_p = None
         except ValueError:
-            print(get_text("CONFIG_WIZARD", "invalid_top_p"))
+            show_error(get_text("CONFIG_WIZARD", "invalid_top_p"))
             profile.top_p = None
 
     return profile
@@ -182,8 +124,8 @@ def configure_model_profile(profile, model_type, config):
 def configure_embedding_model(config):
     """配置嵌入模型"""
     # 显示嵌入模型配置标题
-    print()
-    print(get_text("CONFIG_WIZARD", "embedding_model_header"))
+    console.print()
+    print_header(get_text("CONFIG_WIZARD", "embedding_model_header"))
 
     # 嵌入模型名称
     model_prompt = get_text("CONFIG_WIZARD", "embedding_model_name_prompt")
@@ -201,7 +143,7 @@ def run_config_wizard(config):
     # 检查当前终端是否支持中文
     is_chinese_supported = True
     try:
-        print(get_text("CONFIG_WIZARD", "checking_chinese"))
+        show_info(get_text("CONFIG_WIZARD", "checking_chinese"))
         sys.stdout.write("测试中文支持\n")
         sys.stdout.flush()
     except UnicodeEncodeError:
@@ -229,9 +171,9 @@ def run_config_wizard(config):
     else:
         config.language = "en-US"
     init_text_manager(config)
-    print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
+    console.print("\n" + get_text("CONFIG_WIZARD", "selected_language"))
 
-    print()
+    console.print()
     print_separator()
 
     # --- 默认模型配置 ---
@@ -288,13 +230,13 @@ def run_config_wizard(config):
                 if 0.1 <= threshold_value <= 0.9:
                     config.autocompact.threshold_ratio = threshold_value
                     break
-                print(
+                show_warning(
                     get_text(
                         "CONFIG_WIZARD", "threshold_range", "阈值必须在0.1和0.9之间!"
                     )
                 )
             except ValueError:
-                print(get_text("CONFIG_WIZARD", "invalid_decimal"))
+                show_error(get_text("CONFIG_WIZARD", "invalid_decimal"))
 
         # 配置保留对话轮数
         keep_exchanges_prompt = get_text(
@@ -309,7 +251,7 @@ def run_config_wizard(config):
                 if 1 <= keep_value <= 5:
                     config.autocompact.keep_last_exchanges = keep_value
                     break
-                print(
+                show_warning(
                     get_text(
                         "CONFIG_WIZARD",
                         "keep_exchanges_range",
@@ -317,7 +259,7 @@ def run_config_wizard(config):
                     )
                 )
             except ValueError:
-                print(get_text("CONFIG_WIZARD", "invalid_integer"))
+                show_error(get_text("CONFIG_WIZARD", "invalid_integer"))
 
     print_separator()
 
@@ -332,7 +274,7 @@ def run_config_wizard(config):
 
     # 如果启用了MCP，显示配置文件夹信息
     if config.enable_mcp:
-        print(
+        show_info(
             "\n"
             + get_text("CONFIG_WIZARD", "mcp_config_info").format(config.config_dir)
         )
@@ -366,8 +308,8 @@ def run_config_wizard(config):
     # 保存配置
     config.save_config()
 
-    print()
+    console.print()
     print_separator()
-    print(f"{get_text('CONFIG_WIZARD', 'config_saved')}: {config.config_path}")
-    input(f"\n{get_text('CONFIG_WIZARD', 'continue_prompt')}")
+    show_success(f"{get_text('CONFIG_WIZARD', 'config_saved')}: {config.config_path}")
+    get_input(f"\n{get_text('CONFIG_WIZARD', 'continue_prompt')}", default="")
     return config
