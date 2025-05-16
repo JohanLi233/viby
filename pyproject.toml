@@ -1,6 +1,6 @@
 [project]
 name = "viby"
-version = "0.2.3"
+version = "0.2.4"
 description = "Viby vibes everything"
 authors = [
     { name = "JohanLi233", email = "li_zhonghan@qq.com" }
@@ -39,6 +39,9 @@ test = [
 [tool.setuptools.packages.find]
 include = ["viby*"]
 exclude = ["assets*"]
+
+[tool.setuptools.package-data]
+"viby.locale" = ["*.yaml"]
 
 [project.scripts]
 yb = "viby.cli.main:entry_point"
