@@ -282,7 +282,14 @@ def test_chat_command(mock_load_manager, mock_get_command, cli_runner):
 @patch("viby.cli.app.install_shortcuts")
 @patch("viby.cli.app.detect_shell")
 def test_shortcuts_command(
-    mock_detect, mock_install, mock_show_info, mock_show_success, mock_show_error, mock_show_warning, mock_get_text, cli_runner
+    mock_detect,
+    mock_install,
+    mock_show_info,
+    mock_show_success,
+    mock_show_error,
+    mock_show_warning,
+    mock_get_text,
+    cli_runner,
 ):
     """测试shortcuts命令"""
     # 模拟配置不是首次运行，避免触发配置向导

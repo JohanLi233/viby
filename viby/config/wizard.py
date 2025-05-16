@@ -6,15 +6,15 @@ import os
 import sys
 from viby.locale import get_text, init_text_manager
 from viby.utils.ui import (
-    print_header, 
-    print_separator, 
-    get_input, 
-    number_choice, 
-    show_error, 
-    show_warning, 
-    show_success, 
+    print_header,
+    print_separator,
+    get_input,
+    number_choice,
+    show_error,
+    show_warning,
+    show_success,
     show_info,
-    console
+    console,
 )
 from viby.config.app_config import ModelProfileConfig
 
