@@ -7,10 +7,10 @@ import importlib
 import sys
 from typing import Dict, List, Type, Any
 import typer
-from rich.console import Console
 from viby.locale import get_text, init_text_manager
 from viby.config import config
 from viby.utils.logging import setup_logging
+from viby.utils.ui import show_info, show_success, show_error, show_warning
 from viby.utils.keyboard_shortcuts import install_shortcuts, detect_shell
 
 
@@ -27,6 +27,7 @@ _KNOWN_ROOT_CMDS = {
     "embed",
     "shortcuts",
 }
+
 
 def _inject_default_subcommand() -> None:
     """
@@ -101,9 +102,6 @@ tools_app.add_typer(embed_app, name="embed")
 history_app.callback(invoke_without_command=True)(default_callback)
 tools_app.callback(invoke_without_command=True)(default_callback)
 embed_app.callback(invoke_without_command=True)(default_callback)
-
-# 控制台实例
-console = Console()
 
 # 日志记录器
 logger = setup_logging(log_to_file=True)
@@ -323,34 +321,29 @@ def shortcuts():
     # 检测 shell 类型
     detected_shell = detect_shell()
     if detected_shell:
-        typer.echo(f"{get_text('SHORTCUTS', 'auto_detect_shell')}: {detected_shell}")
+        show_info(f"{get_text('SHORTCUTS', 'auto_detect_shell')}: {detected_shell}")
     else:
-        typer.echo(get_text("SHORTCUTS", "auto_detect_failed"))
+        show_warning(get_text("SHORTCUTS", "auto_detect_failed"))
 
     # 安装快捷键
     result = install_shortcuts(detected_shell)
 
     # 显示安装结果
     if result["status"] == "success":
-        status_color = typer.colors.GREEN
+        show_success(result["message"])
     elif result["status"] == "info":
-        status_color = typer.colors.BLUE
+        show_info(result["message"])
     else:
-        status_color = typer.colors.RED
-
-    typer.echo(
-        typer.style(f"[{result['status'].upper()}]", fg=status_color)
-        + f" {result['message']}"
-    )
+        show_error(result["message"])
 
     # 如果需要用户操作，显示提示
     if "action_required" in result:
-        typer.echo(
-            f"\n{get_text('SHORTCUTS', 'action_required').format(result['action_required'])}"
+        show_warning(
+            get_text("SHORTCUTS", "action_required").format(result["action_required"])
         )
 
     if result["status"] == "success":
-        typer.echo(f"\n{get_text('SHORTCUTS', 'activation_note')}")
+        show_info(get_text("SHORTCUTS", "activation_note"))
 
 
 # History 命令组

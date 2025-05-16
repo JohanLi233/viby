@@ -1,7 +1,7 @@
 from pocketflow import Node
 from viby.mcp import call_tool
 from viby.locale import get_text
-from viby.utils.formatting import print_markdown
+from viby.utils.ui import print_markdown
 from viby.tools import AVAILABLE_TOOLS, TOOL_EXECUTORS
 
 

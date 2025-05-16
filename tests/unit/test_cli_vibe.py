@@ -274,12 +274,15 @@ def test_chat_command(mock_load_manager, mock_get_command, cli_runner):
         mock_chat_command.run.assert_called_once()
 
 
-@patch("viby.cli.app.detect_shell")
-@patch("viby.cli.app.install_shortcuts")
-@patch("viby.cli.app.typer")
 @patch("viby.cli.app.get_text")
+@patch("viby.cli.app.show_warning")
+@patch("viby.cli.app.show_error")
+@patch("viby.cli.app.show_success")
+@patch("viby.cli.app.show_info")
+@patch("viby.cli.app.install_shortcuts")
+@patch("viby.cli.app.detect_shell")
 def test_shortcuts_command(
-    mock_get_text, mock_typer, mock_install, mock_detect, cli_runner
+    mock_detect, mock_install, mock_show_info, mock_show_success, mock_show_error, mock_show_warning, mock_get_text, cli_runner
 ):
     """测试shortcuts命令"""
     # 模拟配置不是首次运行，避免触发配置向导
@@ -296,15 +299,19 @@ def test_shortcuts_command(
         mock_detect.assert_called_once()
         mock_install.assert_called_once_with("bash")
 
-        # 测试状态样式
-        mock_typer.style.assert_called_with("[SUCCESS]", fg=mock_typer.colors.GREEN)
+        # 测试 UI 输出
+        mock_show_info.assert_any_call("auto_detect_shell: bash")
+        mock_show_success.assert_called_with("已成功安装快捷键")
+        mock_show_info.assert_any_call("activation_note")
 
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
         # 失败检测shell
         mock_detect.reset_mock()
         mock_install.reset_mock()
-        mock_typer.reset_mock()
+        mock_show_warning.reset_mock()
+        mock_show_error.reset_mock()
+        mock_show_info.reset_mock()
 
         mock_detect.return_value = None
         mock_install.return_value = {
@@ -317,8 +324,9 @@ def test_shortcuts_command(
 
         mock_detect.assert_called_once()
         mock_install.assert_called_once_with(None)
-        mock_typer.echo.assert_any_call("auto_detect_failed")
-        mock_typer.style.assert_called_with("[ERROR]", fg=mock_typer.colors.RED)
+        mock_show_warning.assert_any_call("auto_detect_failed")
+        mock_show_warning.assert_any_call("action_required")
+        mock_show_error.assert_called_with("安装失败")
 
 
 @patch("viby.cli.app.get_command_class")

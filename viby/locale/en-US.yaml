@@ -40,12 +40,14 @@ AGENT:
 CHAT:
   input_prompt: '|> '
 CONFIG_WIZARD:
-  PASS_PROMPT_HINT: (type 'pass' to skip)
   autocompact_header: '--- Auto Message Compaction Configuration ---'
   autocompact_threshold_prompt: Compaction threshold (ratio of max_tokens to trigger
     compaction, 0.1-0.9)
   checking_chinese: Checking if terminal supports Chinese...
+  config_saved: Configuration saved to
+  continue_prompt: Press Enter to continue...
   default_model_header: '--- Default Model Configuration ---'
+  default_model_name_prompt: Default Model Name
   embedding_model_header: '--- Embedding Model Configuration ---'
   embedding_model_name_prompt: Embedding Model Name
   enable_autocompact_prompt: Enable automatic message compaction
@@ -54,9 +56,9 @@ CONFIG_WIZARD:
     relevant tools based on query)
   enable_yolo_mode_prompt: Enable YOLO mode (auto-execute safe shell commands)
   fast_model_header: '--- Fast Model Configuration (Optional) ---'
+  fast_model_name_prompt: Fast Model Name (optional, leave blank to skip)
   invalid_decimal: Please enter a valid decimal number!
   invalid_integer: Please enter a valid integer!
-  invalid_number: Please enter a valid number!
   invalid_top_p: Invalid top_p value, set to None!
   keep_exchanges_prompt: Number of recent exchanges to keep uncompacted (1-5)
   keep_exchanges_range: Keep exchanges must be between 1 and 5!
@@ -68,10 +70,10 @@ CONFIG_WIZARD:
   model_top_p_prompt: Set top_p value for {model_name} model (0.0-1.0, leave blank
     to disable)
   'no': 'No'
-  number_range_error: Please enter a number between 1-{0}!
   selected_language: Selected English interface
   temperature_range: Temperature must be between 0.0 and 1.0!
   think_model_header: '--- Think Model Configuration (Optional) ---'
+  think_model_name_prompt: Think Model Name (optional, leave blank to skip)
   threshold_range: Threshold must be between 0.1 and 0.9!
   tokens_positive: Token count must be greater than 0!
   top_p_range: top_p must be between 0.0 and 1.0, set to None!
@@ -82,12 +84,15 @@ GENERAL:
     language models
   chat_help: Start an interactive chat session with the model
   config_help: Launch interactive configuration wizard
+  copy_fail: 'Copy failed: {0}'
+  copy_success: Content copied to clipboard!
   fast_help: Use the fast model for quicker responses (if configured)
   help_text: show this help message and exit
   llm_empty_response: Model did not return any content, please try again or check
     your prompt.
   model_not_specified_error: 'Error: No model specified. You must explicitly set a
     model in the configuration.'
+  operation_cancelled: Operation cancelled.
   prompt_help: Prompt content to send to the model
   think_help: Use the think model for deeper analysis (if configured)
   token_usage_completion: 'Output Tokens: {0}'
@@ -162,30 +167,59 @@ MCP:
     Error: Failed to get MCP tools: {0}'
 SHELL:
   choice_prompt: '[r]run, [e]edit, [y]copy, [q]quit (default: run): '
+  command_complete: 'Command completed [Return code: {0}]'
+  command_error: 'Command execution error: {0}'
   edit_prompt: 'Edit command (original: {0}):
 
     > '
+  execute_prompt: Execute command│  {0}  │?
+  executing: 'Executing command: {0}'
+  executing_yolo: 'YOLO mode: Auto-executing command│  {0}  │'
+  unsafe_command_warning: '⚠️ Warning: This command may be unsafe, YOLO auto-execution
+    prevented. Please confirm manually.'
 SHORTCUTS:
   action_instructions: 'Required action: source {0} or restart terminal'
+  action_required: Please run 'source {0}' or restart your terminal to activate shortcuts
+  activation_note: After installation, you can use Ctrl+Q shortcut to quickly launch
+    Viby
   auto_detect_failed: Unable to auto-detect shell type, will try common shell types
   auto_detect_shell: Auto-detected shell type
   command_help: Install terminal keyboard shortcuts (Ctrl+Q activates Viby), auto-detects
     shell type
   install_error: 'Failed to install shortcuts: {0}'
+  install_error_log: Error adding shortcuts
   install_exists: Shortcuts already exist in {0}
   install_success: Shortcuts successfully installed to {0}
+  message: Message
+  read_config_error: Error reading configuration file
   shell_not_supported: 'Unsupported shell type: {0}'
+  status: Status
 TOOLS:
+  actual: Actual
   available_tools_table_title: Available MCP Tools
+  cache_read_failed: Failed to read tool information from cache
+  calc_uptime_failed: Failed to calculate uptime
+  call_server_failed: Failed to call embedding model service
+  check_status_failed: Failed to check server status
   command_help: Manage tools related commands
   connect_server_failed: Failed to connect to embedding server
+  days: days
+  description: Description
   description_column: Description
   description_unavailable: '[Description Unavailable]'
   download_help: Download embedding model
+  downloading_model: Downloading embedding model
+  embed_server_already_running: Embedding model server is already running
+  embed_server_not_running: Embedding model server is not running
+  embed_server_running: Embedding model server is running
   embed_server_start_failed: Failed to start embedding model server
+  embed_server_started: Embedding model server started
   embed_server_status_check_failed: Failed to check embedding model server status
+  embed_server_status_unknown: Embedding model server status unknown
   embed_server_stop_failed: Failed to stop embedding model server
+  embed_server_stopped: Embedding model server stopped
   embed_server_title: Embedding Model Service
+  embed_server_uptime: Uptime
   embed_start_help: Start the embedding model service
   embed_status_help: Check the status of the embedding model service
   embed_stop_help: Stop the embedding model service
@@ -196,11 +230,32 @@ TOOLS:
     model is downloaded
   embedding_server_not_running_cannot_update: Embedding model server is not running,
     cannot update tools
+  embedding_update: Embedding update
   embeddings_update_failed: Embedding update failed
+  embeddings_update_success: Tool embeddings have been successfully updated
   embeddings_update_title: Embedding Update
+  embeddings_update_via_server_failed: Failed to update embeddings via server
+  error_checking_server: Error checking server status
+  error_listing_tools: Error listing tools
+  error_occurred: ' error occurred'
+  error_starting_server: Error starting server
+  error_stopping_server: Error stopping server
+  error_updating_embeddings: Error updating embeddings
+  expected: Expected
+  generate_embedding_failed: Failed to generate embedding vector
+  get_param_desc: Getting tool
+  get_tool_desc: Getting tool
+  hours: hours
   listing_tools: Listing available tools
+  load_cache_failed: Failed to load cache embeddings
+  loaded_from_cache: Loaded from cache
+  loading_embedding_model: Loading sentence-transformer model
   mcp_not_enabled: MCP functionality is not enabled, unable to retrieve tools
+  minutes: minutes
+  missing_tools: Missing tools
   model_download_error: Error downloading model
+  model_download_failed: Model download failed
+  model_download_success: Model download successful
   model_load_complete: Model loading complete
   model_load_empty: Model loading failed, returned empty object
   model_load_failed: Failed to load model
@@ -208,24 +263,59 @@ TOOLS:
   no_embeddings: No tool embeddings available, please call update_tool_embeddings
     first
   no_mcp_tools: No MCP tools available
+  no_tools_found: No MCP tools found
+  not_in_tool_info: does not exist in tool_info, skipping
+  param: parameter
   param_count_column: Parameters
+  parameters: Parameters
+  prepare_update: Preparing to update
   query_cannot_be_empty: Query text cannot be empty
+  query_embedding_failed: Query embedding generation failed
+  read_status_failed: Failed to read status file
+  related_tools: related tools
+  required: Required
   required_no: 'No'
   required_yes: 'Yes'
+  response: response
+  save_cache_failed: Failed to save embeddings to cache
+  save_count_mismatch: 'Warning: Saved tool count mismatch!'
+  saved_to_cache: Saved
+  saving_to_cache: About to save
+  search_failed: Search failed
+  search_success: Search successful, found
   search_timeout: Search request timed out
+  seconds: seconds
+  sending_search_request: Sending search request to embedding server
   server_already_running: Embedding model server is already running
   server_column: Server
   server_crashed: 'Failed to start embedding model server: Server process exi'
   server_not_running: Embedding model server is not running
   server_shutting_down: Server is shutting down...
+  server_start_error: Error starting server
   server_start_timeout: 'Failed to start embedding model server: service not responding'
+  start_server_suggestion: Please use 'yb tools embed start' command to start the
+    embedding model server and try again
   start_updating_embeddings: Starting to update embeddings for {tool_count} MCP tools...
+  starting_server: Starting server
+  status_code: status code
+  stopping_server: Stopping server
+  success: successful
   suggest_update_embeddings: Please use 'yb tools embed' command first to update tool
     embeddings
+  tool_list: Tool list
   tool_name_column: Tool Name
+  tool_not_exist: Tool
+  tools_embedding: tool embeddings
+  tools_embeddings: tool embeddings
   tools_list_title: Tools List
   tools_listing_failed: Failed to list tools
+  tools_saved: tool embeddings to cache
+  tools_to_cache: tool information to cache
+  total_tools: Total tools
   update_embeddings_help: Update MCP tool embeddings
+  update_status_failed: Failed to update status file
   update_tools_failed: Failed to update tools
   updated_tools_table_title: Updated Tools List
   updating_embeddings: Updating all tool embeddings
+  using_embedding_server: Using embedding model server to update embeddings
+  validate_error: Error validating saved tool info

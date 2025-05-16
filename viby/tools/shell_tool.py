@@ -13,7 +13,7 @@ from prompt_toolkit import prompt
 from prompt_toolkit.formatted_text import HTML
 
 from viby.locale import get_text
-from viby.utils.formatting import Colors, print_separator
+from viby.utils.ui import Colors, print_separator
 from viby.utils.history import HistoryManager
 from viby.config.app_config import Config
 

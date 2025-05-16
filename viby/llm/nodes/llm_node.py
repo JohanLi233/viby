@@ -1,5 +1,5 @@
 from pocketflow import Node
-from viby.utils.renderer import render_markdown_stream
+from viby.utils.ui import render_markdown_stream
 from viby.locale import get_text
 import threading
 import sys
