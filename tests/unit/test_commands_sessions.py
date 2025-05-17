@@ -5,7 +5,6 @@
 
 import pytest
 from unittest.mock import patch, MagicMock
-from pathlib import Path
 
 # 模拟文本管理器初始化
 with patch("viby.locale.text_manager", MagicMock()):
@@ -119,7 +118,9 @@ class TestSessionsCommand:
             result = sessions_command.show_history(5)
 
         # 验证调用和返回值
-        mock_session_manager.get_history.assert_called_once_with(limit=5, session_id=None)
+        mock_session_manager.get_history.assert_called_once_with(
+            limit=5, session_id=None
+        )
         mock_format.assert_called_once()
         assert result == 0
 
@@ -135,7 +136,9 @@ class TestSessionsCommand:
         result = sessions_command.show_history()
 
         # 验证调用和返回值
-        mock_session_manager.get_history.assert_called_once_with(limit=10, session_id=None)
+        mock_session_manager.get_history.assert_called_once_with(
+            limit=10, session_id=None
+        )
         mock_print_markdown.assert_called_once()
         assert result == 0
 
@@ -210,9 +213,7 @@ class TestSessionsCommand:
         with patch("viby.commands.sessions.Progress") as mock_progress:
             mock_progress_instance = MagicMock()
             mock_progress.return_value.__enter__.return_value = mock_progress_instance
-            result = sessions_command.export_history(
-                "output.json", "json", None
-            )
+            result = sessions_command.export_history("output.json", "json", None)
 
         # 验证调用和返回值
         mock_session_manager.export_history.assert_called_once_with(
@@ -281,7 +282,7 @@ class TestSessionsCommand:
                 "created_at": "2023-01-01T10:00:00",
                 "last_used": "2023-01-01T12:00:00",
                 "is_active": 1,
-                "interaction_count": 5
+                "interaction_count": 5,
             },
             {
                 "id": "2",
@@ -289,21 +290,21 @@ class TestSessionsCommand:
                 "created_at": "2023-01-02T10:00:00",
                 "last_used": "2023-01-02T12:00:00",
                 "is_active": 0,
-                "interaction_count": 3
-            }
+                "interaction_count": 3,
+            },
         ]
 
         # 设置mock返回值
         mock_session_manager.get_sessions.return_value = sample_sessions
-        
+
         # 使用Table模拟
         with patch("viby.commands.sessions.Table") as mock_table:
             mock_table_instance = MagicMock()
             mock_table.return_value = mock_table_instance
-            
+
             # 调用被测试方法
             result = sessions_command.list_sessions()
-            
+
             # 验证调用和返回值
             mock_session_manager.get_sessions.assert_called_once()
             mock_table.assert_called_once()
@@ -319,10 +320,10 @@ class TestSessionsCommand:
         """测试list_sessions方法（无会话）"""
         # 设置mock返回值
         mock_session_manager.get_sessions.return_value = []
-        
+
         # 调用被测试方法
         result = sessions_command.list_sessions()
-        
+
         # 验证调用和返回值
         mock_session_manager.get_sessions.assert_called_once()
         mock_print_markdown.assert_called_once()
@@ -441,4 +442,4 @@ def test_cli_clear(mock_typer, mock_sessions_command):
     mock_sessions_command.assert_called_once()
     # 不能直接检查参数值，因为参数是typer.Option
     mock_command_instance.clear_history.assert_called_once()
-    mock_exit.assert_called_once_with(code=0) 
+    mock_exit.assert_called_once_with(code=0)

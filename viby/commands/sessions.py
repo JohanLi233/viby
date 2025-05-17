@@ -45,14 +45,14 @@ class SessionsCommand:
         """格式化历史记录显示为表格"""
         if response_limit is None:
             response_limit = content_limit
-            
+
         table = Table(title=title)
         table.add_column("ID", justify="right", style="cyan")
         table.add_column(get_text("SESSIONS", "timestamp"), style="green")
         table.add_column(get_text("SESSIONS", "type"), style="magenta")
         table.add_column(get_text("SESSIONS", "content"), style="white")
         table.add_column(get_text("SESSIONS", "response"), style="yellow")
-        
+
         for record in records:
             dt = datetime.fromisoformat(record["timestamp"])
             formatted_time = dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -71,11 +71,11 @@ class SessionsCommand:
             命令退出码
         """
         sessions = self.session_manager.get_sessions()
-        
+
         if not sessions:
             print_markdown(get_text("SESSIONS", "no_sessions"), "")
             return 0
-        
+
         table = Table(title=get_text("SESSIONS", "sessions_list"))
         table.add_column("ID", style="cyan")
         table.add_column(get_text("SESSIONS", "name"), style="green")
@@ -83,30 +83,34 @@ class SessionsCommand:
         table.add_column(get_text("SESSIONS", "last_used"), style="yellow")
         table.add_column(get_text("SESSIONS", "interactions"), style="blue")
         table.add_column(get_text("SESSIONS", "status"), style="white")
-        
+
         for session in sessions:
             # 格式化时间
-            created_at = datetime.fromisoformat(session["created_at"]).strftime("%Y-%m-%d %H:%M:%S")
-            last_used = datetime.fromisoformat(session["last_used"]).strftime("%Y-%m-%d %H:%M:%S")
-            
+            created_at = datetime.fromisoformat(session["created_at"]).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+            last_used = datetime.fromisoformat(session["last_used"]).strftime(
+                "%Y-%m-%d %H:%M:%S"
+            )
+
             # 获取交互次数
             interaction_count = session.get("interaction_count", 0)
-            
+
             # 状态（活跃/非活跃）
             status = get_text("SESSIONS", "active") if session["is_active"] == 1 else ""
-            
+
             table.add_row(
-                session["id"], 
-                session["name"], 
-                created_at, 
-                last_used, 
-                str(interaction_count), 
-                status
+                session["id"],
+                session["name"],
+                created_at,
+                last_used,
+                str(interaction_count),
+                status,
             )
-        
+
         self.console.print(table)
         return 0
-    
+
     def create_session(self, name: str = None, description: str = None) -> int:
         """
         创建新的会话，如果名称为空使用默认命名方案
@@ -120,7 +124,7 @@ class SessionsCommand:
         """
         # 传入原始name参数，让session_manager负责生成默认名称
         session_id = self.session_manager.create_session(name, description)
-        
+
         if session_id:
             # 获取创建的会话实际名称
             sessions = self.session_manager.get_sessions()
@@ -129,16 +133,18 @@ class SessionsCommand:
                 session_name = session["name"]
             else:
                 session_name = name or "New Session"  # 防御性编程
-                
+
             print_markdown(
-                get_text("SESSIONS", "create_session_success").format(session_name, session_id),
-                "success"
+                get_text("SESSIONS", "create_session_success").format(
+                    session_name, session_id
+                ),
+                "success",
             )
             return 0
         else:
             print_markdown(get_text("SESSIONS", "create_session_failed"), "error")
             return 1
-    
+
     def set_active_session(self, session_id: str = None) -> int:
         """
         设置活跃会话
@@ -150,11 +156,11 @@ class SessionsCommand:
             命令退出码
         """
         sessions = self.session_manager.get_sessions()
-        
+
         if not sessions:
             print_markdown(get_text("SESSIONS", "no_sessions"), "error")
             return 1
-            
+
         # 如果未提供会话ID，显示交互式选择
         if not session_id:
             # 创建选项列表
@@ -162,45 +168,50 @@ class SessionsCommand:
             for i, session in enumerate(sessions, 1):
                 is_active = "✓" if session["is_active"] == 1 else " "
                 options[str(i)] = f"{is_active} {session['name']} ({session['id']})"
-                
+
             # 显示选项
             self.console.print(get_text("SESSIONS", "select_session"))
             for key, value in options.items():
                 self.console.print(f"[cyan]{key}[/cyan]: {value}")
-                
+
             # 获取用户选择
             choice = Prompt.ask(
                 get_text("SESSIONS", "enter_selection"),
                 choices=list(options.keys()),
-                show_choices=False
+                show_choices=False,
             )
-            
+
             # 获取所选会话ID
             session_id = sessions[int(choice) - 1]["id"]
-        
+
         # 验证会话ID是否存在
         session = next((s for s in sessions if s["id"] == session_id), None)
         if not session:
-            print_markdown(get_text("SESSIONS", "session_not_found").format(session_id), "error")
+            print_markdown(
+                get_text("SESSIONS", "session_not_found").format(session_id), "error"
+            )
             return 1
-        
+
         # 如果会话已经是活跃的，不需要切换
         if session["is_active"] == 1:
-            print_markdown(get_text("SESSIONS", "session_already_active").format(session["name"]), "")
+            print_markdown(
+                get_text("SESSIONS", "session_already_active").format(session["name"]),
+                "",
+            )
             return 0
-        
+
         success = self.session_manager.set_active_session(session_id)
-        
+
         if success:
             print_markdown(
                 get_text("SESSIONS", "session_activated").format(session["name"]),
-                "success"
+                "success",
             )
             return 0
         else:
             print_markdown(get_text("SESSIONS", "session_activation_failed"), "error")
             return 1
-    
+
     def rename_session(self, session_id: str, new_name: str) -> int:
         """
         重命名会话
@@ -215,27 +226,31 @@ class SessionsCommand:
         if not new_name:
             print_markdown(get_text("SESSIONS", "new_name_required"), "error")
             return 1
-        
+
         sessions = self.session_manager.get_sessions()
-        
+
         # 验证会话ID是否存在
         session = next((s for s in sessions if s["id"] == session_id), None)
         if not session:
-            print_markdown(get_text("SESSIONS", "session_not_found").format(session_id), "error")
+            print_markdown(
+                get_text("SESSIONS", "session_not_found").format(session_id), "error"
+            )
             return 1
-        
+
         success = self.session_manager.rename_session(session_id, new_name)
-        
+
         if success:
             print_markdown(
-                get_text("SESSIONS", "session_renamed").format(session["name"], new_name),
-                "success"
+                get_text("SESSIONS", "session_renamed").format(
+                    session["name"], new_name
+                ),
+                "success",
             )
             return 0
         else:
             print_markdown(get_text("SESSIONS", "session_rename_failed"), "error")
             return 1
-    
+
     def delete_session(self, session_id: str = None) -> int:
         """
         删除会话及其历史记录
@@ -247,11 +262,11 @@ class SessionsCommand:
             命令退出码
         """
         sessions = self.session_manager.get_sessions()
-        
+
         if not sessions:
             print_markdown(get_text("SESSIONS", "no_sessions"), "error")
             return 1
-            
+
         # 如果未提供会话ID，显示交互式选择
         if not session_id:
             # 创建选项列表
@@ -259,45 +274,49 @@ class SessionsCommand:
             for i, session in enumerate(sessions, 1):
                 is_active = "✓" if session["is_active"] == 1 else " "
                 options[str(i)] = f"{is_active} {session['name']} ({session['id']})"
-                
+
             # 显示选项
             self.console.print(get_text("SESSIONS", "select_session_delete"))
             for key, value in options.items():
                 self.console.print(f"[cyan]{key}[/cyan]: {value}")
-                
+
             # 获取用户选择
             choice = Prompt.ask(
                 get_text("SESSIONS", "enter_selection"),
                 choices=list(options.keys()),
-                show_choices=False
+                show_choices=False,
             )
-            
+
             # 获取所选会话ID
             session_id = sessions[int(choice) - 1]["id"]
-        
+
         # 验证会话ID是否存在
         session = next((s for s in sessions if s["id"] == session_id), None)
         if not session:
-            print_markdown(get_text("SESSIONS", "session_not_found").format(session_id), "error")
+            print_markdown(
+                get_text("SESSIONS", "session_not_found").format(session_id), "error"
+            )
             return 1
-        
+
         # 确认删除
-        confirmation = get_text("SESSIONS", "confirm_delete_session").format(session["name"])
+        confirmation = get_text("SESSIONS", "confirm_delete_session").format(
+            session["name"]
+        )
         if not Confirm.ask(confirmation):
             print_markdown(get_text("SESSIONS", "delete_cancelled"), "")
             return 0
-        
+
         # 如果只有一个会话，不允许删除
         if len(sessions) <= 1:
             print_markdown(get_text("SESSIONS", "cannot_delete_last_session"), "error")
             return 1
-        
+
         success = self.session_manager.delete_session(session_id)
-        
+
         if success:
             print_markdown(
                 get_text("SESSIONS", "session_deleted").format(session["name"]),
-                "success"
+                "success",
             )
             return 0
         else:
@@ -324,7 +343,9 @@ class SessionsCommand:
         # 获取会话名称
         if session_id:
             sessions = self.session_manager.get_sessions()
-            session_name = next((s["name"] for s in sessions if s["id"] == session_id), "未知会话")
+            session_name = next(
+                (s["name"] for s in sessions if s["id"] == session_id), "未知会话"
+            )
             title = f"{get_text('SESSIONS', 'recent_history')} - {session_name}"
         else:
             # 从第一条记录获取会话名称
@@ -333,7 +354,9 @@ class SessionsCommand:
         self._format_records(records, title, content_limit=256)
         return 0
 
-    def search_history(self, query: str, limit: int = 10, session_id: str = None) -> int:
+    def search_history(
+        self, query: str, limit: int = 10, session_id: str = None
+    ) -> int:
         """
         搜索会话历史记录
 
@@ -354,13 +377,17 @@ class SessionsCommand:
         )
 
         if not records:
-            print_markdown(get_text("SESSIONS", "no_matching_history").format(query), "")
+            print_markdown(
+                get_text("SESSIONS", "no_matching_history").format(query), ""
+            )
             return 0
 
         # 获取会话名称
         if session_id:
             sessions = self.session_manager.get_sessions()
-            session_name = next((s["name"] for s in sessions if s["id"] == session_id), "未知会话")
+            session_name = next(
+                (s["name"] for s in sessions if s["id"] == session_id), "未知会话"
+            )
             title = f"{get_text('SESSIONS', 'search_results').format(query)} - {session_name}"
         else:
             # 从第一条记录获取会话名称，如果有记录的话
@@ -417,7 +444,9 @@ class SessionsCommand:
             session_name = "当前会话"
             if session_id:
                 sessions = self.session_manager.get_sessions()
-                session_name = next((s["name"] for s in sessions if s["id"] == session_id), "未知会话")
+                session_name = next(
+                    (s["name"] for s in sessions if s["id"] == session_id), "未知会话"
+                )
 
             # 导出历史记录
             success = self.session_manager.export_history(
@@ -452,10 +481,14 @@ class SessionsCommand:
         session_name = "当前会话"
         if session_id:
             sessions = self.session_manager.get_sessions()
-            session_name = next((s["name"] for s in sessions if s["id"] == session_id), "未知会话")
+            session_name = next(
+                (s["name"] for s in sessions if s["id"] == session_id), "未知会话"
+            )
 
         # 确认清除
-        confirmation = get_text("SESSIONS", "confirm_clear_session").format(session_name)
+        confirmation = get_text("SESSIONS", "confirm_clear_session").format(
+            session_name
+        )
         if not Confirm.ask(confirmation):
             print_markdown(get_text("SESSIONS", "clear_cancelled"), "")
             return 0
@@ -471,8 +504,8 @@ class SessionsCommand:
 
         if success:
             print_markdown(
-                get_text("SESSIONS", "clear_session_successful").format(session_name), 
-                "success"
+                get_text("SESSIONS", "clear_session_successful").format(session_name),
+                "success",
             )
             return 0
         else:
@@ -499,7 +532,10 @@ def cli_create(
         None, "--name", "-n", help=get_text("SESSIONS", "session_name_help")
     ),
     description: str = typer.Option(
-        None, "--description", "-d", help=get_text("SESSIONS", "session_description_help")
+        None,
+        "--description",
+        "-d",
+        help=get_text("SESSIONS", "session_description_help"),
     ),
 ):
     """创建新会话。如果不指定名称则使用自动生成的名称。"""
@@ -509,7 +545,9 @@ def cli_create(
 
 @app.command("activate")
 def cli_activate(
-    session_id: str = typer.Argument(..., help=get_text("SESSIONS", "session_id_activate_help")),
+    session_id: str = typer.Argument(
+        ..., help=get_text("SESSIONS", "session_id_activate_help")
+    ),
 ):
     """设置活跃会话。"""
     code = SessionsCommand().set_active_session(session_id)
@@ -528,7 +566,9 @@ def cli_rename(
 
 @app.command("delete")
 def cli_delete(
-    session_id: str = typer.Argument(..., help=get_text("SESSIONS", "session_id_delete_help")),
+    session_id: str = typer.Argument(
+        ..., help=get_text("SESSIONS", "session_id_delete_help")
+    ),
 ):
     """删除会话及其历史记录。"""
     code = SessionsCommand().delete_session(session_id)

@@ -10,7 +10,7 @@ import uuid
 import contextlib
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any, Optional, ContextManager
+from typing import List, Dict, Any, Optional
 
 from viby.config import config
 from viby.utils.logging import get_logger
@@ -33,7 +33,7 @@ class SessionManager:
         return self.config.config_dir / "history.db"
 
     @contextlib.contextmanager
-    def _db_connection(self) -> ContextManager[sqlite3.Connection]:
+    def _db_connection(self):
         """获取数据库连接的上下文管理器"""
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(str(self.db_path))
@@ -132,7 +132,9 @@ class SessionManager:
             # 紧急情况下创建一个新会话
             return self.create_session("紧急会话", "系统恢复创建的会话")
 
-    def create_session(self, name: str = None, description: Optional[str] = None) -> str:
+    def create_session(
+        self, name: str = None, description: Optional[str] = None
+    ) -> str:
         """创建新的会话，如果名称为空则使用默认名称"""
         try:
             with self._db_connection() as conn:
@@ -169,7 +171,9 @@ class SessionManager:
                 cursor = conn.cursor()
 
                 # 检查会话是否存在
-                cursor.execute("SELECT COUNT(*) FROM sessions WHERE id = ?", (session_id,))
+                cursor.execute(
+                    "SELECT COUNT(*) FROM sessions WHERE id = ?", (session_id,)
+                )
                 if cursor.fetchone()[0] == 0:
                     logger.error(f"会话不存在: {session_id}")
                     return False
@@ -218,7 +222,9 @@ class SessionManager:
                 cursor = conn.cursor()
 
                 # 检查是否是活跃会话
-                cursor.execute("SELECT is_active FROM sessions WHERE id = ?", (session_id,))
+                cursor.execute(
+                    "SELECT is_active FROM sessions WHERE id = ?", (session_id,)
+                )
                 result = cursor.fetchone()
 
                 if not result:
@@ -228,7 +234,9 @@ class SessionManager:
                 was_active = result[0] == 1
 
                 # 删除历史记录
-                cursor.execute("DELETE FROM history WHERE session_id = ?", (session_id,))
+                cursor.execute(
+                    "DELETE FROM history WHERE session_id = ?", (session_id,)
+                )
                 # 删除会话
                 cursor.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
 
@@ -240,7 +248,8 @@ class SessionManager:
                     result = cursor.fetchone()
                     if result:
                         cursor.execute(
-                            "UPDATE sessions SET is_active = 1 WHERE id = ?", (result[0],)
+                            "UPDATE sessions SET is_active = 1 WHERE id = ?",
+                            (result[0],),
                         )
 
                 conn.commit()
@@ -389,19 +398,21 @@ class SessionManager:
                     session_id = self.get_active_session_id()
 
                 # 删除指定会话的交互历史
-                cursor.execute("DELETE FROM history WHERE session_id = ?", (session_id,))
-                
+                cursor.execute(
+                    "DELETE FROM history WHERE session_id = ?", (session_id,)
+                )
+
                 # 重置自增器
                 cursor.execute("DELETE FROM sqlite_sequence WHERE name='history'")
-                
+
                 conn.commit()
-                
+
                 logger.info(f"已清除会话 {session_id} 的历史记录并重置ID")
                 return True
         except sqlite3.Error as e:
             logger.error(f"清除历史记录失败: {e}")
             return False
-            
+
     def _generate_default_session_name(self) -> str:
         """生成默认会话名称 (会话+数字)"""
         try:
@@ -430,7 +441,7 @@ class SessionManager:
 
             # 获取历史记录
             records = self._get_records_for_export(session_id)
-            
+
             # 如果没有记录，直接返回成功
             if not records:
                 return True
@@ -440,13 +451,13 @@ class SessionManager:
         except Exception as e:
             logger.error(f"导出历史记录失败: {e}")
             return False
-            
+
     def _get_records_for_export(self, session_id: str) -> List[Dict[str, Any]]:
         """获取用于导出的记录"""
         with self._db_connection() as conn:
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
-            
+
             cursor.execute(
                 """
                 SELECT h.*, s.name as session_name 
@@ -465,10 +476,12 @@ class SessionManager:
             for record in records:
                 if record.get("metadata"):
                     record["metadata"] = json.loads(record["metadata"])
-                    
+
             return records
-            
-    def _write_export_file(self, file_path: str, records: List[Dict[str, Any]], format_type: str) -> bool:
+
+    def _write_export_file(
+        self, file_path: str, records: List[Dict[str, Any]], format_type: str
+    ) -> bool:
         """写入导出文件"""
         with open(file_path, "w", encoding="utf-8") as f:
             if format_type == "json":
@@ -491,7 +504,7 @@ class SessionManager:
             else:
                 logger.error(f"不支持的导出格式: {format_type}")
                 return False
-                
+
         logger.info(f"历史记录已导出到 {file_path}, 格式: {format_type}")
         return True
 
@@ -505,7 +518,7 @@ class SessionManager:
                     (new_response, record_id),
                 )
                 conn.commit()
-                
+
                 logger.debug(f"已更新交互记录，ID: {record_id}")
                 return True
         except sqlite3.Error as e:

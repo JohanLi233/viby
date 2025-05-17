@@ -31,16 +31,18 @@ class PromptNode(Node):
 
         # 准备结果结构
         result = {
-            "tools": [], 
-            "tool_servers": {}, 
+            "tools": [],
+            "tool_servers": {},
             "user_input": user_input,
             "os_info": platform.system() + " " + platform.release(),
             "shell_info": os.environ.get("SHELL", "Unknown"),
-            "current_dir": os.getcwd()
+            "current_dir": os.getcwd(),
         }
 
         # 获取Viby工具和MCP工具
-        result["tools"], result["tool_servers"] = self._get_all_tools(server_name, config)
+        result["tools"], result["tool_servers"] = self._get_all_tools(
+            server_name, config
+        )
 
         return result
 
@@ -49,27 +51,27 @@ class PromptNode(Node):
         # 准备Viby内置工具
         viby_tools = self._prepare_viby_tools(config)
         tool_servers = {tool["tool"]["name"]: "viby" for tool in viby_tools}
-        
+
         # 合并所有工具
         all_tools = viby_tools
-        
+
         # 如果启用了MCP，添加MCP工具
         if config.enable_mcp:
             mcp_tools = self._fetch_mcp_tools(config, server_name)
-            
+
             # 更新工具服务器映射
             for srv_name, tools in mcp_tools.items():
                 for tool in tools:
                     tool_name = tool.name if hasattr(tool, "name") else tool.get("name")
                     if tool_name:
                         tool_servers[tool_name] = srv_name
-                        
+
             # 添加MCP工具到列表
             if not config.enable_tool_search:
                 for srv_name, tools in mcp_tools.items():
                     for tool in tools:
                         all_tools.append({"server_name": srv_name, "tool": tool})
-                        
+
         return all_tools, tool_servers
 
     def _prepare_viby_tools(self, config):
@@ -80,18 +82,18 @@ class PromptNode(Node):
             # 跳过禁用的工具搜索功能
             if tool_name == "search_relevant_tools" and not config.enable_tool_search:
                 continue
-                
+
             # 处理工具描述
             tool_def_copy = self._process_tool_descriptions(tool_def)
             viby_tools.append({"server_name": "viby", "tool": tool_def_copy})
 
         return viby_tools
-        
+
     def _process_tool_descriptions(self, tool_def):
         """处理工具定义中的可调用描述"""
         # 创建副本，避免修改原始对象
         tool_def = tool_def.copy()
-        
+
         # 处理可调用的描述
         if callable(tool_def["description"]):
             tool_def["description"] = tool_def["description"]()
@@ -100,7 +102,7 @@ class PromptNode(Node):
         for param_name, param_def in tool_def["parameters"]["properties"].items():
             if callable(param_def["description"]):
                 param_def["description"] = param_def["description"]()
-                
+
         return tool_def
 
     def _fetch_mcp_tools(self, config, server_name):
@@ -142,7 +144,7 @@ class PromptNode(Node):
         except Exception as e:
             print(f"获取历史对话失败: {e}")
             return []
-            
+
     def _prepare_system_prompt(self, tools_info, system_info):
         """准备系统提示"""
         return get_text("AGENT", "system_prompt").format(
@@ -163,12 +165,12 @@ class PromptNode(Node):
 
         # 获取系统提示
         system_prompt = self._prepare_system_prompt(
-            tools_info, 
+            tools_info,
             {
                 "os_info": exec_res["os_info"],
                 "shell_info": exec_res["shell_info"],
                 "current_dir": exec_res["current_dir"],
-            }
+            },
         )
 
         # 初始化消息历史，首先是系统提示

@@ -65,7 +65,10 @@ class ExecuteToolNode(Node):
         """处理工具执行中的错误"""
         error_message = str(exception)
         print(get_text("MCP", "execution_error", error_message))
-        return {"status": "error", "message": get_text("MCP", "error_message", exception)}
+        return {
+            "status": "error",
+            "message": get_text("MCP", "error_message", exception),
+        }
 
     def _execute_viby_tool(self, tool_name, parameters):
         """执行viby内置工具"""
@@ -117,7 +120,7 @@ class ExecuteToolNode(Node):
             return "completed"
 
         return "call_llm"
-    
+
     def _update_interaction_history(self, shared, tool_name, tool_result):
         """更新历史交互记录，记录工具执行结果"""
         if "model_manager" in shared and hasattr(
