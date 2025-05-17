@@ -34,7 +34,7 @@ Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解
 - **多模型支持** - 配置和使用不同模型执行各种任务
 - **多语言支持** - 支持英文和中文界面，可轻松切换语言
 
-![Viby 终端演示](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png)
+<!-- ![Viby 终端演示](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png) -->
 
 ## 🔧 安装
 

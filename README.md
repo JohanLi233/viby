@@ -36,7 +36,7 @@ Viby is a powerful AI agent that lives in your terminal, designed to solve virtu
 - **Command Embeddings** - Semantic search in tools using embedded vectors for accurate tool selection
 - **Multi-language Support** - Full interface in English and Chinese with easy language switching
 
-![Viby Terminal Demo](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png)
+<!-- ![Viby Terminal Demo](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png) -->
 
 ## 🔧 Installation
 
