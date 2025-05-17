@@ -1,5 +1,5 @@
 AGENT:
-  system_prompt: 'You are viby, an intelligent, thoughtful, and insightful Chinese-friendly
+  system_prompt: 'You are viby, an intelligent, thoughtful, and insightful friendly
     AI assistant. You do more than passively respond — you proactively guide conversations,
     offer opinions, suggestions, and decisive answers. When users ask questions, reply
     concisely and helpfully, avoiding unnecessary verbosity.
@@ -24,21 +24,22 @@ AGENT:
 
     To use a tool, follow this format:
 
-    {{"name": "tool_name", "arguments": {{"param1": "value1", "param2": "value2"}}}}
+    <tool_call>{{"name": "tool_name", "arguments": {{"param1": "value1", "param2": "value2"}}}}</tool_call>
 
     You may call different tools multiple times until the user''s problem is fully
-    solved.
+    solved. But you can only call one tool at a time.
 
     For example, if the user asks about the current directory project, first run pwd,
     then ls, and if there is a README or other important file, read it before giving
     a complete answer.
 
     You have the ability to operate the computer like a user, including accessing
-    websites and resources (e.g., use curl to check the weather).You can also search
-    for available tools, and the tools retrieved are all available.Always strive to
-    solve the user''s needs efficiently and thoroughly.'
-CHAT:
-  input_prompt: '|> '
+    websites and resources (e.g., use curl to check the weather). You can also search
+    for available tools, and the tools retrieved are all available.
+
+    Sometimes, the user''s needs are strongly related to the searched tools, so you can try searching for available tools first.
+
+    Always strive to solve the user''s needs efficiently and thoroughly.'
 CONFIG_WIZARD:
   autocompact_header: '--- Auto Message Compaction Configuration ---'
   autocompact_threshold_prompt: Compaction threshold (ratio of max_tokens to trigger
@@ -83,7 +84,6 @@ CONFIG_WIZARD:
 GENERAL:
   app_description: viby - A versatile command-line tool for interacting with large
     language models
-  chat_help: Start an interactive chat session with the model
   config_help: Launch interactive configuration wizard
   copy_fail: 'Copy failed: {0}'
   copy_success: Content copied to clipboard!
@@ -105,8 +105,11 @@ GENERAL:
   tokens_help: Display token usage information
   version_help: Show program''s version number and exit
 HISTORY:
+  active: Active
+  cannot_delete_last_session: Cannot delete the last session, at least one session must be kept
   clear_cancelled: Clear operation cancelled.
   clear_failed: Failed to clear history records.
+  clear_session_successful: Successfully cleared history records for {0}
   clear_successful: Successfully cleared {0} history records
   clearing_history: Clearing history records...
   command: Command
@@ -120,9 +123,15 @@ HISTORY:
   compaction_user_prompt: 'Please compress the following conversation history, preserving
     important information but reducing token count: {0}'
   compressed_summary_prefix: 'Here''s a compressed summary of the previous conversation:'
+  confirm_clear_session: Are you sure you want to clear all history records for {0}?
   confirm_clear_all: Are you sure you want to clear all history records?
+  confirm_delete_session: Are you sure you want to delete session '{0}' and all its history records?
   content: Content
   create_directory_failed: 'Failed to create directory: {0}'
+  create_session_failed: Failed to create session
+  create_session_success: 'Successfully created session ''{0}'', ID: {1}'
+  created_at: Created at
+  delete_cancelled: Delete operation cancelled
   directory: Directory
   exit_code: Exit code
   export_cancelled: Export cancelled.
@@ -131,20 +140,43 @@ HISTORY:
   export_successful: 'History records successfully exported to {0}, format: {1}, type:
     {2}'
   exporting_history: Exporting history records...
-  file_exists_overwrite: File {0} already exists. Overwrite?
+  file_exists_overwrite: 'File {0} already exists. Overwrite?'
   file_help: Path to export file
   force_help: Force clear without confirmation
   format_help: Export format (json, csv, yaml)
+  interactions: Interactions
+  last_used: Last used
   limit_help: Number of records to display
+  name: Name
+  new_name_help: New session name
+  new_name_required: Please provide a new name
   no_history: No history records found.
-  no_matching_history: No matching history for ''{0}''.
+  no_matching_history: No matching history for '{0}'.
+  no_sessions: No sessions found
   no_shell_history: No shell command history found.
   query_help: Search keyword
   recent_history: Recent interaction history
   recent_shell_history: Recent shell command history
   response: Response
-  search_results: 'Search results: ''''{0}''''''
+  search_results: 'Search results: ''{0}'''
   search_term_required: A search keyword is required.
+  session_activated: Session '{0}' set as active
+  session_activation_failed: Failed to set active session
+  session_already_active: Session '{0}' is already active
+  session_delete_failed: Failed to delete session
+  session_deleted: Deleted session '{0}' and all its history records
+  session_description_help: Session description (optional)
+  session_id_activate_help: Session ID to activate
+  session_id_delete_help: Session ID to delete
+  session_id_help: Specify session ID (defaults to current active session)
+  session_name_help: Session name
+  session_name_required: Please provide a session name
+  session_not_found: 'Session not found: {0}'
+  session_rename_failed: Failed to rename session
+  session_renamed: 'Session ''{0}'' renamed to ''{1}'''
+  sessions_help: Manage sessions and history records
+  sessions_list: Sessions list
+  status: Status
   timestamp: Time
   type: Type
   type_help: Type of history to export (interactions, shell)
@@ -157,8 +189,7 @@ MCP:
   parsing_error: '❌ Error parsing LLM response: {0}'
   shell_tool_description: Execute a shell command on the user''s system
   shell_tool_param_command: The shell command to execute
-  tool_retrieval_description: Search for most relevant MCP tools based on user query,
-    returning tool names, descriptions, parameters, and similarity scores
+  tool_retrieval_description: Search for most relevant MCP tools based on user query, returning tool names, descriptions, and parameters
   tool_retrieval_param_query: Search query text describing needed tool functionality
     or user needs
   tool_retrieval_param_top_k: Number of most relevant tools to return, default is
@@ -290,7 +321,7 @@ TOOLS:
   sending_search_request: Sending search request to embedding server
   server_already_running: Embedding model server is already running
   server_column: Server
-  server_crashed: 'Failed to start embedding model server: Server process exi'
+  server_crashed: 'Failed to start embedding model server: Please check if the embedding model is downloaded successfully'
   server_not_running: Embedding model server is not running
   server_shutting_down: Server is shutting down...
   server_start_error: Error starting server
@@ -321,3 +352,79 @@ TOOLS:
   updating_embeddings: Updating all tool embeddings
   using_embedding_server: Using embedding model server to update embeddings
   validate_error: Error validating saved tool info
+SESSIONS:
+  sessions_help: Manage sessions
+  active: Active
+  cannot_delete_last_session: Cannot delete the last session, at least one session must be kept
+  clear_cancelled: Clear operation cancelled.
+  clear_failed: Failed to clear history records.
+  clear_session_successful: Successfully cleared history records for {0}
+  clear_successful: Successfully cleared {0} history records
+  clearing_history: Clearing history records...
+  command: Command
+  command_help: Manage interaction history records
+  compaction_system_prompt: You are a chat history compression assistant. Your task
+    is to compress the provided conversation history into a smaller token count while
+    preserving all important information and context. Your goal is to reduce token
+    count while maintaining key contextual elements. The summary should be coherent,
+    readable, and include all relevant information, but with more concise wording.
+    Do not add any information that was not present in the original conversation.
+  compaction_user_prompt: 'Please compress the following conversation history, preserving
+    important information but reducing token count: {0}'
+  compressed_summary_prefix: 'Here''s a compressed summary of the previous conversation:'
+  confirm_clear_session: Are you sure you want to clear all history records for {0}?
+  confirm_clear_all: Are you sure you want to clear all history records?
+  confirm_delete_session: Are you sure you want to delete session '{0}' and all its history records?
+  content: Content
+  create_directory_failed: 'Failed to create directory: {0}'
+  create_session_failed: Failed to create session
+  create_session_success: 'Successfully created session ''{0}'', ID: {1}'
+  created_at: Created at
+  delete_cancelled: Delete operation cancelled
+  directory: Directory
+  exit_code: Exit code
+  export_cancelled: Export cancelled.
+  export_failed: Failed to export history records.
+  export_path_required: Export file path is required.
+  export_successful: 'History records successfully exported to {0}, format: {1}, type:
+    {2}'
+  exporting_history: Exporting history records...
+  file_exists_overwrite: 'File {0} already exists. Overwrite?'
+  file_help: Path to export file
+  force_help: Force clear without confirmation
+  format_help: Export format (json, csv, yaml)
+  interactions: Interactions
+  last_used: Last used
+  limit_help: Number of records to display
+  name: Name
+  new_name_help: New session name
+  new_name_required: Please provide a new name
+  no_history: No history records found.
+  no_matching_history: No matching history for '{0}'.
+  no_sessions: No sessions found
+  no_shell_history: No shell command history found.
+  query_help: Search keyword
+  recent_history: Recent interaction history
+  recent_shell_history: Recent shell command history
+  response: Response
+  search_results: 'Search results: ''{0}'''
+  search_term_required: A search keyword is required.
+  session_activated: Session '{0}' set as active
+  session_activation_failed: Failed to set active session
+  session_already_active: Session '{0}' is already active
+  session_delete_failed: Failed to delete session
+  session_deleted: Deleted session '{0}' and all its history records
+  session_description_help: Session description (optional)
+  session_id_activate_help: Session ID to activate
+  session_id_delete_help: Session ID to delete
+  session_id_help: Specify session ID (defaults to current active session)
+  session_name_help: Session name
+  session_name_required: Please provide a session name
+  session_not_found: 'Session not found: {0}'
+  session_rename_failed: Failed to rename session
+  session_renamed: 'Session ''{0}'' renamed to ''{1}'''
+  sessions_list: Sessions list
+  status: Status
+  timestamp: Time
+  type: Type
+  type_help: Type of history to export (interactions, shell)

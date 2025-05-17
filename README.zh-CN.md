@@ -34,7 +34,7 @@ Viby 是一个强大的人工智能体，它存在于你的终端中，旨在解
 - **多模型支持** - 配置和使用不同模型执行各种任务
 - **多语言支持** - 支持英文和中文界面，可轻松切换语言
 
-![Viby 终端演示](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png)
+<!-- ![Viby 终端演示](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png) -->
 
 ## 🔧 安装
 
@@ -66,19 +66,6 @@ yb vibe "用 Python 写一个快速排序"
 ```sh
 yb "用 Python 写一个快速排序"
 # -> 同上
-```
-
-### 交互式对话模式
-
-```sh
-yb --chat
-# 或
-yb -c
-|> 告诉我量子计算的相关信息
-# -> [AI 回答量子计算相关内容]
-|> 有哪些实际应用？
-# -> [AI 回答后续信息]
-|> exit
 ```
 
 ### 处理管道内容
@@ -212,7 +199,6 @@ yb [选项] [命令] [参数]...
 主要命令：
 - `yb [prompt]` - 提问
 - `yb vibe "你的问题"` - 提问（默认命令）
-- `yb --chat` 或 `yb -c` - 启动交互式聊天模式
 - `yb --think vibe "复杂问题"` - 使用思考模型进行深入分析
 - `yb --fast vibe "简单问题"` - 使用快速模型获取快速响应
 - `yb history` - 管理交互历史记录

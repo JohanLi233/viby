@@ -14,15 +14,15 @@ from prompt_toolkit.formatted_text import HTML
 
 from viby.locale import get_text
 from viby.utils.ui import Colors, print_separator
-from viby.utils.history import HistoryManager
+from viby.utils.history import SessionManager
 from viby.config.app_config import Config
 
 logger = logging.getLogger(__name__)
 
 # 获取全局配置实例
 _config = Config()
-# 初始化历史管理器
-_history_manager = HistoryManager()
+# 初始化会话管理器
+_session_manager = SessionManager()
 
 # 不安全命令黑名单
 UNSAFE_COMMANDS = [
@@ -192,16 +192,6 @@ def handle_shell_command(command: str):
             f"{Colors.BLUE}{get_text('SHELL', 'executing_yolo', command)}{Colors.END}"
         )
         result = _execute_command(command)
-        # 记录shell命令及其结果到历史记录
-        _history_manager.add_shell_command(
-            command,
-            os.getcwd(),  # 当前工作目录作为directory参数
-            result.get("code", 1),
-            {
-                "output": result.get("output", ""),
-                "error": result.get("error", ""),
-            },  # 将输出作为元数据
-        )
         return result
 
     # 不是yolo模式或命令不安全，使用交互模式
@@ -218,18 +208,6 @@ def handle_shell_command(command: str):
 
     # 根据用户选择执行不同操作
     result = _handle_choice(choice, command)
-
-    # 只有在实际执行了命令时才记录历史
-    if result.get("status") == "executed":
-        _history_manager.add_shell_command(
-            command,
-            os.getcwd(),  # 当前工作目录作为directory参数
-            result.get("code", 1),
-            {
-                "output": result.get("output", ""),
-                "error": result.get("error", ""),
-            },  # 将输出作为元数据
-        )
 
     return result
 

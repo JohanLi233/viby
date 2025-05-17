@@ -36,7 +36,7 @@ Viby is a powerful AI agent that lives in your terminal, designed to solve virtu
 - **Command Embeddings** - Semantic search in tools using embedded vectors for accurate tool selection
 - **Multi-language Support** - Full interface in English and Chinese with easy language switching
 
-![Viby Terminal Demo](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png)
+<!-- ![Viby Terminal Demo](https://raw.githubusercontent.com/JohanLi233/viby/main/assets/screenshot.png) -->
 
 ## 🔧 Installation
 
@@ -68,19 +68,6 @@ yb vibe "Write a quicksort in python"
 ```sh
 yb "Write a quicksort in python"
 # -> Same result as above
-```
-
-### Interactive Chat Mode
-
-```sh
-yb --chat
-# or
-yb -c
-|> Tell me about quantum computing
-# -> [AI responds about quantum computing]
-|> What are the practical applications?
-# -> [AI responds with follow-up information]
-|> exit
 ```
 
 ### Process Piped Content
@@ -216,7 +203,6 @@ yb [OPTIONS] [COMMAND] [ARGS]...
 Main commands:
 - `yb [prompt]` - Ask a question (alias for `yb vibe "your question"`; **recommended**)
 - `yb vibe "your question"` - Ask a question (default command for questions)
-- `yb --chat` or `yb -c` - Start interactive chat mode
 - `yb --think vibe "complex question"` - Use the think model for deeper analysis
 - `yb --fast vibe "simple question"` - Use the fast model for quick responses
 - `yb history` - Manage interaction history

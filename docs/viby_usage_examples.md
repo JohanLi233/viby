@@ -7,7 +7,6 @@ This document provides detailed usage examples for Viby to help you make the mos
 - [Viby Usage Examples](#viby-usage-examples)
   - [Table of Contents](#table-of-contents)
   - [Basic Usage](#basic-usage)
-  - [Interactive Chat Mode](#interactive-chat-mode)
   - [Pipe Input](#pipe-input)
   - [Shell Command Generation](#shell-command-generation)
   - [History Management](#history-management)
@@ -35,26 +34,6 @@ yb vibe "Write a binary search algorithm in Python"
 
 # Direct run as default command - with explicit "vibe" command
 yb vibe Recommend some Python learning resources
-```
-
-## Interactive Chat Mode
-
-Interactive mode allows you to have multi-turn continuous conversations, with all context from the session preserved:
-
-```sh
-# Start interactive chat
-yb --chat
-# or
-yb -c
-
-|> Introduce machine learning
-# -> [AI explains machine learning]
-
-|> What's the difference between supervised and unsupervised learning?
-# -> [AI explains differences, utilizing previous context]
-
-|> exit
-# or use Ctrl+D to exit chat mode
 ```
 
 ## Pipe Input
