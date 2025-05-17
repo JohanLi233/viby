@@ -21,7 +21,7 @@ from viby.utils.keyboard_shortcuts import install_shortcuts, detect_shell
 # 已知的一级子命令名称
 _KNOWN_ROOT_CMDS = {
     "vibe",
-    "history",
+    "sessions",
     "tools",
     "embed",
     "shortcuts",
@@ -86,21 +86,21 @@ def default_callback(
 app = create_typer(get_text("GENERAL", "app_description"))
 
 # 创建子命令组
-history_app = create_typer(get_text("HISTORY", "command_help"))
 tools_app = create_typer(get_text("TOOLS", "command_help", "管理工具相关命令"))
 embed_app = create_typer(
     get_text("TOOLS", "update_embeddings_help", "更新 MCP 工具的嵌入向量")
 )
+sessions_app = create_typer(get_text("SESSIONS", "sessions_help", "管理会话"))
 
 # 添加子命令组到主应用
-app.add_typer(history_app, name="history")
+app.add_typer(sessions_app, name="sessions")
 app.add_typer(tools_app, name="tools")
 tools_app.add_typer(embed_app, name="embed")
 
 # 设置默认回调，显示帮助
-history_app.callback(invoke_without_command=True)(default_callback)
 tools_app.callback(invoke_without_command=True)(default_callback)
 embed_app.callback(invoke_without_command=True)(default_callback)
+sessions_app.callback(invoke_without_command=True)(default_callback)
 
 # 日志记录器
 logger = setup_logging(log_to_file=True)
@@ -108,7 +108,7 @@ logger = setup_logging(log_to_file=True)
 # 命令注册表
 command_registry: Dict[str, Dict] = {
     "vibe": {"module": "viby.commands.vibe", "class": "Vibe"},
-    "history": {"module": "viby.commands.history", "class": "HistoryCommand"},
+    "sessions": {"module": "viby.commands.sessions", "class": "SessionsCommand"},
     "shortcuts": {"module": "viby.commands.shortcuts", "class": "ShortcutsCommand"},
     "tools": {"module": "viby.commands.tools", "class": "ToolsCommand"},
     "embed": {
@@ -329,61 +329,123 @@ def shortcuts():
         show_info(get_text("SHORTCUTS", "activation_note"))
 
 
-# History 命令组
-@history_app.command("list")
-def history_list(
-    limit: int = typer.Option(
-        10, "--limit", "-n", help=get_text("HISTORY", "limit_help")
+# Sessions 命令组
+@sessions_app.command("list")
+def sessions_list():
+    """列出所有会话。"""
+    SessionsCommand = get_command_class("sessions")
+    code = SessionsCommand().list_sessions()
+    raise typer.Exit(code=code)
+
+
+@sessions_app.command("create")
+def sessions_create(
+    name: str = typer.Argument(..., help=get_text("SESSIONS", "session_name_help")),
+    description: str = typer.Option(
+        None,
+        "--description",
+        "-d",
+        help=get_text("SESSIONS", "session_description_help"),
     ),
 ):
-    """列出历史记录。"""
-    HistoryCommand = get_command_class("history")
-    return HistoryCommand().list_history(limit)
+    """创建新会话。"""
+    SessionsCommand = get_command_class("sessions")
+    code = SessionsCommand().create_session(name, description)
+    raise typer.Exit(code=code)
 
 
-@history_app.command("search")
-def history_search(
-    query: str = typer.Argument(..., help=get_text("HISTORY", "query_help")),
-    limit: int = typer.Option(
-        10, "--limit", "-n", help=get_text("HISTORY", "limit_help")
+@sessions_app.command("activate")
+def sessions_activate(
+    session_id: str = typer.Argument(
+        ..., help=get_text("SESSIONS", "session_id_activate_help")
     ),
 ):
-    """搜索历史记录。"""
-    HistoryCommand = get_command_class("history")
-    return HistoryCommand().search_history(query, limit)
+    """设置活跃会话。"""
+    SessionsCommand = get_command_class("sessions")
+    code = SessionsCommand().set_active_session(session_id)
+    raise typer.Exit(code=code)
 
 
-@history_app.command("export")
-def history_export(
-    file: str = typer.Argument(..., help=get_text("HISTORY", "file_help")),
+@sessions_app.command("rename")
+def sessions_rename(
+    session_id: str = typer.Argument(..., help=get_text("SESSIONS", "session_id_help")),
+    new_name: str = typer.Argument(..., help=get_text("SESSIONS", "new_name_help")),
+):
+    """重命名会话。"""
+    SessionsCommand = get_command_class("sessions")
+    code = SessionsCommand().rename_session(session_id, new_name)
+    raise typer.Exit(code=code)
+
+
+@sessions_app.command("delete")
+def sessions_delete(
+    session_id: str = typer.Argument(
+        ..., help=get_text("SESSIONS", "session_id_delete_help")
+    ),
+):
+    """删除会话及其历史记录。"""
+    SessionsCommand = get_command_class("sessions")
+    code = SessionsCommand().delete_session(session_id)
+    raise typer.Exit(code=code)
+
+
+@sessions_app.command("show")
+def sessions_show(
+    limit: int = typer.Option(
+        10, "--limit", "-n", help=get_text("SESSIONS", "limit_help")
+    ),
+    session: str = typer.Option(
+        None, "--session", "-s", help=get_text("SESSIONS", "session_id_help")
+    ),
+):
+    """显示会话的历史记录。"""
+    SessionsCommand = get_command_class("sessions")
+    code = SessionsCommand().show_history(limit, session)
+    raise typer.Exit(code=code)
+
+
+@sessions_app.command("search")
+def sessions_search(
+    query: str = typer.Argument(..., help=get_text("SESSIONS", "query_help")),
+    limit: int = typer.Option(
+        10, "--limit", "-n", help=get_text("SESSIONS", "limit_help")
+    ),
+    session: str = typer.Option(
+        None, "--session", "-s", help=get_text("SESSIONS", "session_id_help")
+    ),
+):
+    """搜索会话中的历史记录。"""
+    SessionsCommand = get_command_class("sessions")
+    code = SessionsCommand().search_history(query, limit, session)
+    raise typer.Exit(code=code)
+
+
+@sessions_app.command("export")
+def sessions_export(
+    file: str = typer.Argument(..., help=get_text("SESSIONS", "file_help")),
     format_type: str = typer.Option(
-        "json", "--format", "-f", help=get_text("HISTORY", "format_help")
+        "json", "--format", "-f", help=get_text("SESSIONS", "format_help")
     ),
-    history_type: str = typer.Option(
-        "interactions", "--type", "-t", help=get_text("HISTORY", "type_help")
-    ),
-):
-    """导出历史记录到文件。"""
-    HistoryCommand = get_command_class("history")
-    return HistoryCommand().export_history(file, format_type, history_type)
-
-
-@history_app.command("clear")
-def history_clear():
-    """清除历史记录。"""
-    HistoryCommand = get_command_class("history")
-    return HistoryCommand().clear_history()
-
-
-@history_app.command("shell")
-def history_shell(
-    limit: int = typer.Option(
-        10, "--limit", "-n", help=get_text("HISTORY", "limit_help")
+    session: str = typer.Option(
+        None, "--session", "-s", help=get_text("SESSIONS", "session_id_help")
     ),
 ):
-    """列出 shell 命令历史。"""
-    HistoryCommand = get_command_class("history")
-    return HistoryCommand().list_shell_history(limit)
+    """导出会话历史记录到文件。"""
+    SessionsCommand = get_command_class("sessions")
+    code = SessionsCommand().export_history(file, format_type, session)
+    raise typer.Exit(code=code)
+
+
+@sessions_app.command("clear")
+def sessions_clear(
+    session: str = typer.Option(
+        None, "--session", "-s", help=get_text("SESSIONS", "session_id_help")
+    ),
+):
+    """清除会话历史记录。"""
+    SessionsCommand = get_command_class("sessions")
+    code = SessionsCommand().clear_history(session)
+    raise typer.Exit(code=code)
 
 
 # Tools 命令组

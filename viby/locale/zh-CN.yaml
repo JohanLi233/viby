@@ -92,24 +92,27 @@ GENERAL:
   tokens_help: 显示token使用信息
   version_help: 显示程序版本号并退出
 HISTORY:
+  active: 活跃
+  cannot_delete_last_session: 无法删除最后一个会话，必须至少保留一个会话
   clear_cancelled: 清除操作已取消。
   clear_failed: 清除历史记录失败。
+  clear_session_successful: 已成功清除 {0} 的历史记录
   clear_successful: 已成功清除 {0} 历史记录
   clearing_history: 正在清除历史记录...
   command: 命令
   command_help: 管理交互历史记录
   compaction_system_prompt: 你是一个聊天历史压缩助手。你的任务是将提供的对话历史压缩到更小的token数量，同时保留所有重要信息和上下文。你的目标是减少token数量同时保持关键上下文。总结应该是连贯的，可读的，并包含所有相关信息，但措辞应更简洁。不要添加任何未在原始对话中出现的信息。
-  compaction_user_prompt: '请压缩以下对话历史，保留重要信息但减少token数量:
-
-
-    {0}'
-  compressed_summary_prefix: '以下是之前对话的压缩摘要:
-
-
-    '
+  compaction_user_prompt: "请压缩以下对话历史，保留重要信息但减少token数量:\n\n{0}"
+  compressed_summary_prefix: "以下是之前对话的压缩摘要:\n\n"
+  confirm_clear_session: 确定要清除 {0} 的所有历史记录吗?
   confirm_clear_all: 确定要清除所有历史记录吗?
+  confirm_delete_session: 确定要删除会话 '{0}' 及其所有历史记录吗?
   content: 内容
   create_directory_failed: '创建目录失败: {0}'
+  create_session_failed: 创建会话失败
+  create_session_success: '已成功创建会话 ''{0}''，ID: {1}'
+  created_at: 创建时间
+  delete_cancelled: 删除操作已取消
   directory: 目录
   exit_code: 退出码
   export_cancelled: 导出已取消。
@@ -117,13 +120,19 @@ HISTORY:
   export_path_required: 必须指定导出文件路径。
   export_successful: '历史记录已成功导出到 {0}，格式: {1}，类型: {2}'
   exporting_history: 正在导出历史记录...
-  file_exists_overwrite: 文件 {0} 已存在，是否覆盖?
+  file_exists_overwrite: '文件 {0} 已存在，是否覆盖?'
   file_help: 导出文件的路径
   force_help: 强制清除，不提示确认
   format_help: 导出格式 (json, csv, yaml)
+  interactions: 交互数
+  last_used: 最后使用
   limit_help: 显示的记录数量
+  name: 名称
+  new_name_help: 新的会话名称
+  new_name_required: 请提供新的名称
   no_history: 没有找到历史记录。
   no_matching_history: 没有找到匹配 '{0}' 的历史记录。
+  no_sessions: 没有找到任何会话
   no_shell_history: 没有找到Shell命令历史记录。
   query_help: 搜索关键词
   recent_history: 最近交互历史
@@ -131,6 +140,23 @@ HISTORY:
   response: 回复
   search_results: 搜索结果：'{0}'
   search_term_required: 必须提供搜索关键词。
+  session_activated: 已将会话 '{0}' 设为活跃
+  session_activation_failed: 设置活跃会话失败
+  session_already_active: 会话 '{0}' 已经是活跃状态
+  session_delete_failed: 删除会话失败
+  session_deleted: 已删除会话 '{0}' 及其所有历史记录
+  session_description_help: 会话描述（可选）
+  session_id_activate_help: 要激活的会话ID
+  session_id_delete_help: 要删除的会话ID
+  session_id_help: 指定会话ID（默认为当前活跃会话）
+  session_name_help: 会话名称
+  session_name_required: 请提供会话名称
+  session_not_found: '未找到会话: {0}'
+  session_rename_failed: 重命名会话失败
+  session_renamed: '已将会话 ''{0}'' 重命名为 ''{1}'''
+  sessions_help: 管理会话及历史记录
+  sessions_list: 会话列表
+  status: 状态
   timestamp: 时间
   type: 类型
   type_help: 导出的历史类型 (interactions, shell)
@@ -295,3 +321,72 @@ TOOLS:
   updating_embeddings: 正在更新所有工具嵌入向量
   using_embedding_server: 使用嵌入模型服务器更新嵌入向量
   validate_error: 验证保存的工具信息时出错
+SESSIONS:
+  sessions_help: 管理会话
+  active: 活跃
+  cannot_delete_last_session: 无法删除最后一个会话，必须至少保留一个会话
+  clear_cancelled: 清除操作已取消。
+  clear_failed: 清除历史记录失败。
+  clear_session_successful: 已成功清除 {0} 的历史记录
+  clear_successful: 已成功清除 {0} 历史记录
+  clearing_history: 正在清除历史记录...
+  command: 命令
+  command_help: 管理交互历史记录
+  compaction_system_prompt: 你是一个聊天历史压缩助手。你的任务是将提供的对话历史压缩到更小的token数量，同时保留所有重要信息和上下文。你的目标是减少token数量同时保持关键上下文。总结应该是连贯的，可读的，并包含所有相关信息，但措辞应更简洁。不要添加任何未在原始对话中出现的信息。
+  compaction_user_prompt: "请压缩以下对话历史，保留重要信息但减少token数量:\n\n{0}"
+  compressed_summary_prefix: "以下是之前对话的压缩摘要:\n\n"
+  confirm_clear_session: 确定要清除 {0} 的所有历史记录吗?
+  confirm_clear_all: 确定要清除所有历史记录吗?
+  confirm_delete_session: 确定要删除会话 '{0}' 及其所有历史记录吗?
+  content: 内容
+  create_directory_failed: '创建目录失败: {0}'
+  create_session_failed: 创建会话失败
+  create_session_success: '已成功创建会话 ''{0}''，ID: {1}'
+  created_at: 创建时间
+  delete_cancelled: 删除操作已取消
+  directory: 目录
+  exit_code: 退出码
+  export_cancelled: 导出已取消。
+  export_failed: 导出历史记录失败。
+  export_path_required: 必须指定导出文件路径。
+  export_successful: '历史记录已成功导出到 {0}，格式: {1}，类型: {2}'
+  exporting_history: 正在导出历史记录...
+  file_exists_overwrite: '文件 {0} 已存在，是否覆盖?'
+  file_help: 导出文件的路径
+  force_help: 强制清除，不提示确认
+  format_help: 导出格式 (json, csv, yaml)
+  interactions: 交互数
+  last_used: 最后使用
+  limit_help: 显示的记录数量
+  name: 名称
+  new_name_help: 新的会话名称
+  new_name_required: 请提供新的名称
+  no_history: 没有找到历史记录。
+  no_matching_history: 没有找到匹配 '{0}' 的历史记录。
+  no_sessions: 没有找到任何会话
+  no_shell_history: 没有找到Shell命令历史记录。
+  query_help: 搜索关键词
+  recent_history: 最近交互历史
+  recent_shell_history: 最近Shell命令历史
+  response: 回复
+  search_results: 搜索结果：'{0}'
+  search_term_required: 必须提供搜索关键词。
+  session_activated: 已将会话 '{0}' 设为活跃
+  session_activation_failed: 设置活跃会话失败
+  session_already_active: 会话 '{0}' 已经是活跃状态
+  session_delete_failed: 删除会话失败
+  session_deleted: 已删除会话 '{0}' 及其所有历史记录
+  session_description_help: 会话描述（可选）
+  session_id_activate_help: 要激活的会话ID
+  session_id_delete_help: 要删除的会话ID
+  session_id_help: 指定会话ID（默认为当前活跃会话）
+  session_name_help: 会话名称
+  session_name_required: 请提供会话名称
+  session_not_found: '未找到会话: {0}'
+  session_rename_failed: 重命名会话失败
+  session_renamed: '已将会话 ''{0}'' 重命名为 ''{1}'''
+  sessions_list: 会话列表
+  status: 状态
+  timestamp: 时间
+  type: 类型
+  type_help: 导出的历史类型 (interactions, shell)

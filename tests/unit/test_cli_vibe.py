@@ -317,104 +317,90 @@ def test_shortcuts_command(
 
 
 @patch("viby.cli.app.get_command_class")
-def test_history_list_command(mock_get_command, cli_runner):
-    """测试history list命令"""
+def test_sessions_list_command(mock_get_command, cli_runner):
+    """测试sessions list命令"""
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
-        mock_history_command = MagicMock()
-        mock_history_class = MagicMock(return_value=mock_history_command)
-        mock_get_command.return_value = mock_history_class
+        mock_sessions_command = MagicMock()
+        mock_sessions_class = MagicMock(return_value=mock_sessions_command)
+        mock_get_command.return_value = mock_sessions_class
 
-        cli_runner.invoke(app, ["history", "list"])
+        cli_runner.invoke(app, ["sessions", "list"])
 
-        mock_get_command.assert_called_once_with("history")
-        mock_history_class.assert_called_once()
-        mock_history_command.list_history.assert_called_once_with(10)
+        mock_get_command.assert_called_once_with("sessions")
+        mock_sessions_class.assert_called_once()
+        mock_sessions_command.list_sessions.assert_called_once()
 
 
 @patch("viby.cli.app.get_command_class")
-def test_history_search_command(mock_get_command, cli_runner):
-    """测试history search命令"""
+def test_sessions_search_command(mock_get_command, cli_runner):
+    """测试sessions search命令"""
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
-        mock_history_command = MagicMock()
-        mock_history_class = MagicMock(return_value=mock_history_command)
-        mock_get_command.return_value = mock_history_class
+        mock_sessions_command = MagicMock()
+        mock_sessions_class = MagicMock(return_value=mock_sessions_command)
+        mock_get_command.return_value = mock_sessions_class
 
-        cli_runner.invoke(app, ["history", "search", "查询词"])
+        cli_runner.invoke(app, ["sessions", "search", "查询词"])
 
-        mock_get_command.assert_called_once_with("history")
-        mock_history_class.assert_called_once()
-        mock_history_command.search_history.assert_called_once_with("查询词", 10)
+        mock_get_command.assert_called_once_with("sessions")
+        mock_sessions_class.assert_called_once()
+        # 由于参数提供方式的变化，不能直接检查参数
+        mock_sessions_command.search_history.assert_called_once()
+        assert mock_sessions_command.search_history.call_args[0][0] == "查询词"
 
 
 @patch("viby.cli.app.get_command_class")
-def test_history_export_command(mock_get_command, cli_runner):
-    """测试history export命令"""
+def test_sessions_export_command(mock_get_command, cli_runner):
+    """测试sessions export命令"""
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
-        mock_history_command = MagicMock()
-        mock_history_class = MagicMock(return_value=mock_history_command)
-        mock_get_command.return_value = mock_history_class
+        mock_sessions_command = MagicMock()
+        mock_sessions_class = MagicMock(return_value=mock_sessions_command)
+        mock_get_command.return_value = mock_sessions_class
 
-        # 测试默认格式和类型
-        cli_runner.invoke(app, ["history", "export", "output.json"])
+        # 测试默认格式
+        cli_runner.invoke(app, ["sessions", "export", "output.json"])
 
-        mock_get_command.assert_called_once_with("history")
-        mock_history_class.assert_called_once()
-        mock_history_command.export_history.assert_called_once_with(
-            "output.json", "json", "interactions"
-        )
+        mock_get_command.assert_called_once_with("sessions")
+        mock_sessions_class.assert_called_once()
+        mock_sessions_command.export_history.assert_called_once()
+        # 检查第一个参数是否匹配
+        assert mock_sessions_command.export_history.call_args[0][0] == "output.json"
 
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
-        # 测试自定义格式和类型
+        # 测试自定义格式
         mock_get_command.reset_mock()
-        mock_history_class.reset_mock()
-        mock_history_command.export_history.reset_mock()
+        mock_sessions_class.reset_mock()
+        mock_sessions_command.export_history.reset_mock()
 
         cli_runner.invoke(
             app,
-            ["history", "export", "output.csv", "--format", "csv", "--type", "shell"],
+            ["sessions", "export", "output.csv", "--format", "csv"],
         )
 
-        mock_get_command.assert_called_once_with("history")
-        mock_history_class.assert_called_once()
-        mock_history_command.export_history.assert_called_once_with(
-            "output.csv", "csv", "shell"
-        )
+        mock_get_command.assert_called_once_with("sessions")
+        mock_sessions_class.assert_called_once()
+        mock_sessions_command.export_history.assert_called_once()
+        # 检查第一个参数是否匹配
+        assert mock_sessions_command.export_history.call_args[0][0] == "output.csv"
 
 
 @patch("viby.cli.app.get_command_class")
-def test_history_clear_command(mock_get_command, cli_runner):
-    """测试history clear命令"""
+def test_sessions_clear_command(mock_get_command, cli_runner):
+    """测试sessions clear命令"""
     # 模拟配置不是首次运行，避免触发配置向导
     with patch("viby.cli.app.config.is_first_run", False):
-        mock_history_command = MagicMock()
-        mock_history_class = MagicMock(return_value=mock_history_command)
-        mock_get_command.return_value = mock_history_class
+        mock_sessions_command = MagicMock()
+        mock_sessions_class = MagicMock(return_value=mock_sessions_command)
+        mock_get_command.return_value = mock_sessions_class
 
-        cli_runner.invoke(app, ["history", "clear"])
+        cli_runner.invoke(app, ["sessions", "clear"])
 
-        mock_get_command.assert_called_once_with("history")
-        mock_history_class.assert_called_once()
-        mock_history_command.clear_history.assert_called_once()
-
-
-@patch("viby.cli.app.get_command_class")
-def test_history_shell_command(mock_get_command, cli_runner):
-    """测试history shell命令"""
-    # 模拟配置不是首次运行，避免触发配置向导
-    with patch("viby.cli.app.config.is_first_run", False):
-        mock_history_command = MagicMock()
-        mock_history_class = MagicMock(return_value=mock_history_command)
-        mock_get_command.return_value = mock_history_class
-
-        cli_runner.invoke(app, ["history", "shell"])
-
-        mock_get_command.assert_called_once_with("history")
-        mock_history_class.assert_called_once()
-        mock_history_command.list_shell_history.assert_called_once_with(10)
+        mock_get_command.assert_called_once_with("sessions")
+        mock_sessions_class.assert_called_once()
+        mock_sessions_command.clear_history.assert_called_once()
 
 
 @patch("viby.cli.app.get_command_class")

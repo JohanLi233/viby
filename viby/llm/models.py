@@ -5,7 +5,7 @@ Model management for viby - handles interactions with LLM providers
 from typing import Dict, Any, List
 from viby.config import config
 from viby.locale import get_text
-from viby.utils.history import HistoryManager
+from viby.utils.history import SessionManager
 from viby.utils.logging import get_logger
 from viby.llm.compaction import CompactionManager
 from viby.llm.client import create_openai_client
@@ -96,8 +96,8 @@ class ModelManager:
         self.use_fast_model = args.get("fast", False)
         self.track_tokens = args.get("tokens", False)
         self.token_tracker = TokenTracker() if self.track_tokens else None
-        # 历史管理器
-        self.history_manager = HistoryManager()
+        # 会话管理器
+        self.session_manager = SessionManager()
         # 当前用户输入（用于历史记录）
         self.current_user_input = None
         # 当前交互会话ID，用于标识一次完整的用户交互
@@ -193,7 +193,7 @@ class ModelManager:
             and self.interaction_id
         ):
             # 记录当前交互，并标记为已记录
-            self.history_manager.add_interaction(
+            self.session_manager.add_interaction(
                 self.current_user_input,
                 full_response,
                 metadata={"interaction_id": self.interaction_id},
