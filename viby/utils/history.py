@@ -132,11 +132,15 @@ class SessionManager:
             # 紧急情况下创建一个新会话
             return self.create_session("紧急会话", "系统恢复创建的会话")
 
-    def create_session(self, name: str, description: Optional[str] = None) -> str:
-        """创建新的会话"""
+    def create_session(self, name: str = None, description: Optional[str] = None) -> str:
+        """创建新的会话，如果名称为空则使用默认名称"""
         try:
             with self._db_connection() as conn:
                 cursor = conn.cursor()
+
+                # 如果未提供名称，生成默认名称
+                if not name:
+                    name = self._generate_default_session_name()
 
                 session_id = str(uuid.uuid4())
                 current_time = datetime.now().isoformat()
@@ -375,7 +379,7 @@ class SessionManager:
             return []
 
     def clear_history(self, session_id: Optional[str] = None) -> bool:
-        """清除指定会话的历史记录"""
+        """清除指定会话的历史记录，并重置ID自增器"""
         try:
             with self._db_connection() as conn:
                 cursor = conn.cursor()
@@ -386,13 +390,31 @@ class SessionManager:
 
                 # 删除指定会话的交互历史
                 cursor.execute("DELETE FROM history WHERE session_id = ?", (session_id,))
+                
+                # 重置自增器
+                cursor.execute("DELETE FROM sqlite_sequence WHERE name='history'")
+                
                 conn.commit()
                 
-                logger.info(f"已清除会话 {session_id} 的历史记录")
+                logger.info(f"已清除会话 {session_id} 的历史记录并重置ID")
                 return True
         except sqlite3.Error as e:
             logger.error(f"清除历史记录失败: {e}")
             return False
+            
+    def _generate_default_session_name(self) -> str:
+        """生成默认会话名称 (会话+数字)"""
+        try:
+            with self._db_connection() as conn:
+                cursor = conn.cursor()
+                # 获取会话数量作为新会话的编号
+                cursor.execute("SELECT COUNT(*) FROM sessions")
+                count = cursor.fetchone()[0] + 1
+                return f"会话{count}"
+        except sqlite3.Error as e:
+            logger.error(f"生成默认会话名称失败: {e}")
+            # 使用时间戳作为备用名称方案
+            return f"会话{datetime.now().strftime('%m%d%H%M')}"
 
     def export_history(
         self,

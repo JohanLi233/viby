@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 from rich.table import Table
 from rich.console import Console
-from rich.prompt import Confirm
+from rich.prompt import Confirm, Prompt
 from rich.progress import Progress
 
 from viby.utils.history import SessionManager
@@ -107,26 +107,31 @@ class SessionsCommand:
         self.console.print(table)
         return 0
     
-    def create_session(self, name: str, description: str = None) -> int:
+    def create_session(self, name: str = None, description: str = None) -> int:
         """
-        创建新会话
+        创建新的会话，如果名称为空使用默认命名方案
 
         Args:
-            name: 会话名称
-            description: 会话描述
+            name: 会话名称，可选
+            description: 会话描述，可选
 
         Returns:
             命令退出码
         """
-        if not name:
-            print_markdown(get_text("SESSIONS", "session_name_required"), "error")
-            return 1
-        
+        # 传入原始name参数，让session_manager负责生成默认名称
         session_id = self.session_manager.create_session(name, description)
         
         if session_id:
+            # 获取创建的会话实际名称
+            sessions = self.session_manager.get_sessions()
+            session = next((s for s in sessions if s["id"] == session_id), None)
+            if session:
+                session_name = session["name"]
+            else:
+                session_name = name or "New Session"  # 防御性编程
+                
             print_markdown(
-                get_text("SESSIONS", "create_session_success").format(name, session_id),
+                get_text("SESSIONS", "create_session_success").format(session_name, session_id),
                 "success"
             )
             return 0
@@ -134,17 +139,44 @@ class SessionsCommand:
             print_markdown(get_text("SESSIONS", "create_session_failed"), "error")
             return 1
     
-    def set_active_session(self, session_id: str) -> int:
+    def set_active_session(self, session_id: str = None) -> int:
         """
         设置活跃会话
 
         Args:
-            session_id: 会话ID
+            session_id: 会话ID，如未提供则显示交互式选择
 
         Returns:
             命令退出码
         """
         sessions = self.session_manager.get_sessions()
+        
+        if not sessions:
+            print_markdown(get_text("SESSIONS", "no_sessions"), "error")
+            return 1
+            
+        # 如果未提供会话ID，显示交互式选择
+        if not session_id:
+            # 创建选项列表
+            options = {}
+            for i, session in enumerate(sessions, 1):
+                is_active = "✓" if session["is_active"] == 1 else " "
+                options[str(i)] = f"{is_active} {session['name']} ({session['id']})"
+                
+            # 显示选项
+            self.console.print(get_text("SESSIONS", "select_session"))
+            for key, value in options.items():
+                self.console.print(f"[cyan]{key}[/cyan]: {value}")
+                
+            # 获取用户选择
+            choice = Prompt.ask(
+                get_text("SESSIONS", "enter_selection"),
+                choices=list(options.keys()),
+                show_choices=False
+            )
+            
+            # 获取所选会话ID
+            session_id = sessions[int(choice) - 1]["id"]
         
         # 验证会话ID是否存在
         session = next((s for s in sessions if s["id"] == session_id), None)
@@ -204,17 +236,44 @@ class SessionsCommand:
             print_markdown(get_text("SESSIONS", "session_rename_failed"), "error")
             return 1
     
-    def delete_session(self, session_id: str) -> int:
+    def delete_session(self, session_id: str = None) -> int:
         """
         删除会话及其历史记录
 
         Args:
-            session_id: 会话ID
+            session_id: 会话ID，如未提供则显示交互式选择
 
         Returns:
             命令退出码
         """
         sessions = self.session_manager.get_sessions()
+        
+        if not sessions:
+            print_markdown(get_text("SESSIONS", "no_sessions"), "error")
+            return 1
+            
+        # 如果未提供会话ID，显示交互式选择
+        if not session_id:
+            # 创建选项列表
+            options = {}
+            for i, session in enumerate(sessions, 1):
+                is_active = "✓" if session["is_active"] == 1 else " "
+                options[str(i)] = f"{is_active} {session['name']} ({session['id']})"
+                
+            # 显示选项
+            self.console.print(get_text("SESSIONS", "select_session_delete"))
+            for key, value in options.items():
+                self.console.print(f"[cyan]{key}[/cyan]: {value}")
+                
+            # 获取用户选择
+            choice = Prompt.ask(
+                get_text("SESSIONS", "enter_selection"),
+                choices=list(options.keys()),
+                show_choices=False
+            )
+            
+            # 获取所选会话ID
+            session_id = sessions[int(choice) - 1]["id"]
         
         # 验证会话ID是否存在
         session = next((s for s in sessions if s["id"] == session_id), None)
@@ -436,12 +495,14 @@ def cli_list():
 
 @app.command("create")
 def cli_create(
-    name: str = typer.Argument(..., help=get_text("SESSIONS", "session_name_help")),
+    name: str = typer.Option(
+        None, "--name", "-n", help=get_text("SESSIONS", "session_name_help")
+    ),
     description: str = typer.Option(
         None, "--description", "-d", help=get_text("SESSIONS", "session_description_help")
     ),
 ):
-    """创建新会话。"""
+    """创建新会话。如果不指定名称则使用自动生成的名称。"""
     code = SessionsCommand().create_session(name, description)
     raise typer.Exit(code=code)
 

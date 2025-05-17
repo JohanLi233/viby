@@ -340,7 +340,9 @@ def sessions_list():
 
 @sessions_app.command("create")
 def sessions_create(
-    name: str = typer.Argument(..., help=get_text("SESSIONS", "session_name_help")),
+    name: str = typer.Option(
+        None, "--name", "-n", help=get_text("SESSIONS", "session_name_help")
+    ),
     description: str = typer.Option(
         None,
         "--description",
@@ -348,19 +350,19 @@ def sessions_create(
         help=get_text("SESSIONS", "session_description_help"),
     ),
 ):
-    """创建新会话。"""
-    SessionsCommand = get_command_class("sessions")
-    code = SessionsCommand().create_session(name, description)
+    """创建新会话。如果不指定名称则使用自动生成的名称。"""
+    command_class = get_command_class("sessions")
+    code = command_class().create_session(name, description)
     raise typer.Exit(code=code)
 
 
 @sessions_app.command("activate")
 def sessions_activate(
     session_id: str = typer.Argument(
-        ..., help=get_text("SESSIONS", "session_id_activate_help")
+        None, help=get_text("SESSIONS", "session_id_activate_help")
     ),
 ):
-    """设置活跃会话。"""
+    """设置活跃会话。如果不指定会话ID则显示选择列表。"""
     SessionsCommand = get_command_class("sessions")
     code = SessionsCommand().set_active_session(session_id)
     raise typer.Exit(code=code)
@@ -380,10 +382,10 @@ def sessions_rename(
 @sessions_app.command("delete")
 def sessions_delete(
     session_id: str = typer.Argument(
-        ..., help=get_text("SESSIONS", "session_id_delete_help")
+        None, help=get_text("SESSIONS", "session_id_delete_help")
     ),
 ):
-    """删除会话及其历史记录。"""
+    """删除会话及其历史记录。如果不指定会话ID则显示选择列表。"""
     SessionsCommand = get_command_class("sessions")
     code = SessionsCommand().delete_session(session_id)
     raise typer.Exit(code=code)

@@ -140,14 +140,17 @@ HISTORY:
   response: 回复
   search_results: 搜索结果：'{0}'
   search_term_required: 必须提供搜索关键词。
+  select_session: "请选择要激活的会话:"
+  select_session_delete: "请选择要删除的会话:"
+  enter_selection: "请输入选项编号"
   session_activated: 已将会话 '{0}' 设为活跃
   session_activation_failed: 设置活跃会话失败
   session_already_active: 会话 '{0}' 已经是活跃状态
   session_delete_failed: 删除会话失败
   session_deleted: 已删除会话 '{0}' 及其所有历史记录
   session_description_help: 会话描述（可选）
-  session_id_activate_help: 要激活的会话ID
-  session_id_delete_help: 要删除的会话ID
+  session_id_activate_help: "要激活的会话ID（如不指定将显示选择列表）"
+  session_id_delete_help: "要删除的会话ID（如不指定将显示选择列表）"
   session_id_help: 指定会话ID（默认为当前活跃会话）
   session_name_help: 会话名称
   session_name_required: 请提供会话名称
@@ -377,8 +380,8 @@ SESSIONS:
   session_delete_failed: 删除会话失败
   session_deleted: 已删除会话 '{0}' 及其所有历史记录
   session_description_help: 会话描述（可选）
-  session_id_activate_help: 要激活的会话ID
-  session_id_delete_help: 要删除的会话ID
+  session_id_activate_help: "要激活的会话ID（如不指定将显示选择列表）"
+  session_id_delete_help: "要删除的会话ID（如不指定将显示选择列表）"
   session_id_help: 指定会话ID（默认为当前活跃会话）
   session_name_help: 会话名称
   session_name_required: 请提供会话名称
