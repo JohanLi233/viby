@@ -140,25 +140,6 @@ yb tools list
 yb tools embed stop
 ```
 
-### 历史记录管理
-
-```sh
-# 查看最近的交互
-yb history list
-
-# 搜索历史记录
-yb history search "python"
-
-# 导出交互历史
-yb history export history.json
-
-# 查看Shell命令历史
-yb history shell
-
-# 清除历史记录（需确认）
-yb history clear
-```
-
 ### 自动使用 MCP 工具
 
 ```sh

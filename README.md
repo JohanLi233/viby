@@ -143,25 +143,6 @@ yb tools list
 yb tools embed stop
 ```
 
-### History Management
-
-```sh
-# View recent interactions
-yb history list
-
-# Search your history
-yb history search "python"
-
-# Export your interaction history
-yb history export history.json
-
-# View shell command history
-yb history shell
-
-# Clear history (with confirmation)
-yb history clear
-```
-
 ### Automatically Use MCP Tools When Needed
 
 ```sh
