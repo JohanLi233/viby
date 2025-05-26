@@ -257,7 +257,7 @@ wheels = [
 
 [[package]]
 name = "fastmcp"
-version = "2.4.0"
+version = "2.5.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "exceptiongroup" },
@@ -269,9 +269,9 @@ dependencies = [
     { name = "typer" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/50/11/2ccd6219eb65692a298e764fa84a15fd756e03c811c7ea217129d6ca545f/fastmcp-2.4.0.tar.gz", hash = "sha256:a08d812939d16c0d4490bdbdaf17ab136f1bdaa8ddcc14a37e33335727343c05", size = 1020290, upload-time = "2025-05-21T19:58:46.836Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5d/cc/37ff3a96338234a697df31d2c70b50a1d0f5e20f045d9b7cbba052be36af/fastmcp-2.5.1.tar.gz", hash = "sha256:0d10ec65a362ae4f78bdf3b639faf35b36cc0a1c8f5461a54fac906fe821b84d", size = 1035613, upload-time = "2025-05-24T11:48:27.873Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ab/a4/26396706c1b48ebd051da4f7d321594207364077a5c308827722536b927c/fastmcp-2.4.0-py3-none-any.whl", hash = "sha256:fccd0768028a31eec488707fb6bbe4f8659f84ca0c206c4c32dd33947c0faae9", size = 101108, upload-time = "2025-05-21T19:58:45.738Z" },
+    { url = "https://files.pythonhosted.org/packages/df/4f/e7ec7b63eadcd5b10978dbc472fc3c36de3fc8c91f60ad7642192ed78836/fastmcp-2.5.1-py3-none-any.whl", hash = "sha256:a6fe50693954a6aed89fc6e43f227dcd66e112e3d3a1d633ee22b4f435ee8aed", size = 105789, upload-time = "2025-05-24T11:48:26.371Z" },
 ]
 
 [[package]]
